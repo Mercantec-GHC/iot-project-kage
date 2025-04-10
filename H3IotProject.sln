@@ -5,6 +5,12 @@ VisualStudioVersion = 17.12.35707.178 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotProject.BlazorDashboard", "IotProject.BlazorDashboard\IotProject.BlazorDashboard.csproj", "{C6DE0C00-BF1E-4069-963C-F2004C6DB23A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotProject.API", "IotProject.API\IotProject.API.csproj", "{C4EBA0E6-BB83-4C0F-8BC6-9E29F0F68E9A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{8891851C-25E8-43DF-BA46-25204174EC8A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{545E85A9-FAC7-4F1C-960C-6D530601F583}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,8 +21,16 @@ Global
 		{C6DE0C00-BF1E-4069-963C-F2004C6DB23A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6DE0C00-BF1E-4069-963C-F2004C6DB23A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6DE0C00-BF1E-4069-963C-F2004C6DB23A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4EBA0E6-BB83-4C0F-8BC6-9E29F0F68E9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4EBA0E6-BB83-4C0F-8BC6-9E29F0F68E9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4EBA0E6-BB83-4C0F-8BC6-9E29F0F68E9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4EBA0E6-BB83-4C0F-8BC6-9E29F0F68E9A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C6DE0C00-BF1E-4069-963C-F2004C6DB23A} = {545E85A9-FAC7-4F1C-960C-6D530601F583}
+		{C4EBA0E6-BB83-4C0F-8BC6-9E29F0F68E9A} = {8891851C-25E8-43DF-BA46-25204174EC8A}
 	EndGlobalSection
 EndGlobal
