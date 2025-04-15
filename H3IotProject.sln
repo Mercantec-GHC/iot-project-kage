@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotProject.BlazorDashboard", "IotProject.BlazorDashboard\IotProject.BlazorDashboard.csproj", "{C6DE0C00-BF1E-4069-963C-F2004C6DB23A}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{8891851C-25E8-43DF-BA46-25204174EC8A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{545E85A9-FAC7-4F1C-960C-6D530601F583}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{116017EA-95A3-46E0-95E5-2D2C2727DAD8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,6 +27,10 @@ Global
 		{C4EBA0E6-BB83-4C0F-8BC6-9E29F0F68E9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4EBA0E6-BB83-4C0F-8BC6-9E29F0F68E9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4EBA0E6-BB83-4C0F-8BC6-9E29F0F68E9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{116017EA-95A3-46E0-95E5-2D2C2727DAD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{116017EA-95A3-46E0-95E5-2D2C2727DAD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{116017EA-95A3-46E0-95E5-2D2C2727DAD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{116017EA-95A3-46E0-95E5-2D2C2727DAD8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
