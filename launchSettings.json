@@ -4,7 +4,8 @@
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
       "serviceActions": {
-        "iotproject.blazordashboard": "StartDebugging"
+        "iotproject.blazordashboard": "StartDebugging",
+        "iotproject.api": "StartDebugging"
       }
     }
   }
