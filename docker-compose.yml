@@ -5,12 +5,14 @@ services:
       context: .
       dockerfile: IotProject.BlazorDashboard/Dockerfile
     ports:
-        - 6969:8080
+      - 6969:8080
 
   iotproject.api:
     image: ${DOCKER_REGISTRY-}iotprojectapi
     build:
       context: .
       dockerfile: IotProject.API/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
     ports:
-        - 6970:8080
+      - 6970:8080
