@@ -17,5 +17,6 @@ services:
       - JWT_ISSUER=${JWT_ISSUER}
       - JWT_AUDIENCE=${JWT_AUDIENCE}
       - JWT_SECRET=${JWT_SECRET}
+      - DB_CONNECTIONSTRING=${DB_CONNECTIONSTRING}
     ports:
       - 6970:8080
