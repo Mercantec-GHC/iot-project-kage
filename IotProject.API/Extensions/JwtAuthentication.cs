@@ -17,15 +17,19 @@ namespace Microsoft.Extensions.DependencyInjection
             }).AddJwtBearer(options =>
             {
                 var JWT = configuration.GetSection("JWT");
+                var Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? JWT["Issuer"];
+                var Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? JWT["Audience"];
+                var Secret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? JWT["Secret"];
+                
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = JWT["Issuer"],
-                    ValidAudience = JWT["Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWT["Secret"]!))
+                    ValidIssuer = Issuer,
+                    ValidAudience = Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Secret!))
                 };
             });
             return services;
