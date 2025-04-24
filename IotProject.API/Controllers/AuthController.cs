@@ -5,6 +5,7 @@ using IotProject.API.Data;
 using IotProject.Shared.Models.Database;
 using IotProject.Shared.Models.Requests;
 using IotProject.Shared.Models.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -62,6 +63,21 @@ namespace IotProject.API.Controllers
             var token = GenerateJwtToken(user);
             
             return Ok(new UserLoginResponse(token, 1800, ":-)", Message: "User successfully logged in.")); // ":-)" to be replaced by proper refresh token.
+        }
+
+        [HttpGet("Me"), Authorize]
+        public async Task<ActionResult<UserMeResponse>> Me()
+        {
+            // Attempts to find the current user from the controller user context.
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return StatusCode(500);
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return StatusCode(500);
+
+            // Creates an empty list of roles.
+            var Roles = new List<string>();
+
+            return Ok(new UserMeResponse(user.Id, user.FirstName, user.LastName, user.Email, Roles));
         }
 
         // Checks if the password is valid using RegEx.
