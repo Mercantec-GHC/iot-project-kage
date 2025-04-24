@@ -1,4 +1,3 @@
-
 using IotProject.API.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +17,7 @@ namespace IotProject.API
             // Add services to the container.
             builder.Services.AddDbContext<AppDbContext>(
                 options => options.UseNpgsql(
-                    builder.Configuration.GetConnectionString("DefaultConnection")));
+                    Environment.GetEnvironmentVariable("DB_CONNECTIONSTRING") ?? builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddJwtAuthentication(builder.Configuration);
 
