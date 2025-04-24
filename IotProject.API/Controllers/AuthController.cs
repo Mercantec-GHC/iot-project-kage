@@ -127,9 +127,12 @@ namespace IotProject.API.Controllers
         private string GenerateJwtToken(User user)
         {
             var JWT = configuration.GetSection("JWT"); // Fetches JWT section from the configuration.
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWT["Secret"]!)); // Builds a symmectric security key using the JWT secret.
+            var Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? JWT["Issuer"];
+            var Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? JWT["Audience"];
+            var Secret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? JWT["Secret"];
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Secret!)); // Builds a symmectric security key using the JWT secret.
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256); // Builds signature for the key using HmacSha256 algorithm.
-            
+
             // Creates list of claims for the user.
             var claims = new List<Claim> 
             {
@@ -141,8 +144,8 @@ namespace IotProject.API.Controllers
 
             // Builds the JWT token from the given objects.
             var token = new JwtSecurityToken(
-                issuer: JWT["Issuer"],
-                audience: JWT["Audience"],
+                issuer: Issuer,
+                audience: Audience,
                 claims: claims,
                 expires: DateTime.Now.AddMinutes(30),
                 signingCredentials: creds);

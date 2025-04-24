@@ -14,5 +14,8 @@ services:
       dockerfile: IotProject.API/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}
+      - JWT_SECRET=${JWT_SECRET}
     ports:
       - 6970:8080
