@@ -1,6 +1,8 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using IotProject.API.Data;
 using IotProject.Shared.Models.Database;
 using IotProject.Shared.Models.Requests;
@@ -60,9 +62,51 @@ namespace IotProject.API.Controllers
             if (!BCrypt.Net.BCrypt.Verify(requestModel.Password, user.Password)) return BadRequest("Incorrect password!");
 
             // Generates a JWT token for the given user.
-            var token = GenerateJwtToken(user);
-            
-            return Ok(new UserLoginResponse(token, 1800, ":-)", Message: "User successfully logged in.")); // ":-)" to be replaced by proper refresh token.
+            var jwtToken = GenerateJwtToken(user);
+
+            // Generates a unique token to be used instead of the users email and password, with a lifetime of 7 days.
+            var refreshToken = await GenerateRefreshToken();
+            context.RefreshTokens.Add(new RefreshToken
+            {
+                Id = refreshToken,
+                UserId = user.Id,
+                ExpiryDate = DateTime.UtcNow.AddDays(7),
+                IsRevoked = false
+            });
+            await context.SaveChangesAsync();
+
+            return Ok(new UserLoginResponse(jwtToken, 1800, refreshToken, Message: "User successfully logged in."));
+        }
+
+        [HttpPost("Refresh")]
+        public async Task<ActionResult<UserLoginResponse>> Refresh(UserRefreshRequest requestModel)
+        {
+            // Finds the Refresh token and includes the User object.
+            var token = await context.RefreshTokens.Where(t => t.Id == requestModel.Token)
+                .Include(t => t.User)
+                .FirstOrDefaultAsync();
+            if (token == null || token.User == null) return BadRequest(string.Empty);
+            if (token.IsRevoked) return BadRequest("Refresh token has already been used.");
+            if (token.ExpiryDate < DateTime.UtcNow) return BadRequest("Refresh token has expired.");
+
+            // Marks the Refresh token as used.
+            token.IsRevoked = true;
+
+            // Generates a JWT token for the given user.
+            var jwtToken = GenerateJwtToken(token.User);
+
+            // Generates a unique token to be used instead of the users email and password, with a lifetime of 7 days.
+            var refreshToken = await GenerateRefreshToken();
+            context.RefreshTokens.Add(new RefreshToken
+            {
+                Id = refreshToken,
+                UserId = token.User.Id,
+                ExpiryDate = DateTime.UtcNow.AddDays(7),
+                IsRevoked = false
+            });
+            await context.SaveChangesAsync();
+
+            return Ok(new UserLoginResponse(jwtToken, 1800, refreshToken, Message: "User successfully logged in."));
         }
 
         [HttpGet("Me"), Authorize]
@@ -74,13 +118,14 @@ namespace IotProject.API.Controllers
             var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) return StatusCode(500);
 
-            // Creates an empty list of roles.
-            var Roles = new List<string>();
-
-            return Ok(new UserMeResponse(user.Id, user.FirstName, user.LastName, user.Email, Roles));
+            return Ok(new UserMeResponse(user.Id, user.FirstName, user.LastName, user.Email, user.Role.ToString()));
         }
 
-        // Checks if the password is valid using RegEx.
+        /// <summary>
+        /// Checks if the password is secure, using <see cref="Regex"/>.
+        /// </summary>
+        /// <param name="password"></param>
+        /// <returns><see cref="bool"/> of true, if the given password is secure.</returns>
         private bool IsPasswordSecure(string password)
         {
             if (string.IsNullOrEmpty(password)) return false;
@@ -93,11 +138,15 @@ namespace IotProject.API.Controllers
             // (?=.*[\W_])     - Asserts that there is at least one special character (non-word character or underscore).
             // [^\s]{8,}       - Ensures the string is at least 8 characters long and does not contain any whitespace.
             // $               - Ensures the match ends at the end of the string.
-            var regex = new System.Text.RegularExpressions.Regex(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_])[^\s]{8,}$");
+            var regex = new Regex(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_])[^\s]{8,}$");
             return regex.IsMatch(password);
         }
 
-        // Checks if the email is valid using RegEx.
+        /// <summary>
+        /// Checks if the email is valid, using <see cref="Regex"/>.
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns><see cref="bool"/> of true, if the given email is valid.</returns>
         private bool IsValidEmail(string email)
         {
             if (string.IsNullOrEmpty(email)) return false;
@@ -109,11 +158,14 @@ namespace IotProject.API.Controllers
             // [a-zA-Z0-9.-]+     - Matches the domain name (letters, digits, dots, and hyphens).
             // \.                 - Matches the dot before the domain extension.
             // [a-zA-Z]{2,}$      - Matches the domain extension (at least 2 letters).
-            var regex = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+            var regex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
             return regex.IsMatch(email);
         }
          
-        // Generates a GUID for the userID, checks if GUID exists in the database.
+        /// <summary>
+        /// Generates a GUID for the userID, checks if GUID exists in the database.
+        /// </summary>
+        /// <returns>A unique id not already used</returns>
         private async Task<string> GenerateUserID()
         {
             while (true)
@@ -123,7 +175,11 @@ namespace IotProject.API.Controllers
             }
         }
 
-        // Generates a JWT token for a user, and returns the token as a string.
+        /// <summary>
+        /// Generates a JWT token for a user, and returns the token as a string.
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns>A new JWT Token for the User.</returns>
         private string GenerateJwtToken(User user)
         {
             var JWT = configuration.GetSection("JWT"); // Fetches JWT section from the configuration.
@@ -139,7 +195,8 @@ namespace IotProject.API.Controllers
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim("Email", user.Email),
                 new Claim("FirstName", user.FirstName),
-                new Claim("LastName", user.LastName)
+                new Claim("LastName", user.LastName),
+                new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
             // Builds the JWT token from the given objects.
@@ -152,6 +209,24 @@ namespace IotProject.API.Controllers
                 
             // Returns the token as a string.
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        /// <summary>
+        /// Generates a new random 32 byte number to be used as the Id for the refresh token.
+        /// </summary>
+        /// <returns>The created Refresh Token.</returns>
+        private async Task<string> GenerateRefreshToken()
+        {
+            while (true)
+            {
+                var randomNumber = new byte[32];
+                using (var rng = RandomNumberGenerator.Create())
+                {
+                    rng.GetBytes(randomNumber);
+                    var token = Convert.ToBase64String(randomNumber);
+                    if (await context.RefreshTokens.FindAsync(token) == null) return token;
+                }
+            }
         }
     }
 }
