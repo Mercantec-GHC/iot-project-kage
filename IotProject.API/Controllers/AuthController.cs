@@ -14,7 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace IotProject.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class AuthController(AppDbContext context, IConfiguration configuration) : ControllerBase
     {
