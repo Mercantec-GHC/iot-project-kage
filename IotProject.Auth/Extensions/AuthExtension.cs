@@ -1,10 +1,30 @@
-﻿namespace Microsoft.Extensions.DependencyInjection
+﻿using Blazored.LocalStorage;
+using IotProject.Auth.Services;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Configuration;
+
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class AuthExtension
     {
-        public static IServiceCollection AddJwtAuth(this IServiceCollection services)
+        public static IServiceCollection AddJwtAuth(this IServiceCollection services, IConfiguration configuration)
         {
-            // Add stuff here...
+            services.AddBlazoredLocalStorage();
+            services.AddCascadingAuthenticationState();
+            services.AddAuthorizationCore();
+            services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+            services.AddScoped<AuthService>();
+
+            services.AddHttpClient<AuthService>(options =>
+            {
+                options.BaseAddress = new Uri(Environment.GetEnvironmentVariable("API_URL")! ?? configuration.GetConnectionString("ApiUrl")!);
+            }).ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                return new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                };
+            });
 
             return services;
         }
