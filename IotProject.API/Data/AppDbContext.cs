@@ -6,6 +6,7 @@ namespace IotProject.API.Data
     public class AppDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Device> Devices { get; set; }
         public DbSet<DeviceData> DeviceData { get; set; }
@@ -39,6 +40,11 @@ namespace IotProject.API.Data
                 .WithMany(d => d.Data)
                 .HasForeignKey(dd => dd.DeviceId)
                 .HasPrincipalKey(d => d.Id);
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId);
         }
     }
 }
