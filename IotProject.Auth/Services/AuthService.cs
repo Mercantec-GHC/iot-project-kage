@@ -1,4 +1,5 @@
 ﻿using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using IotProject.Shared.Models.Requests;
 using System.Text.Json;
@@ -7,8 +8,10 @@ using IotProject.Shared.Models.Responses;
 
 namespace IotProject.Auth.Services
 {
-    public class AuthService(HttpClient httpClient, ILocalStorageService localStorage, AuthenticationStateProvider authenticationStateProvider)
+    public class AuthService(HttpClient httpClient, ILocalStorageService localStorage, ISessionStorageService sessionStorage, AuthenticationStateProvider authenticationStateProvider)
     {
+        private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
         public async Task<bool> Login(UserLoginRequest request)
         {
             var loginAsJson = JsonSerializer.Serialize(request);
@@ -18,8 +21,8 @@ namespace IotProject.Auth.Services
                 return false;
             }
 
-            var loginResult = JsonSerializer.Deserialize<UserLoginResponse>(await response.Content.ReadAsStringAsync(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            await localStorage.SetItemAsync("JwtToken", loginResult.Token);
+            var loginResult = JsonSerializer.Deserialize<UserLoginResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
+            await localStorage.SetItemAsync("JwtToken", loginResult!.Token);
             await localStorage.SetItemAsync("RefreshToken", loginResult.RefreshToken);
             ((CustomAuthenticationStateProvider)authenticationStateProvider).MarkUserAsAuthenticated(loginResult.Token);
             
@@ -32,5 +35,17 @@ namespace IotProject.Auth.Services
             await localStorage.RemoveItemAsync("RefreshToken");
             ((CustomAuthenticationStateProvider)authenticationStateProvider).MarkUserAsLoggedOut();
         }
+
+        public async Task<UserCreateResponse?> Register(UserCreateRequest request)
+        {
+            var createAsJson = JsonSerializer.Serialize(request);
+            var response = await httpClient.PostAsync("auth/register", new StringContent(createAsJson, Encoding.UTF8, "application/json"));
+			if (!response.IsSuccessStatusCode)
+			{
+                return null;
+			}
+
+            return JsonSerializer.Deserialize<UserCreateResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
+		}
     }
 }
