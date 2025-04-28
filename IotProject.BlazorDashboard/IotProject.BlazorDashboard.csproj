@@ -10,7 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazor.Bootstrap" Version="3.3.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IotProject.Auth\IotProject.Auth.csproj" />
+    <ProjectReference Include="..\IotProject.Shared\IotProject.Shared.csproj" />
   </ItemGroup>
 
 </Project>

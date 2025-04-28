@@ -1,0 +1,26 @@
+﻿@page "/login"
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Login</PageTitle>
+
+<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+    <label for="loginInputEmail">Email</label>
+    <TextInput Id="loginInputEmail" @bind-Value="loginModel.Email" Placeholder="Email"/>
+    <label for="loginInputPassword">Password</label>
+    <PasswordInput Id="loginInputPassword" @bind-Value="loginModel.Password" />
+    <Button Type="ButtonType.Submit" Color="ButtonColor.Primary">Login</Button>
+</EditForm>
+
+@code {
+    private UserLoginRequest loginModel = new UserLoginRequest();
+
+    private async Task HandleLogin()
+    {
+        var isSuccess = await AuthService.Login(loginModel);
+        if(isSuccess)
+        {
+            NavigationManager.NavigateTo("/", true);
+        }
+    }
+}
