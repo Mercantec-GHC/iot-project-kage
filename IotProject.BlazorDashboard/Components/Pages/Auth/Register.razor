@@ -1,0 +1,41 @@
+﻿@page "/register"
+@inject NavigationManager NavigationManager
+@inject AuthService AuthService
+
+<h3>Register</h3>
+<EditForm Model="registerModel" OnValidSubmit="HandleSubmit">
+
+	<DataAnnotationsValidator />
+
+	<label for="InputFirstName">First name</label>
+	<TextInput Id="InputFirstName" @bind-Value="registerModel.FirstName"/>
+	<ValidationMessage For="@(() => registerModel.FirstName)"/>
+
+	<label for="InputLastName">Last name</label>
+	<TextInput Id="InputLastName" @bind-Value="registerModel.LastName"/>
+	<ValidationMessage For="@(() => registerModel.LastName)" />
+
+	<label for="InputEmail">Email</label>
+	<TextInput Id="InputEmail" @bind-Value="registerModel.Email"/>
+	<ValidationMessage For="@(() => registerModel.Email)" />
+
+	<label for="InputPassword">Password</label>
+	<TextInput Id="InputPassword" @bind-Value="registerModel.Password" />
+	<ValidationMessage For="@(() => registerModel.Password)" />
+
+	<label for="InputConfirmPassword">Confirm password</label>
+	<TextInput Id="InputConfirmPassword" @bind-Value="registerModel.ConfirmPassword" />
+	<ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
+
+	<Button Type="ButtonType.Submit">Register</Button>
+</EditForm>
+
+@code {
+	private UserCreateRequest registerModel = new();
+
+	private async Task HandleSubmit()
+	{
+		var result = await AuthService.Register(registerModel);
+		if (result != null) NavigationManager.NavigateTo("/login", true);
+	}
+}
