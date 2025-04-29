@@ -2,40 +2,96 @@
 @inject NavigationManager NavigationManager
 @inject AuthService AuthService
 
-<h3>Register</h3>
-<EditForm Model="registerModel" OnValidSubmit="HandleSubmit">
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h1>Create Account</h1>
+                <p>Welcome to our platform</p>
+            </div>
 
-	<DataAnnotationsValidator />
+            <div class="auth-content">
+                <EditForm Model="registerModel" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
 
-	<label for="InputFirstName">First name</label>
-	<TextInput Id="InputFirstName" @bind-Value="registerModel.FirstName"/>
-	<ValidationMessage For="@(() => registerModel.FirstName)"/>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First name</label>
+                            <div class="input-field">
+                                <TextInput Id="InputFirstName" @bind-Value="registerModel.FirstName" placeholder="First name"/>
+                            </div>
+                            <ValidationMessage For="@(() => registerModel.FirstName)" class="error-message"/>
+                        </div>
 
-	<label for="InputLastName">Last name</label>
-	<TextInput Id="InputLastName" @bind-Value="registerModel.LastName"/>
-	<ValidationMessage For="@(() => registerModel.LastName)" />
+                        <div class="form-group">
+                            <label>Last name</label>
+                            <div class="input-field">
+                                <TextInput Id="InputLastName" @bind-Value="registerModel.LastName" placeholder="Last name"/>
+                            </div>
+                            <ValidationMessage For="@(() => registerModel.LastName)" class="error-message"/>
+                        </div>
+                    </div>
 
-	<label for="InputEmail">Email</label>
-	<TextInput Id="InputEmail" @bind-Value="registerModel.Email"/>
-	<ValidationMessage For="@(() => registerModel.Email)" />
+                    <div class="form-group email-group">
+                        <label>Email</label>
+                        <div class="input-field">
+                            <TextInput Id="InputEmail" @bind-Value="registerModel.Email" placeholder="Email"/>
+                        </div>
+                        <ValidationMessage For="@(() => registerModel.Email)" class="error-message"/>
+                    </div>
 
-	<label for="InputPassword">Password</label>
-	<TextInput Id="InputPassword" @bind-Value="registerModel.Password" />
-	<ValidationMessage For="@(() => registerModel.Password)" />
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Password</label>
+                            <div class="input-field">
+                                <TextInput Id="InputPassword" @bind-Value="registerModel.Password" type="@passwordType" placeholder="Password"/>
+                                <button type="button" class="password-toggle" @onclick="TogglePasswordVisibility">
+                                    <i class="bi @passwordIcon"></i>
+                                </button>
+                            </div>
+                            <ValidationMessage For="@(() => registerModel.Password)" class="error-message"/>
+                        </div>
 
-	<label for="InputConfirmPassword">Confirm password</label>
-	<TextInput Id="InputConfirmPassword" @bind-Value="registerModel.ConfirmPassword" />
-	<ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
+                        <div class="form-group">
+                            <label>Confirm password</label>
+                            <div class="input-field">
+                                <TextInput Id="InputConfirmPassword" @bind-Value="registerModel.ConfirmPassword" type="@passwordType" placeholder="Password"/>
+                            </div>
+                            <ValidationMessage For="@(() => registerModel.ConfirmPassword)" class="error-message"/>
+                        </div>
+                    </div>
 
-	<Button Type="ButtonType.Submit">Register</Button>
-</EditForm>
+                    <button type="submit" class="submit-btn">
+                        <span>Create Account</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </EditForm>
+            </div>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="/login">Sign in</a></p>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
-	private UserCreateRequest registerModel = new();
+    private UserCreateRequest registerModel = new();
+    private string passwordType = "password";
+    private string passwordIcon = "bi-eye";
 
-	private async Task HandleSubmit()
-	{
-		var result = await AuthService.Register(registerModel);
-		if (result != null) NavigationManager.NavigateTo("/login", true);
-	}
+    private void TogglePasswordVisibility()
+    {
+        passwordType = passwordType == "password" ? "text" : "password";
+        passwordIcon = passwordIcon == "bi-eye" ? "bi-eye-slash" : "bi-eye";
+    }
+
+    private async Task HandleSubmit()
+    {
+        var result = await AuthService.Register(registerModel);
+        if (result != null) NavigationManager.NavigateTo("/login", true);
+    }
 }
