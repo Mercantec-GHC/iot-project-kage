@@ -1,4 +1,5 @@
 ﻿@inject NavigationManager NavigationManager
+@inject AuthService AuthService
 
 <CascadingAuthenticationState>
     <Router AppAssembly="typeof(Program).Assembly" OnNavigateAsync="HandleNavigationAsync">
@@ -22,6 +23,6 @@
 @code {
     private async Task HandleNavigationAsync(NavigationContext context)
     {
-        
+        await AuthService.ConfirmTokens();
     }
 }
