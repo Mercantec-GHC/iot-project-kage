@@ -1,4 +1,5 @@
 ﻿using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using IotProject.Auth.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +11,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddJwtAuth(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddBlazoredLocalStorage();
+            services.AddBlazoredSessionStorage();
             services.AddCascadingAuthenticationState();
             services.AddAuthorizationCore();
             services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
