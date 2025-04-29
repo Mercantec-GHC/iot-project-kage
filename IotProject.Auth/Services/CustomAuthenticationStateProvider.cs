@@ -1,11 +1,12 @@
 ﻿using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace IotProject.Auth.Services
 {
-    public class CustomAuthenticationStateProvider(HttpClient httpClient, ILocalStorageService localStorage) : AuthenticationStateProvider
+    public class CustomAuthenticationStateProvider(ILocalStorageService localStorage, ISessionStorageService sessionStorage) : AuthenticationStateProvider
     {
         private static AuthenticationState Anonymous => new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
 
@@ -16,7 +17,11 @@ namespace IotProject.Auth.Services
                 var savedToken = await localStorage.GetItemAsync<string>("JwtToken");
                 if (string.IsNullOrWhiteSpace(savedToken))
                 {
-                    return Anonymous;
+                    savedToken = await sessionStorage.GetItemAsync<string>("JwtToken");
+                    if (string.IsNullOrWhiteSpace(savedToken))
+                    {
+                        return Anonymous;
+                    }
                 }
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(savedToken), "jwt")));
             }
