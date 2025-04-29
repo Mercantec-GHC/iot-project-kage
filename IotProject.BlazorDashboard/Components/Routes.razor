@@ -21,6 +21,7 @@
 </CascadingAuthenticationState>
 
 @code {
+    // Used to validate JWT tokens on page change, to handle if the user is still signed in.
     private async Task HandleNavigationAsync(NavigationContext context)
     {
         await AuthService.ConfirmTokens();
