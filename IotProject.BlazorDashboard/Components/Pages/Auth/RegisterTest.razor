@@ -1,0 +1,83 @@
+@page "/registerTest"
+@inject NavigationManager NavigationManager
+@inject AuthService AuthService
+
+<div class="row justify-content-center">
+    <div class="col col-sm-8 col-md-7 col-lg-6 col-xl-5">
+        <Card>
+            <CardHeader Style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius: 12px 12px 0 0;">
+                <div class="text-center text-white p-3">
+                    <div class="auth-logo">
+                        <Icon Name="IconName.ShieldCheck" Style="font-size: 2rem; color: rgba(255, 255, 255, 0.9);"/>
+                    </div>
+                    <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem;">Create Account</h1>
+                    <p class="mb-0" style="font-size: 0.875rem; opacity: 0.9;">Welcome to our platform</p>
+                </div>
+            </CardHeader>
+            <CardBody>
+                <EditForm Model="registerModel" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">First name</label>
+                            <TextInput Id="InputFirstName" @bind-Value="registerModel.FirstName" placeholder="First name"/>
+                            <ValidationMessage For="@(() => registerModel.FirstName)" />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last name</label>
+                            <TextInput Id="InputLastName" @bind-Value="registerModel.LastName" placeholder="Last name"/>
+                            <ValidationMessage For="@(() => registerModel.LastName)" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <TextInput Id="InputEmail" @bind-Value="registerModel.Email" placeholder="Email"/>
+                        <ValidationMessage For="@(() => registerModel.Email)" />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Password</label>
+                            <PasswordInput Id="InputPassword" @bind-Value="registerModel.Password" placeholder="Password"/>
+                            <ValidationMessage For="@(() => registerModel.Password)" />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Confirm password</label>
+                            <PasswordInput Id="InputConfirmPassword" @bind-Value="registerModel.ConfirmPassword" placeholder="Password"/>
+                            <ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
+                        </div>
+                    </div>
+
+                    <Button Type="ButtonType.Submit" Style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); justify-content: center;" Class="w-100 text-white" Loading="loading" LoadingText="Creating account" Disabled="loading">
+                        <span class="text-white">Create Account</span>
+                        <Icon Name="IconName.ArrowRight" Class="text-white" />
+                    </Button>
+                </EditForm>
+            </CardBody>
+            <CardFooter>
+                <div class="text-center text-secondary p-2">
+                    <p class="mb-0">
+                        Already have an account? <a class="text-decoration-none" style="color: #4f46e5;" href="/logintest">Sign in</a>
+                    </p>
+                </div>
+            </CardFooter>
+        </Card>
+    </div>
+</div>
+
+@code {
+    private UserCreateRequest registerModel = new();
+    private bool loading = false;
+
+    private async Task HandleSubmit()
+    {
+        loading = true;
+        var result = await AuthService.Register(registerModel);
+        if (result != null) NavigationManager.NavigateTo("/login", true);
+        loading = false;
+    }
+} 
