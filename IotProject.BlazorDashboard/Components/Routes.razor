@@ -1,4 +1,5 @@
 ﻿@inject NavigationManager NavigationManager
+@inject AuthService AuthService
 
 <CascadingAuthenticationState>
     <Router AppAssembly="typeof(Program).Assembly" OnNavigateAsync="HandleNavigationAsync">
@@ -20,8 +21,9 @@
 </CascadingAuthenticationState>
 
 @code {
+    // Used to validate JWT tokens on page change, to handle if the user is still signed in.
     private async Task HandleNavigationAsync(NavigationContext context)
     {
-        
+        await AuthService.ConfirmTokens();
     }
 }
