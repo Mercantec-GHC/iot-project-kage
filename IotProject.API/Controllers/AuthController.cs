@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using BCrypt.Net;
 using IotProject.API.Data;
 using IotProject.Shared.Models.Database;
 using IotProject.Shared.Models.Requests;
@@ -113,12 +114,93 @@ namespace IotProject.API.Controllers
         public async Task<ActionResult<UserMeResponse>> Me()
         {
             // Attempts to find the current user from the controller user context.
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null) return StatusCode(500);
-            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500);
+            
+            return Ok(new UserMeResponse(user.Id, user.FirstName, user.LastName, user.Email, user.Role.ToString()));
+        }
+
+        [HttpPatch("UpdateInfo"), Authorize]
+        public async Task<ActionResult<UserLoginResponse>> UpdateInfo(UserEditInformationRequest userEditInfo)
+        {
+            var user = await GetSignedInUser();
             if (user == null) return StatusCode(500);
 
-            return Ok(new UserMeResponse(user.Id, user.FirstName, user.LastName, user.Email, user.Role.ToString()));
+            bool isChanged = false;
+            if (userEditInfo == null) return BadRequest();
+            
+            // Change user email.
+            if (userEditInfo.Email == null && userEditInfo.FirstName == null && userEditInfo.LastName == null) return BadRequest("Can't change nothing.");
+            if (userEditInfo.Email != null && user.Email != userEditInfo.Email)
+            {
+                if (IsValidEmail(userEditInfo.Email) && !(await context.Users.AnyAsync(u => u.Email == userEditInfo.Email)))
+                {
+                    user.Email = userEditInfo.Email;
+                    isChanged = true;
+                }
+                else return BadRequest("Email is not valid.");
+            }
+            
+            // Change user first name.
+            if (!string.IsNullOrWhiteSpace(userEditInfo.FirstName) && user.FirstName != userEditInfo.FirstName)
+            {
+                user.FirstName = userEditInfo.FirstName.Trim();
+                isChanged = true;
+            }
+
+            // Change user last name.
+            if (!string.IsNullOrWhiteSpace(userEditInfo.LastName) && user.LastName != userEditInfo.LastName)
+            {
+                user.LastName = userEditInfo.LastName.Trim();
+                isChanged = true;
+            }
+
+            if (isChanged)
+            {
+                await context.SaveChangesAsync();
+
+                // Generates a JWT token for the given user.
+                var jwtToken = GenerateJwtToken(user);
+
+                // Generates a unique token to be used instead of the users email and password, with a lifetime of 7 days.
+                var refreshToken = await GenerateRefreshToken();
+                context.RefreshTokens.Add(new RefreshToken
+                {
+                    Id = refreshToken,
+                    UserId = user.Id,
+                    ExpiryDate = DateTime.UtcNow.AddDays(7),
+                    IsRevoked = false
+                });
+                await context.SaveChangesAsync();
+
+                return Ok(new UserLoginResponse(jwtToken, 1800, refreshToken, Message: "User info has been changed."));
+            } 
+            else return BadRequest("Nothing was changed.");
+        }
+
+        [HttpPatch("UpdatePassword"), Authorize]
+        public async Task<ActionResult> UpdatePassword(UserEditPasswordRequest userEditPassword)
+        {
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500);
+            if (string.IsNullOrEmpty(userEditPassword.Password) || string.IsNullOrEmpty(userEditPassword.ConfirmPassword)) return BadRequest("Password can't be empty.");
+            if (userEditPassword.Password != userEditPassword.ConfirmPassword) return BadRequest("Passwords do not match.");
+            if (!IsPasswordSecure(userEditPassword.Password)) return BadRequest("Password not secure.");
+            if (BCrypt.Net.BCrypt.Verify(userEditPassword.Password, user.Password)) return BadRequest("Password is already used.");
+            
+            user.Password = BCrypt.Net.BCrypt.HashPassword(userEditPassword.Password);
+            await context.SaveChangesAsync();
+            return Ok("User info has been changed."); 
+        }
+
+        private async Task<User?> GetSignedInUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return null;
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return null;
+
+            return user;
         }
 
         /// <summary>

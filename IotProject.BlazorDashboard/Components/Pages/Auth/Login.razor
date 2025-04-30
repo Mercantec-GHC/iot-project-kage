@@ -2,18 +2,64 @@
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
 
-<PageTitle>Login</PageTitle>
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h1>Welcome Back</h1>
+                <p>Sign in to your account</p>
+            </div>
 
-<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-    <label for="loginInputEmail">Email</label>
-    <TextInput Id="loginInputEmail" @bind-Value="loginModel.Email" Placeholder="Email"/>
-    <label for="loginInputPassword">Password</label>
-    <PasswordInput Id="loginInputPassword" @bind-Value="loginModel.Password" />
-    <Button Type="ButtonType.Submit" Color="ButtonColor.Primary">Login</Button>
-</EditForm>
+            <div class="auth-content">
+                <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                    <DataAnnotationsValidator />
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <div class="input-field">
+                            <TextInput Id="loginInputEmail" @bind-Value="loginModel.Email" placeholder="Email"/>
+                        </div>
+                        <ValidationMessage For="@(() => loginModel.Email)" class="error-message"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-field">
+                            <TextInput Id="loginInputPassword" @bind-Value="loginModel.Password" type="@passwordType" placeholder="Password"/>
+                            <button type="button" class="password-toggle" @onclick="TogglePasswordVisibility">
+                                <i class="bi @passwordIcon"></i>
+                            </button>
+                        </div>
+                        <ValidationMessage For="@(() => loginModel.Password)" class="error-message"/>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <span>Sign In</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </EditForm>
+            </div>
+
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="/register">Sign up</a></p>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
-    private UserLoginRequest loginModel = new UserLoginRequest();
+    private UserLoginRequest loginModel = new();
+    private string passwordType = "password";
+    private string passwordIcon = "bi-eye";
+
+    private void TogglePasswordVisibility()
+    {
+        passwordType = passwordType == "password" ? "text" : "password";
+        passwordIcon = passwordIcon == "bi-eye" ? "bi-eye-slash" : "bi-eye";
+    }
 
     private async Task HandleLogin()
     {

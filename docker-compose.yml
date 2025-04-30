@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: IotProject.BlazorDashboard/Dockerfile
+    restart: unless-stopped
     ports:
       - 6969:8080
 
@@ -18,5 +19,6 @@ services:
       - JWT_AUDIENCE=${JWT_AUDIENCE}
       - JWT_SECRET=${JWT_SECRET}
       - DB_CONNECTIONSTRING=${DB_CONNECTIONSTRING}
+    restart: unless-stopped
     ports:
       - 6970:8080
