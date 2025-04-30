@@ -1,0 +1,53 @@
+﻿:root {
+
+}
+
+.navbar-brand img {
+    filter: drop-shadow(0px 0px 0.2px #fff);
+}
+
+.background {
+    background-image: url("../images/background.jpg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    position: fixed;
+    top: 0;
+    z-index: -999;
+    height: 100vh;
+    width: 100vw;
+}
+
+.btn-primary {
+    position: relative;
+    border: none;
+    /*background: #52ADE8;*/
+    background-image: linear-gradient(140deg, rgba(82, 173, 232, 1) 0%, rgba(18, 69, 140, 1) 15%, rgba(2, 7, 49, 1) 50%, rgba(135, 53, 69, 1) 85%, rgba(255, 123, 108, 1) 100%);
+    transition: background-color 1s ease-in-out;
+    z-index: 1;
+}
+
+.gradient {
+    position: relative;
+    background-image: linear-gradient(140deg, rgba(82, 173, 232, 1) 0%, rgba(18, 69, 140, 1) 15%, rgba(2, 7, 49, 1) 50%, rgba(135, 53, 69, 1) 85%, rgba(255, 123, 108, 1) 100%);
+    z-index: 1;
+}
+
+    .gradient::before {
+        --bs-btn-border-radius: var(--bs-border-radius);
+        position: absolute;
+        content: "";
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-image: linear-gradient(220deg, rgba(82, 173, 232, 1) 0%, rgba(18, 69, 140, 1) 15%, rgba(2, 7, 49, 1) 50%, rgba(135, 53, 69, 1) 85%, rgba(255, 123, 108, 1) 100%);
+        z-index: -1;
+        transition: opacity 0.5s linear;
+        opacity: 0;
+        border-radius: var(--bs-btn-border-radius);
+    }
+
+    .gradient:hover::before {
+        opacity: 1;
+    }
