@@ -1,8 +1,16 @@
-﻿<nav class="navbar navbar-dark navbar-expand-sm bg-body-tertiary border-bottom shadow">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">
+﻿<nav class="navbar navbar-dark sticky-top navbar-expand-sm bg-body-tertiary border-bottom shadow">
+    <div class="container">
+        <a class="navbar-brand p-0" href="/">
             <img src="images/logo.png" height="40" alt="Logo" />    
         </a>
+      @*   <div>
+            <button class="navbar-toggler" type="button" @onclick="OpenCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <NavbarCollapse @ref="collapse"> *@
+@* 
+        </NavbarCollapse>  *@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <NavLink class="nav-item nav-link" href="/" Match="@NavLinkMatch.All">
@@ -22,3 +30,7 @@
         </div>
     </div>
 </nav>
+
+@code {
+    // private NavbarCollapse collapse;
+}

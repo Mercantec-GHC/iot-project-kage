@@ -82,7 +82,7 @@ namespace IotProject.API.Controllers
 		}
 
 		// Update room endpoint.
-		[HttpPut("Update"), Authorize]
+		[HttpPatch("Update"), Authorize]
 		public async Task<ActionResult> Update(RoomUpdateRequest requestModel)
 		{
 			// Fetches data and checks for null or empty strings/references.
