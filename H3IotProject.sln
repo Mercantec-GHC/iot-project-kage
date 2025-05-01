@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotProject.Auth", "IotProje
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotProject.Mobile", "IotProject.Mobile\IotProject.Mobile.csproj", "{5CFE38F9-8A57-4A75-BD2B-0713B0332F96}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotProject.RazorShared", "IotProject.RazorShared\IotProject.RazorShared.csproj", "{0971C3A3-6FFA-4706-BD11-CB2F73D9C59E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{5CFE38F9-8A57-4A75-BD2B-0713B0332F96}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5CFE38F9-8A57-4A75-BD2B-0713B0332F96}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5CFE38F9-8A57-4A75-BD2B-0713B0332F96}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{0971C3A3-6FFA-4706-BD11-CB2F73D9C59E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0971C3A3-6FFA-4706-BD11-CB2F73D9C59E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0971C3A3-6FFA-4706-BD11-CB2F73D9C59E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0971C3A3-6FFA-4706-BD11-CB2F73D9C59E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -63,6 +69,7 @@ Global
 		{579DB689-52CE-876D-E4AB-3AFFE9C35555} = {81C90B35-1320-4D2C-A2C2-094630D3E335}
 		{77B1C480-B2F9-416B-9DC6-9650D61B89D8} = {81C90B35-1320-4D2C-A2C2-094630D3E335}
 		{5CFE38F9-8A57-4A75-BD2B-0713B0332F96} = {545E85A9-FAC7-4F1C-960C-6D530601F583}
+		{0971C3A3-6FFA-4706-BD11-CB2F73D9C59E} = {81C90B35-1320-4D2C-A2C2-094630D3E335}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2D5FCDA4-E14F-414F-8D67-60D29E81D1C3}
