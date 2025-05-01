@@ -2,56 +2,59 @@
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
 
-<div class="auth-page">
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <div class="auth-logo">
-                    <i class="bi bi-shield-check"></i>
+<div class="row justify-content-center">
+    <div class="col col-sm-8 col-md-7 col-lg-6 col-xl-5">
+        <Card class="rounded-top-4 overflow-hidden lighter-border shadow">
+            <CardHeader class="p-0" Style="">
+                <div class="text-center text-white p-3" style="background-image: linear-gradient(140deg, rgba(82, 173, 232, 1) 0%, rgba(18, 69, 140, 1) 15%, rgba(2, 7, 49, 1) 50%, rgba(135, 53, 69, 1) 85%, rgba(255, 123, 108, 1) 100%);">
+                    <div class="auth-logo">
+                        <Icon Name="IconName.ShieldCheck" Style="font-size: 2rem; color: rgba(255, 255, 255, 0.9);"/>
+                    </div>
+                    <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem;">Welcome Back</h1>
+                    <p class="mb-0" style="font-size: 0.875rem; opacity: 0.9;">Sign in to your account</p>
                 </div>
-                <h1>Welcome Back</h1>
-                <p>Sign in to your account</p>
-            </div>
-
-            <div class="auth-content">
+            </CardHeader>
+            <CardBody>
                 <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
                     <DataAnnotationsValidator />
 
-                    <div class="form-group">
-                        <label>Email</label>
-                        <div class="input-field">
-                            <TextInput Id="loginInputEmail" @bind-Value="loginModel.Email" placeholder="Email"/>
-                        </div>
-                        <ValidationMessage For="@(() => loginModel.Email)" class="error-message"/>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <TextInput Id="loginInputEmail" Class="mb-3" @bind-Value="loginModel.Email" placeholder="Email" />
+                        <ValidationMessage For="@(() => loginModel.Email)" />
                     </div>
 
-                    <div class="form-group">
-                        <label>Password</label>
-                        <div class="input-field">
-                            <TextInput Id="loginInputPassword" @bind-Value="loginModel.Password" type="@passwordType" placeholder="Password"/>
-                            <button type="button" class="password-toggle" @onclick="TogglePasswordVisibility">
-                                <i class="bi @passwordIcon"></i>
-                            </button>
-                        </div>
-                        <ValidationMessage For="@(() => loginModel.Password)" class="error-message"/>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <PasswordInput Id="loginInputPassword" @bind-Value="loginModel.Password" placeholder="Password" />
+                        <ValidationMessage For="@(() => loginModel.Password)" />
                     </div>
+                    <div class="mb-3">
+                        <CheckboxInput Label="Remember me" @bind-Value="remember" Class="no-select" />
+                    </div>
+                    <Button Type="ButtonType.Submit" Class="gradient w-100 text-white" Loading="loading" LoadingText="Signing in" Disabled="loading"> 
+                        <span class="text-white">Sign In</span>
+                        <Icon Name="IconName.ArrowRight" Class="text-white" />
+                    </Button>
 
-                    <button type="submit" class="submit-btn">
-                        <span>Sign In</span>
-                        <i class="bi bi-arrow-right"></i>
-                    </button>
                 </EditForm>
-            </div>
-
-            <div class="auth-footer">
-                <p>Don't have an account? <a href="/register">Sign up</a></p>
-            </div>
-        </div>
+            </CardBody>
+            <CardFooter>
+                <div class="text-center text-secondary p-2"> 
+                    <p class="mb-0">
+                        Don't have an account? <a style="color: #DEE2E6;" href="/register">Sign up</a>
+                    </p>
+                </div>
+            </CardFooter>
+        </Card>
     </div>
 </div>
 
+
 @code {
     private UserLoginRequest loginModel = new();
+    private bool loading = false;
+    private bool remember = false;
     private string passwordType = "password";
     private string passwordIcon = "bi-eye";
 
@@ -63,10 +66,12 @@
 
     private async Task HandleLogin()
     {
+        loading = true;
         var isSuccess = await AuthService.Login(loginModel);
         if(isSuccess)
         {
             NavigationManager.NavigateTo("/", true);
         }
+        loading = false;
     }
 }
