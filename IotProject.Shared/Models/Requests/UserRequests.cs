@@ -55,4 +55,10 @@ namespace IotProject.Shared.Models.Requests
         [Compare("Password", ErrorMessage = "Passwords do not match.")]
         public string ConfirmPassword { get; set; }
     }
+
+    public class UserDeleteRequest
+    {
+        [Required(ErrorMessage = "Password is required.")]
+        public string Password { get; set; }
+    }
 }
