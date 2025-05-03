@@ -1,17 +1,77 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudBreakpointProvider OnBreakpointChanged="OnBreakpointChanged" />
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<MudLayout>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    <AuthorizeView>
+        <Authorized>
+            <MudAppBar Elevation="1" Dense="true">
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+                <MudSpacer />
+                <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/MudBlazor/MudBlazor" Target="_blank" />
+            </MudAppBar>
+            <MudDrawer @bind-Open="@_open" Elevation="1" Variant="_drawerVariant" ClipMode="DrawerClipMode.Docked" Breakpoint="Breakpoint.Sm">
+                <NavMenu />
+            </MudDrawer>
+        </Authorized>
+    </AuthorizeView>
+    
+    <AuthorizeView>
+        <Authorized>
+            <MudMainContent Class="pt-12">
+                <MudContainer Class="mt-6">
+                    @Body
+                </MudContainer>
+            </MudMainContent>
+        </Authorized>
+        <NotAuthorized>
+            <MudMainContent Class="pt-0">
+                <MudContainer Class="mt-6">
+                    @Body
+                </MudContainer>
+            </MudMainContent>
+        </NotAuthorized>
+    </AuthorizeView>
+
+</MudLayout>
+
+@code {
+    private bool _open = false;
+
+    private bool _isDarkMode = true;
+    private MudThemeProvider _mudThemeProvider;
+    private DrawerVariant _drawerVariant = DrawerVariant.Mini;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleDrawer()
+    {
+        _open = !_open;
+    }
+
+    private void OnBreakpointChanged(Breakpoint breakpoint)
+    {
+        // _open = (breakpoint >= Breakpoint.Sm);
+        _drawerVariant = breakpoint >= Breakpoint.Sm ? DrawerVariant.Mini : DrawerVariant.Temporary;
+        StateHasChanged();
+    }
+
+    private Task OnSystemPreferenceChanged(bool newValue)
+    {
+        _isDarkMode = newValue;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+}
