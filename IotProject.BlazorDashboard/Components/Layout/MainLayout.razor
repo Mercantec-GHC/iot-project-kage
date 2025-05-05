@@ -1,52 +1,17 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="bb-page">
+<TopBar/>
 
-    <Sidebar @ref="sidebar"
-             IconName="IconName.BootstrapFill"
-             Title="Blazor Bootstrap"
-             DataProvider="SidebarDataProvider" />
+<div class="background"></div>
 
-    <main>
+<main>
+	<div class="container-xxl my-5">
+		@Body
+	</div>
 
-
-        <article class="content px-4">
-            <div class="py-2">@Body</div>
-        </article>
-    </main>
-
-</div>
-
-@code {
-    Sidebar sidebar;
-    IEnumerable<NavItem> navItems;
-
-    private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
-    {
-        if (navItems is null)
-            navItems = GetNavItems();
-
-        return await Task.FromResult(request.ApplyTo(navItems));
-    }
-
-    private IEnumerable<NavItem> GetNavItems()
-    {
-        navItems = new List<NavItem>
-                   {
-                       new NavItem { Id = "1", Href = "/", IconName = IconName.HouseDoorFill, Text = "Home", Match=NavLinkMatch.All},
-                       new NavItem { Id = "2", Href = "/weather", IconName = IconName.Table, Text = "Fetch Data"},
-                       new NavItem { Id = "3", Href = "/registertest", IconName = IconName.PersonPlusFill, Text = "Register"},
-                       new NavItem { Id = "4", Href = "/logintest", IconName = IconName.Key, Text = "Login"},
-                       new NavItem { Id = "5", Href = "/logout", IconName = IconName.PersonLock, Text = "Logout"}
-                   };
-
-        return navItems;
-    }
-}
-
-
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
+	<div id="blazor-error-ui">
+		An unhandled error has occurred.
+		<a href="" class="reload">Reload</a>
+		<a class="dismiss">🗙</a>
+	</div>
+</main>

@@ -193,6 +193,20 @@ namespace IotProject.API.Controllers
             return Ok("User info has been changed."); 
         }
 
+        [HttpDelete("Delete"), Authorize]
+        public async Task<ActionResult> Delete(UserDeleteRequest userDelete)
+        {
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500);
+            if (string.IsNullOrEmpty(userDelete.Password)) return BadRequest("Password can't be empty.");
+            if (!BCrypt.Net.BCrypt.Verify(userDelete.Password, user.Password)) return BadRequest("Wrong password.");
+
+            context.Remove(user);
+            context.SaveChanges();
+
+            return Ok("User was successfully deleted.");
+        }
+
         private async Task<User?> GetSignedInUser()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

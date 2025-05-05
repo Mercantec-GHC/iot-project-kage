@@ -20,8 +20,4 @@
     <ProjectReference Include="..\IotProject.Shared\IotProject.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\js\" />
-  </ItemGroup>
-
 </Project>
