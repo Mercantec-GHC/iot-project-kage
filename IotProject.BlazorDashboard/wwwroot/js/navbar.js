@@ -1,6 +1,6 @@
 ﻿export function closeCollapse(id) {
-    const bsCollapse = new bootstrap.Collapse(`#${id}`), {
-        toggle: fasle
+    const bsCollapse = new bootstrap.Collapse(`#${id}`, {
+        toggle: false
     });
     bsCollapse.hide();
 }
