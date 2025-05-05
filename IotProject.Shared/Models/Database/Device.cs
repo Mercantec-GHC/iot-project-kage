@@ -1,4 +1,5 @@
-﻿namespace IotProject.Shared.Models.Database
+﻿
+namespace IotProject.Shared.Models.Database
 {
     public class Device : Base
     {
@@ -10,6 +11,5 @@
         public ICollection<DeviceData> Data { get; set; } = new List<DeviceData>();
         public string ApiKey { get; set; }
         public string Config { get; set; }
-        
     }
 }

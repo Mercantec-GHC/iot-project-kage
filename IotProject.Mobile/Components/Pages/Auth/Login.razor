@@ -1,0 +1,33 @@
+@page "/login"
+<h1>Sign in</h1>
+
+<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">Home</MudButton>
+
+<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <MudCard>
+        <MudCardContent>
+            <MudTextField Label="Email" Class="mt-3" @bind-Value="loginModel.Email" For="@(() => loginModel.Email)" />
+            <MudTextField Label="Password" HelperText="Choose a strong password" Class="mt-3" @bind-Value="loginModel.Password" For="@(() => loginModel.Password)" InputType="InputType.Password" />
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Register</MudButton>
+        </MudCardActions>
+    </MudCard>
+</EditForm>
+
+@code {
+    private UserLoginRequest loginModel = new();
+    private bool loading = false;
+
+    private async Task HandleLogin()
+    {
+        loading = true;
+        // var isSuccess = await AuthService.Login(loginModel, true);
+        // if (isSuccess)
+        // {
+        //     NavigationManager.NavigateTo("/", true);
+        // }
+        loading = false;
+    }
+}

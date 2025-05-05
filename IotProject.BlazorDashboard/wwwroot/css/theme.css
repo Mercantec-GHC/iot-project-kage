@@ -49,3 +49,16 @@
         max-width: 1920px
     }
 }
+
+.card-gradient {
+    background: linear-gradient(140deg,rgba(147, 206, 245, 1) 0%, rgba(96, 125, 163, 1) 35%, rgba(189, 108, 122, 1) 65%, rgba(250, 177, 167, 1) 100%);
+    border: none;
+    padding: 2px;
+}
+
+.icon-gradient {
+    background: linear-gradient(140deg,rgba(147, 206, 245, 1) 0%, rgba(96, 125, 163, 1) 35%, rgba(189, 108, 122, 1) 65%, rgba(250, 177, 167, 1) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}

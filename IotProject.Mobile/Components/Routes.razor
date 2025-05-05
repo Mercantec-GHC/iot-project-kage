@@ -1,6 +1,23 @@
-﻿<Router AppAssembly="@typeof(MauiProgram).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-</Router>
+﻿
+@inject NavigationManager NavigationManager
+@inject AuthService AuthService
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(MauiProgram).Assembly" OnNavigateAsync="HandleNavigationAsync">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
+                <NotAuthorized>
+                    @{ NavigationManager.NavigateTo("/", true); }
+                </NotAuthorized>
+            </AuthorizeRouteView>
+        </Found>
+    </Router>
+</CascadingAuthenticationState>
+
+@code {
+    // Used to validate JWT tokens on page change, to handle if the user is still signed in.
+    private async Task HandleNavigationAsync(Microsoft.AspNetCore.Components.Routing.NavigationContext context)
+    {
+        await AuthService.ConfirmTokens();
+    }
+}
