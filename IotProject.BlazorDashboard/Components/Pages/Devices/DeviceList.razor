@@ -1,0 +1,51 @@
+﻿@page "/devices"  
+@using IotProject.RazorShared.Models.Devices  
+@using IotProject.RazorShared.Models.Sensors
+@using IotProject.RazorShared.Services  
+@inject IDeviceService DeviceService  
+
+<div class="container mt-4" style="max-width: 75%;">
+    <h3 class="text-primary fw-bold text-center mb-4">List Of Devices</h3>
+    <ul class="list-group">
+        @foreach (var device in devices)  
+        {  
+            <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light shadow-sm">
+                <span class="text-truncate">@device.Name</span>
+                <a href="/devices/@device.Name" class="btn gradient">See Details</a>
+            </li>
+        }  
+    </ul>
+</div>
+
+@code {  
+    private List<IotDevice> devices = new List<IotDevice>();  
+
+    protected async override Task OnInitializedAsync()  
+    {  
+        devices = DeviceService.GetDevices();  
+
+        // Add demo devices if the list has less than 10 devices
+        while (devices.Count < 10)  
+        {  
+            devices.Add(new DemoIotDevice($"Demo Device {devices.Count + 1}"));  
+        }  
+    }  
+
+    private class DemoIotDevice : IotDevice  
+    {  
+        public DemoIotDevice(string name) : base(name)  
+        {  
+            Name = name;  
+            Data = "Demo Data";  
+        }  
+
+        public override List<IotSensor> GetSensors()  
+        {  
+            return new List<IotSensor>  
+            {  
+                new IotSensor { Name = "Demo Sensor 1", Device = this },  
+                new IotSensor { Name = "Demo Sensor 2", Device = this }  
+            };  
+        }  
+    }  
+}
