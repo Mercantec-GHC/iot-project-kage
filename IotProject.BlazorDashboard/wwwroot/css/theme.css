@@ -43,3 +43,9 @@
     .gradient:hover::before {
         opacity: 1;
     }
+
+@media (max-width:1920px) {
+    .container-xxxl {
+        max-width: 1920px
+    }
+}
