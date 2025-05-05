@@ -1,6 +1,7 @@
 services:
   iotproject.blazordashboard:
     image: ${DOCKER_REGISTRY-}iotprojectblazordashboard
+    hostname: dashboard
     build:
       context: .
       dockerfile: IotProject.BlazorDashboard/Dockerfile
@@ -12,6 +13,7 @@ services:
 
   iotproject.api:
     image: ${DOCKER_REGISTRY-}iotprojectapi
+    hostname: api
     build:
       context: .
       dockerfile: IotProject.API/Dockerfile
