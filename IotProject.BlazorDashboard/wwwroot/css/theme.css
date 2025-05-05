@@ -18,7 +18,6 @@
     width: 100vw;
 }
 
-
 .gradient {
     position: relative;
     background-image: linear-gradient(140deg, rgba(82, 173, 232, 1) 0%, rgba(18, 69, 140, 1) 15%, rgba(2, 7, 49, 1) 50%, rgba(135, 53, 69, 1) 85%, rgba(255, 123, 108, 1) 100%);
@@ -45,6 +44,11 @@
         opacity: 1;
     }
 
+@media (max-width:1920px) {
+    .container-xxxl {
+        max-width: 1920px
+    }
+}
 
 .card-gradient {
     background: linear-gradient(140deg,rgba(147, 206, 245, 1) 0%, rgba(96, 125, 163, 1) 35%, rgba(189, 108, 122, 1) 65%, rgba(250, 177, 167, 1) 100%);
@@ -58,4 +62,3 @@
     -webkit-text-fill-color: transparent;
     display: inline-block;
 }
-
