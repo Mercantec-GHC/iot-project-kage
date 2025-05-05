@@ -1,5 +1,7 @@
 ﻿using IotProject.Shared.Models.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Text.Json;
 
 namespace IotProject.API.Data
 {
@@ -45,6 +47,16 @@ namespace IotProject.API.Data
                 .HasOne(t => t.User)
                 .WithMany()
                 .HasForeignKey(t => t.UserId);
+
+            var converter = new ValueConverter<Dictionary<string, object>, string>(
+                dict => JsonSerializer.Serialize(dict, (JsonSerializerOptions)null),
+                json => JsonSerializer.Deserialize<Dictionary<string, object>>(json, (JsonSerializerOptions)null)
+            );
+
+            var entity = modelBuilder.Entity<DeviceData>();
+            entity.Property(e => e.Data)
+                  .HasConversion(converter)
+                  .HasColumnType("jsonb");
         }
     }
 }
