@@ -6,7 +6,6 @@
 @inject IDeviceService DeviceService
 @inject IJSRuntime JSRuntime
 
-<div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-12">
             <Card class="card-gradient shadow-lg border-0" style="border-radius: 12px;">
@@ -47,7 +46,6 @@
             </Card>
         </div>
     </div>
-</div>
 
 @code {
     private List<IotDevice> devices = new();
@@ -71,7 +69,7 @@
 
         devices = DeviceService.GetDevices();
 
-        while (devices.Count < 10)
+        while (devices.Count < 30)
         {
             devices.Add(new DemoIotDevice($"Demo Device {devices.Count + 1}"));
         }
