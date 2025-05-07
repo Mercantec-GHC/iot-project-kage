@@ -2,12 +2,16 @@
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
 
-<div class="row justify-content-center">
+<div class="row justify-content-center align-items-center vh-100">
     <div class="col col-sm-8 col-md-7 col-lg-6 col-xl-5">
         <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
             <Card Class="rounded-top-4 overflow-hidden">
                 <CardHeader class="p-0" Style="">
-                    <div class="text-center text-white p-3">
+                    <a href="/" class="d-absolute text-secondary m-2" style="text-decoration: none;">
+                        <Icon Name="IconName.ArrowLeft" />
+                        <span>Back</span>
+                    </a>
+                    <div class="text-center text-white p-2">
                         <div class="auth-logo">
                             <Icon Name="IconName.ShieldCheck" Style="font-size: 2rem;" Class="icon-gradient" />
                         </div>
@@ -33,7 +37,7 @@
                         <div class="mb-3">
                             <CheckboxInput Label="Remember me" @bind-Value="remember" Class="no-select" />
                         </div>
-                        <Button Type="ButtonType.Submit" Class="gradient w-100 text-white" Loading="loading" LoadingText="Signing in" Disabled="loading">
+                        <Button Type="ButtonType.Submit" Class="btn-gradient w-100 text-white" Loading="loading" LoadingText="Signing in" Disabled="loading">
                             <span class="text-white">Sign In</span>
                             <Icon Name="IconName.ArrowRight" Class="text-white" />
                         </Button>
