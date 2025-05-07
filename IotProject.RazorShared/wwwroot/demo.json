@@ -1,0 +1,9 @@
+{
+    "temperature": {
+        "celcius": 20,
+        "fahrenheit": 68
+    },
+    "humidity": {
+        "percentage": 81
+    }
+}

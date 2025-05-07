@@ -1,0 +1,24 @@
+﻿@page "/devicedemo"
+@using IotProject.RazorShared.Models.Devices
+@using IotProject.RazorShared.Services
+@inject IDeviceService DeviceService
+
+<h3>Devices</h3>
+@foreach (var device in devices)
+{
+	<p>@device.Name</p>
+
+	@foreach (var sensor in device.GetSensors())
+	{
+		<p>@sensor.Name</p>
+	}
+}
+
+@code {
+	private List<IotDevice> devices = new List<IotDevice>();
+
+	protected async override Task OnInitializedAsync()
+	{
+		devices = DeviceService.GetDevices();
+	}
+}
