@@ -63,18 +63,22 @@ namespace IotProject.API.Migrations
 
             modelBuilder.Entity("IotProject.Shared.Models.Database.DeviceData", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
 
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("timestamp with time zone");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("DateUpdated")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("DeviceId")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

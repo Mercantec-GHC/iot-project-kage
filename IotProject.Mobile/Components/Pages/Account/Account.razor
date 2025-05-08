@@ -1,0 +1,66 @@
+@page "/account"
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@attribute [Authorize]
+
+<MudCard>
+	<MudCardHeader>
+		<CardHeaderContent>
+			<MudText Typo="Typo.h4">Account</MudText>
+		</CardHeaderContent>
+	</MudCardHeader>
+	<MudDivider />
+	<MudCardContent>
+		<MudText Class="mb-4" Typo="Typo.h6">Update account information.</MudText>
+		<MudGrid>
+			<MudItem xs="12" sm="6" md="4" lg="3">
+				<MudButton @onclick="OpenInfoDialogAsync" Variant="Variant.Filled" Color="Color.Info" FullWidth="true">Change info</MudButton>
+			</MudItem>
+			<MudFlexBreak />
+			<MudItem xs="12" sm="6" md="4" lg="3">
+				<MudButton @onclick="OpenPasswordDialogAsync" Variant="Variant.Filled" Color="Color.Info" FullWidth="true">Change password</MudButton>
+			</MudItem>
+		</MudGrid>
+	</MudCardContent>
+	<MudDivider />
+	<MudCardContent>
+		<MudText Class="mb-4" Typo="Typo.h6">Sign out account.</MudText>
+		<MudGrid>
+			<MudItem xs="12" sm="6" md="4" lg="3">
+				<MudButton @onclick="OpenSignoutDialogAsync" Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true">Sign out</MudButton>
+			</MudItem>
+		</MudGrid>
+	</MudCardContent>
+</MudCard>
+
+@code {
+	DialogOptions dialogOptions = new DialogOptions
+	{
+		BackdropClick = false,
+		MaxWidth = MaxWidth.ExtraSmall,
+		FullWidth = true
+	};
+
+
+	private async Task OpenInfoDialogAsync()
+	{
+		var dialogReference = await DialogService.ShowAsync<ChangeInfoDialog>("Change Account Information", dialogOptions);
+	}
+
+	private async Task OpenPasswordDialogAsync()
+	{
+		var dialogReference = await DialogService.ShowAsync<ChangePasswordDialog>("Change Password", dialogOptions);
+	}
+
+	private async Task OpenSignoutDialogAsync()
+	{
+		var dialogReference = await DialogService.ShowAsync<SignOutDialog>("Sign Out", dialogOptions);
+		var dialogResult = await dialogReference.Result;
+		if (!dialogResult!.Canceled)
+		{
+			await AuthService.Logout();
+			NavigationManager.NavigateTo("/");
+		}
+	}
+}
