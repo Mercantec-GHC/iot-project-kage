@@ -1,0 +1,24 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Logout" Class="mr-3 mb-n1" />
+            Sign out
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        Please confirm your choice?
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Error" OnClick="Submit">Sign out</MudButton>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    private void Cancel() => MudDialog.Cancel();
+}
