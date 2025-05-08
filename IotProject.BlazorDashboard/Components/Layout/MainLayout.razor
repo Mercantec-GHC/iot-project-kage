@@ -1,13 +1,27 @@
 ﻿@inherits LayoutComponentBase
 
-<TopBar/>
+<AuthorizeView>
+	<Authorized>
+		<Navbar/>
+	</Authorized>
+</AuthorizeView>
 
 <div class="background"></div>
 
 <main>
-	<div class="container-xxl my-5">
-		@Body
-	</div>
+	<AuthorizeView>
+		<Authorized>
+			<div class="container-xxl my-5">
+				@Body
+			</div>		
+		</Authorized>
+		<NotAuthorized>
+			<div class="container vh-100">
+				@Body
+			</div>
+		</NotAuthorized>
+	</AuthorizeView>
+
 
 	<div id="blazor-error-ui">
 		An unhandled error has occurred.

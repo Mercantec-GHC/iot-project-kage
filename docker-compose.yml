@@ -1,15 +1,19 @@
 services:
   iotproject.blazordashboard:
     image: ${DOCKER_REGISTRY-}iotprojectblazordashboard
+    hostname: dashboard
     build:
       context: .
       dockerfile: IotProject.BlazorDashboard/Dockerfile
+    environment:
+      - API_URL=${API_URL}
     restart: unless-stopped
     ports:
       - 6969:8080
 
   iotproject.api:
     image: ${DOCKER_REGISTRY-}iotprojectapi
+    hostname: api
     build:
       context: .
       dockerfile: IotProject.API/Dockerfile

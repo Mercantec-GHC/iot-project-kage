@@ -1,0 +1,51 @@
+﻿@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRunTime
+
+<div class="collapse navbar-collapse" id="@Id">
+	@ChildContent
+</div>
+
+@code {
+	[Parameter] public string Id { get; set; } = "navbarMain";
+	[Parameter] public RenderFragment? ChildContent { get; set; }
+
+	protected override async void OnAfterRender(bool firstRender)
+	{
+		await Close();
+	}
+
+	private void HandleLocationChanged(object sender, LocationChangedEventArgs e)
+	{
+		StateHasChanged();
+	}
+
+	protected override void OnInitialized()
+	{
+		NavigationManager.LocationChanged += HandleLocationChanged;
+	}
+
+	public void Dispose()
+	{
+		NavigationManager.LocationChanged -= HandleLocationChanged;
+	}
+
+	public async Task Open()
+	{
+		try
+		{
+			var navModule = await JSRunTime.InvokeAsync<IJSObjectReference>("import", "./js/navbar.js");
+			await navModule.InvokeVoidAsync("openCollapse", Id);
+		}
+		catch (Exception e) { }
+	}
+
+	public async Task Close()
+	{
+		try
+		{
+			var navModule = await JSRunTime.InvokeAsync<IJSObjectReference>("import", "./js/navbar.js");
+			await navModule.InvokeVoidAsync("closeCollapse", Id);
+		}
+		catch (Exception e) { }
+	}
+}

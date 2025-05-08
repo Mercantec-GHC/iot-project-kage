@@ -2,8 +2,8 @@
     
 }
 
-.navbar-brand img {
-    filter: drop-shadow(0px 0px 0.2px #fff);
+.navbar-brand img, .logo-highlight {
+    filter: drop-shadow(0px 0px 0.3px #fff);
 }
 
 .background {
@@ -20,7 +20,7 @@
 
 .gradient {
     position: relative;
-    background-image: linear-gradient(140deg, rgba(82, 173, 232, 1) 0%, rgba(18, 69, 140, 1) 15%, rgba(2, 7, 49, 1) 50%, rgba(135, 53, 69, 1) 85%, rgba(255, 123, 108, 1) 100%);
+    background: linear-gradient(140deg,rgba(82, 191, 250, 1) 40%, rgba(255, 128, 91, 1) 60%);
     z-index: 1;
     border: none;
 }
@@ -33,7 +33,7 @@
         right: 0;
         bottom: 0;
         left: 0;
-        background-image: linear-gradient(220deg, rgba(82, 173, 232, 1) 0%, rgba(18, 69, 140, 1) 15%, rgba(2, 7, 49, 1) 50%, rgba(135, 53, 69, 1) 85%, rgba(255, 123, 108, 1) 100%);
+        background: linear-gradient(140deg,rgba(82, 191, 250, 1) 40%, rgba(255, 128, 91, 1) 60%);
         z-index: -1;
         transition: opacity .5s linear;
         opacity: 0;
@@ -43,3 +43,75 @@
     .gradient:hover::before {
         opacity: 1;
     }
+
+@media (max-width:1920px) {
+    .container-xxxl {
+        max-width: 1920px
+    }
+}
+
+.card-gradient {
+    background: linear-gradient(140deg,rgba(82, 191, 250, 1) 40%, rgba(255, 128, 91, 1) 60%);
+    border: none;
+    padding: 2px;
+}
+
+.icon-gradient {
+    background: linear-gradient(140deg,rgba(82, 191, 250, 1) 40%, rgba(255, 128, 91, 1) 60%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+.btn-icon-gradient {
+    background: linear-gradient(140deg,rgba(82, 191, 250, 1) 40%, rgba(255, 128, 91, 1) 60%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+/* Adds the gradient and hover effect for home button */
+.btn-gradient {
+    position: relative;
+    border: 1px solid rgba(40, 136, 255, 1);
+    border-top-color: rgba(82,191,250,1);
+    border-left-color: rgba(82,191,250,1);
+    border-bottom-color: rgba(255,128,91,1);
+    border-right-color: rgba(255,128,91,1);
+    color: #ffffff;
+    background-color: transparent;
+    overflow: hidden;
+    transition: border-color 0.4s ease, color 0.4s ease;
+}
+
+    .btn-gradient::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(140deg,rgba(82, 191, 250, 1) 20%, rgba(255, 128, 91, 1) 40%, rgba(0, 0, 0, 0.03) 70%);
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+        z-index: 0;
+    }
+
+.btn-gradient:hover::before {
+    opacity: 1;
+}
+
+.btn-gradient:hover {
+    border-color: white;
+    color: white;
+}
+
+/* Ensure text stays above the gradient */
+.btn-gradient > * {
+    position: relative;
+    z-index: 1;
+}
+
+.d-absolute {
+    position: absolute;
+}
