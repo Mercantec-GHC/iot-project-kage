@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IotProject.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250502110040_DeviceDataUpdate3")]
-    partial class DeviceDataUpdate3
+    [Migration("20250505072415_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -122,6 +122,10 @@ namespace IotProject.API.Migrations
 
                     b.Property<DateTime>("DateUpdated")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()

@@ -1,0 +1,30 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Class="mr-3 mb-n1" />
+            User Claims
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <AuthorizeView>
+            <Authorized>
+                @foreach (var claim in context.User.Claims)
+                {
+                    <p>@claim.Type: @claim.Value</p>
+                }
+            </Authorized>
+        </AuthorizeView>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -75,6 +75,25 @@ namespace IotProject.API.Controllers
                 .ToList());
         }
 
+        [HttpPost("PostData")]
+        public async Task<ActionResult> PostData([FromHeader] string deviceId, [FromHeader] string apiKey, [FromBody] Dictionary<string, object> data)
+        {
+            // Finds the device using deviceId and validates it with an apiKey.
+            var device = await context.Devices.FirstOrDefaultAsync(d => d.Id == deviceId && d.ApiKey == apiKey);
+            if (device == null) return Unauthorized("Device authentication incorrect!");
+
+            DeviceData deviceData = new DeviceData
+            {
+                DeviceId = deviceId,
+                Timestamp = DateTime.UtcNow,
+                Data = data
+            };
+            await context.AddAsync(deviceData);
+            await context.SaveChangesAsync();
+
+            return Ok("Data successfully posted.");
+        }
+
         /// <summary>
         /// Finds the currently signed in user, using the <see cref="ClaimTypes"/> NameIdentifier from the JWT token.
         /// </summary>

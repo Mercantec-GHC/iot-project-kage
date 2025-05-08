@@ -13,7 +13,7 @@
             <MudAppBar Elevation="1" Dense="true">
                 <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
                 <MudSpacer />
-                <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/MudBlazor/MudBlazor" Target="_blank" />
+                <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/Mercantec-GHC/iot-project-kage" Target="_blank" />
             </MudAppBar>
             <MudDrawer @bind-Open="@_open" Elevation="1" Variant="_drawerVariant" ClipMode="DrawerClipMode.Docked" Breakpoint="Breakpoint.Sm">
                 <NavMenu />
@@ -31,8 +31,10 @@
         </Authorized>
         <NotAuthorized>
             <MudMainContent Class="pt-0">
-                <MudContainer Class="mt-6">
-                    @Body
+                <MudContainer>
+                    <div style="height: 100vh; display: flex; align-items: center; justify-content: center;">
+                        @Body
+                    </div>
                 </MudContainer>
             </MudMainContent>
         </NotAuthorized>

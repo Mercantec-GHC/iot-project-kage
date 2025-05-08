@@ -1,14 +1,42 @@
 ﻿@page "/"
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+
+@* <table class="table">
+    <thead>
+        <tr>
+            <th>Nøgle</th>
+            <th>Værdi</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var kvp in Configuration.AsEnumerable())
+        {
+            <tr>
+                <td>@kvp.Key</td>
+                <td>@kvp.Value</td>
+            </tr>
+        }
+    </tbody>
+</table> *@
 
 <AuthorizeView>
     <Authorized>
 
-        <h1>Home</h1>
-
-        @foreach (var claim in context.User.Claims)
-        {
-            <p>@claim.Type: @claim.Value</p>
-        }
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h4">Home</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudDivider />
+            <MudCardContent>
+                @foreach (var claim in context.User.Claims)
+                {
+                    <p>@claim.Type: @claim.Value</p>
+                }
+            </MudCardContent>
+        </MudCard>
 
     </Authorized>
     <NotAuthorized>
@@ -17,9 +45,10 @@
             <MudCard>
                 <MudCardHeader>
                     <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Home</MudText>
+                        <MudText Typo="Typo.h4">Home</MudText>
                     </CardHeaderContent>
                 </MudCardHeader>
+                <MudDivider />
                 <MudCardContent>
                     <MudText>Story of the day</MudText>
                     <MudStack>

@@ -71,4 +71,9 @@
       <ProjectReference Include="..\IotProject.Shared\IotProject.Shared.csproj" />
     </ItemGroup>
 
+	<ItemGroup>
+		<MauiAsset Include="appsettings.json" />
+		<MauiAsset Include="appsettings.Development.json" />
+	</ItemGroup>
+
 </Project>

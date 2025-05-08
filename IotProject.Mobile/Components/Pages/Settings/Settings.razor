@@ -1,0 +1,37 @@
+@page "/settings"
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@attribute [Authorize]
+
+<MudCard>
+	<MudCardHeader>
+		<CardHeaderContent>
+			<MudText Typo="Typo.h4">Settings</MudText>
+		</CardHeaderContent>
+	</MudCardHeader>
+	<MudDivider />
+	<MudCardContent>
+		<MudText Typo="Typo.h6">Claims.</MudText>
+		<MudText Class="mb-4" Typo="Typo.body1">View user claims.</MudText>
+		<MudGrid>
+			<MudItem xs="12" sm="6" md="4" lg="3">
+				<MudButton Class="ml-auto" @onclick="OpenClaimsDialogAsync" Variant="Variant.Filled" Color="Color.Info" FullWidth="true">Claims</MudButton>
+			</MudItem>
+		</MudGrid>
+	</MudCardContent>
+</MudCard>
+
+@code {
+	private Task OpenClaimsDialogAsync()
+	{
+		var options = new DialogOptions
+		{
+			CloseOnEscapeKey = true,
+			MaxWidth = MaxWidth.ExtraSmall,
+			FullWidth = true
+		};
+
+		return DialogService.ShowAsync<ClaimsInfoDialog>("Claims", options);
+	}
+}
