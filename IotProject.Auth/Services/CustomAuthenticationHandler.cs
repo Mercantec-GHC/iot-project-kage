@@ -1,6 +1,4 @@
-﻿using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
@@ -34,6 +32,5 @@ namespace IotProject.Auth.Services
 
             return Task.FromResult(AuthenticateResult.Success(ticket));
         }
-
     }
 }

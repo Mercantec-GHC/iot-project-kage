@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text;
 using IotProject.Shared.Models.Responses;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 
 namespace IotProject.Auth.Services
 {
@@ -115,6 +116,80 @@ namespace IotProject.Auth.Services
             await sessionStorage.RemoveItemAsync("JwtToken");
             await sessionStorage.RemoveItemAsync("RefreshToken");
             ((CustomAuthenticationStateProvider)authenticationStateProvider).MarkUserAsLoggedOut();
+        }
+
+        /// <summary>
+        /// Attempts to update user password.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>A <see cref="UserEditPasswordResponse"/> if successfull, otherwise null.</returns>
+        public async Task<UserEditPasswordRequest> EditPassword(UserEditPasswordRequest request)
+        {
+            // Tries to obtain the jwt token from Local Storage.
+            var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                // If unsuccessfull, tries to obtain the jwt token from Session Storage.
+                jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
+                if (string.IsNullOrWhiteSpace(jwtToken)) return null;
+            }
+
+            var createAsJson = JsonSerializer.Serialize(request);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+            var response = await httpClient.PostAsync("auth/updatepassword", new StringContent(createAsJson, Encoding.UTF8, "application/json"));
+            if (!response.IsSuccessStatusCode)
+            {
+                return null!;
+            }
+
+            return JsonSerializer.Deserialize<UserEditPasswordRequest>(await response.Content.ReadAsStringAsync(), JsonOptions)!;
+        }
+
+        /// <summary>
+        /// Attempts to update user infomation.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>A <see cref="UserEditInformationRequest"/> if successfull, otherwise null.</returns>
+        public async Task<bool> EditInfo(UserEditInformationRequest request)
+        {
+            // Tries to obtain the jwt token from Local Storage.
+            var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
+            bool isLocalStorage = true;
+
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                // If unsuccessfull, tries to obtain the jwt token from Session Storage.
+                jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
+                isLocalStorage = false;
+                if (string.IsNullOrWhiteSpace(jwtToken)) return false;
+            }
+
+            var createAsJson = JsonSerializer.Serialize(request);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+            var response = await httpClient.PostAsync("auth/updateinfo", new StringContent(createAsJson, Encoding.UTF8, "application/json"));
+            if (!response.IsSuccessStatusCode)
+            {
+                return false;
+            }
+
+            // Deserializes response as a UserLoginResponse.
+            var loginResult = JsonSerializer.Deserialize<UserLoginResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
+            if (isLocalStorage)
+            {
+                // Stores the token in Local Storage.
+                await localStorage.SetItemAsync("JwtToken", loginResult!.Token);
+                await localStorage.SetItemAsync("RefreshToken", loginResult.RefreshToken);
+            }
+            else
+            {
+                // Stores the token in Session Storage.
+                await sessionStorage.SetItemAsync("JwtToken", loginResult!.Token);
+                await sessionStorage.SetItemAsync("RefreshToken", loginResult.RefreshToken);
+            }
+            // Calls the CustomAuthenticationStateProvider to mark the user as signed in.
+            ((CustomAuthenticationStateProvider)authenticationStateProvider).MarkUserAsAuthenticated(loginResult.Token);
+
+            return true;
         }
 
         /// <summary>
