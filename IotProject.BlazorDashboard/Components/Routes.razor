@@ -6,14 +6,7 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
                 <NotAuthorized>
-                    @if (!context.User.Identity!.IsAuthenticated)
-                    {
-                        NavigationManager.NavigateTo("/login", true);
-                    }
-                    else
-                    {
-                        NavigationManager.NavigateTo("/", true);
-                    }
+                    <LoginRedirect />
                 </NotAuthorized>
             </AuthorizeRouteView>
         </Found>
