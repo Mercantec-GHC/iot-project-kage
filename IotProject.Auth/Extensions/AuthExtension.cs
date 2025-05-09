@@ -14,15 +14,14 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddBlazoredLocalStorage();
             services.AddBlazoredSessionStorage();
             services.AddCascadingAuthenticationState();
-            services.AddAuthorizationCore();
-            services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
             services.AddAuthentication(options =>
             {
-                options.DefaultAuthenticateScheme = "custom";
-                options.DefaultChallengeScheme = "custom";
-            }).AddScheme<AuthenticationSchemeOptions, CustomAuthenticationHandler>("custom", options => { });
+                options.DefaultAuthenticateScheme = "dummy";
+                options.DefaultChallengeScheme = "dummy";
+            }).AddScheme<AuthenticationSchemeOptions, CustomAuthenticationHandler>("dummy", options => { });
+            services.AddAuthorizationCore();
+            services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
             services.AddScoped<AuthService>();
-
             services.AddHttpClient<AuthService>(options =>
             {
                 options.BaseAddress = new Uri(Environment.GetEnvironmentVariable("API_URL")! ?? configuration.GetConnectionString("ApiUrl")!);

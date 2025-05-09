@@ -1,0 +1,57 @@
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<EditForm Model="infoModel" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.ManageAccounts" Class="mr-3 mb-n1" />
+                Change Account Information
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudTextField Class="mt-1" Label="First Name" @bind-Value="infoModel.FirstName" For="@(() => infoModel.FirstName)" />
+            <MudTextField Class="mt-1" Label="Last Name" @bind-Value="infoModel.LastName" For="@(() => infoModel.LastName)" />
+            <MudTextField Class="mt-1" Label="Email" @bind-Value="infoModel.Email" For="@(() => infoModel.Email)" />
+        </DialogContent>
+        <DialogActions>
+            <MudButton Disabled="loading" Color="Color.Primary" ButtonType="ButtonType.Submit">
+                @if (loading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <p Class="ms-2">Confirming</p>
+                }
+                else
+                {
+                    <p>Confirm</p>
+                }
+            </MudButton>
+            <MudButton Disabled="loading" OnClick="Cancel">Cancel</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private UserEditInformationRequest infoModel = new();
+    private bool loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        infoModel.FirstName = state.User.Claims.FirstOrDefault(c => c.Type == "FirstName")?.Value;
+        infoModel.LastName = state.User.Claims.FirstOrDefault(c => c.Type == "LastName")?.Value;
+        infoModel.Email = state.User.Claims.FirstOrDefault(c => c.Type == "Email")?.Value;
+    }
+
+    private void Submit()
+    {
+        loading = true;
+        MudDialog.Close(DialogResult.Ok(true));
+        loading = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

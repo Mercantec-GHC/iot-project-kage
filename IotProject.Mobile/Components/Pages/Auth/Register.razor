@@ -1,5 +1,65 @@
 @page "/register"
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
 
-<h1>Sign up</h1>
+<MudContainer Class="px-0" MaxWidth="MaxWidth.ExtraSmall">
+    <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+        <DataAnnotationsValidator />
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h4">Sign up</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudDivider />
+            <MudCardContent Class="pt-0">
+                <MudTextField Class="mt-1" Label="First Name" @bind-Value="registerModel.FirstName" For="@(() => registerModel.FirstName)" />
+                <MudTextField Class="mt-1" Label="Last Name" @bind-Value="registerModel.LastName" For="@(() => registerModel.LastName)" />
+                <MudTextField Class="mt-1" Label="Email" @bind-Value="registerModel.Email" For="@(() => registerModel.Email)" />
+                <MudTextField Class="mt-1" Label="Password" @bind-Value="registerModel.Password" For="@(() => registerModel.Password)" InputType="InputType.Password" />
+                <MudTextField Class="mt-1" Label="Confirm Password" @bind-Value="registerModel.ConfirmPassword" For="@(() => registerModel.ConfirmPassword)" InputType="InputType.Password" />
+                @if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    <MudText Class="mt-4" Color="Color.Error"><i><b>@errorMessage</b></i></MudText>
+                }
+            </MudCardContent>
+            <MudDivider />
+            <MudCardActions>
+                <MudButton Class="ml-auto" Disabled="loading" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                    @if (loading)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <p Class="ms-2">Signing up</p>
+                    }
+                    else
+                    {
+                        <p>Sign up</p>
+                    }
+                </MudButton>
+                <MudButton Class="ml-2" Href="/" Disabled="loading" Variant="Variant.Filled" Color="Color.Secondary">Cancel</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </EditForm>
+</MudContainer>
 
-<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">Home</MudButton>
+@code {
+    private UserCreateRequest registerModel = new();
+    private bool loading = false;
+    private string errorMessage = string.Empty;
+
+    private async Task HandleRegister()
+    {
+        loading = true;
+        var response = await AuthService.Register(registerModel);
+        if (response != null)
+        {
+            UserLoginRequest loginModel = new UserLoginRequest { Email = registerModel.Email, Password = registerModel.Password };
+            var isSuccess = await AuthService.Login(loginModel, true);
+            if (isSuccess)
+            {
+                NavigationManager.NavigateTo("/");
+            }
+        }
+        loading = false;
+    }
+}

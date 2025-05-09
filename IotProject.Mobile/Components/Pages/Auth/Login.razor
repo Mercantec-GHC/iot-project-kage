@@ -1,33 +1,61 @@
 @page "/login"
-<h1>Sign in</h1>
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
 
-<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">Home</MudButton>
-
-<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator />
-    <MudCard>
-        <MudCardContent>
-            <MudTextField Label="Email" Class="mt-3" @bind-Value="loginModel.Email" For="@(() => loginModel.Email)" />
-            <MudTextField Label="Password" HelperText="Choose a strong password" Class="mt-3" @bind-Value="loginModel.Password" For="@(() => loginModel.Password)" InputType="InputType.Password" />
-        </MudCardContent>
-        <MudCardActions>
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Register</MudButton>
-        </MudCardActions>
-    </MudCard>
-</EditForm>
+<MudContainer Class="px-0" MaxWidth="MaxWidth.ExtraSmall">
+    <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator />
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h4">Sign in</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudDivider />
+            <MudCardContent Class="pt-0">
+                <MudTextField Class="mt-1" Label="Email" @bind-Value="loginModel.Email" For="@(() => loginModel.Email)" />
+                <MudTextField Class="mt-1" Label="Password" @bind-Value="loginModel.Password" For="@(() => loginModel.Password)" InputType="InputType.Password" />
+                @if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    <MudText Class="mt-4" Color="Color.Error"><i><b>@errorMessage</b></i></MudText>
+                }
+            </MudCardContent>
+            <MudDivider />
+            <MudCardActions>
+                <MudButton Class="ml-auto" Disabled="loading" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                    @if (loading)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <p Class="ms-2">Signing in</p>
+                    }
+                    else
+                    {
+                        <p>Sign in</p>
+                    }
+                </MudButton>
+                <MudButton Class="ml-2" Href="/" Disabled="loading" Variant="Variant.Filled" Color="Color.Secondary">Cancel</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </EditForm>
+</MudContainer>
 
 @code {
     private UserLoginRequest loginModel = new();
     private bool loading = false;
+    private string errorMessage = string.Empty;
 
     private async Task HandleLogin()
     {
         loading = true;
-        // var isSuccess = await AuthService.Login(loginModel, true);
-        // if (isSuccess)
-        // {
-        //     NavigationManager.NavigateTo("/", true);
-        // }
+        var isSuccess = await AuthService.Login(loginModel, true);
+        if (isSuccess)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = "Incorrect email or password!";
+        }
         loading = false;
     }
 }

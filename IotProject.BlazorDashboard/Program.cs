@@ -16,6 +16,8 @@ namespace IotProject.BlazorDashboard
 
             builder.Services.AddJwtAuth(builder.Configuration);
 
+            builder.Services.AddIotServices();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
