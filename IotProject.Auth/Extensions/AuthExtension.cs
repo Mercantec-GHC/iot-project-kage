@@ -19,12 +19,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.DefaultAuthenticateScheme = "dummy";
                 options.DefaultChallengeScheme = "dummy";
             }).AddScheme<AuthenticationSchemeOptions, CustomAuthenticationHandler>("dummy", options => { });
-
             services.AddAuthorizationCore();
             services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
-
             services.AddScoped<AuthService>();
-
             services.AddHttpClient<AuthService>(options =>
             {
                 options.BaseAddress = new Uri(Environment.GetEnvironmentVariable("API_URL")! ?? configuration.GetConnectionString("ApiUrl")!);

@@ -1,0 +1,126 @@
+﻿@page "/account"
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Account Settings</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
+            <Card class="rounded-top-4 overflow-hidden">
+                <CardHeader class="p-0">
+                    <div class="text-center text-white p-3">
+                        <div class="auth-logo">
+                            <Icon Name="IconName.PersonCircle" Style="font-size: 2rem;" Class="icon-gradient" />
+                        </div>
+                        <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem;">Account Settings</h1>
+                        <p class="mb-0" style="font-size: 0.875rem; opacity: 0.9;">Manage your account information</p>
+                    </div>
+                </CardHeader>
+
+                <CardBody>
+                    <EditForm Model="userInfo" OnValidSubmit="HandleUserInfoChange" Context="editFormContext">
+                        <DataAnnotationsValidator />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">First name</label>
+                                <TextInput Id="InputFirstName" @bind-Value="userInfo.FirstName" placeholder="First name" />
+                                <ValidationMessage For="@(() => userInfo.FirstName)" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Last name</label>
+                                <TextInput Id="InputLastName" @bind-Value="userInfo.LastName" placeholder="Last name" />
+                                <ValidationMessage For="@(() => userInfo.LastName)" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <TextInput Id="InputEmail" @bind-Value="userInfo.Email" placeholder="Email" />
+                            <ValidationMessage For="@(() => userInfo.Email)" />
+                        </div>
+
+                        <Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4" Loading="loading" LoadingText="Saving changes" Disabled="loading">
+                            <span class="text-white">Save Changes</span>
+                        </Button>
+                    </EditForm>
+                </CardBody>
+                <CardFooter>
+                    <span class="text-secondary">Do you want to change password?</span><button type="button" class="text-white" style="background:none; border: none; text-decoration: underline;" data-bs-toggle="modal" data-bs-target="#ChangePasswordModal">Change Password</button>
+
+
+                </CardFooter>
+            </Card>
+        </Card>
+    </div>
+</div>
+
+<div class="modal fade" id="ChangePasswordModal" tabindex="-1" aria-labelledby="ChangePasswordModalLabel " aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ChangePasswordModalLabel">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="editPasswordRequest" OnValidSubmit="HandlePasswordChange">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3">
+                        <label for="new-password" class="col-form-label">New Password:</label>
+                        <PasswordInput Id="new-password" @bind-value="editPasswordRequest.Password" />
+                        <ValidationMessage For="@(() => editPasswordRequest.Password)" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm-password" class="col-form-label">Confirm Password:</label>
+                        <PasswordInput Id="confirm-password" @bind-value="editPasswordRequest.ConfirmPassword" />
+                        <ValidationMessage For="@(() => editPasswordRequest.ConfirmPassword)" />
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4" Loading="loading" LoadingText="Saving changes" Disabled="loading">
+                    <span class="text-white">Save Changes</span>
+                </Button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private UserEditInformationRequest userInfo = new();
+    private bool loading = false;
+    private UserEditPasswordRequest editPasswordRequest = new();
+
+    [CascadingParameter]
+    private Task<AuthenticationState?> AuthenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationState;
+        var user = authState?.User;
+        if (AuthenticationState != null)
+        {
+            userInfo.FirstName = user.FindFirst("FirstName")?.Value ?? "";
+            userInfo.LastName = user.FindFirst("LastName")?.Value ?? "";
+            userInfo.Email = user.FindFirst("Email")?.Value ?? "";
+        }
+    }
+
+    private async Task HandleUserInfoChange()
+    {
+        loading = true;
+
+        loading = false;
+    }
+
+    private async Task HandlePasswordChange()
+    {
+        loading = true;
+        var response = await AuthService.EditPassword(editPasswordRequest);
+
+        loading = false;
+    }
+}
