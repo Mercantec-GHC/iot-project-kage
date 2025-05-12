@@ -112,7 +112,11 @@
     private async Task HandleUserInfoChange()
     {
         loading = true;
-
+        var success = await AuthService.EditInfo(userInfo);
+        if (success)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, true);
+        }
         loading = false;
     }
 
