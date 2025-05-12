@@ -166,7 +166,7 @@ namespace IotProject.Auth.Services
 
             var createAsJson = JsonSerializer.Serialize(request);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
-            var response = await httpClient.PostAsync("auth/updateinfo", new StringContent(createAsJson, Encoding.UTF8, "application/json"));
+            var response = await httpClient.PatchAsync("auth/updateinfo", new StringContent(createAsJson, Encoding.UTF8, "application/json"));
             if (!response.IsSuccessStatusCode)
             {
                 return false;
