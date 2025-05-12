@@ -7,6 +7,7 @@ using IotProject.Shared.Models.Database;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using IotProject.Shared.Models.Requests;
+using IotProject.Shared.Utilities;
 
 namespace IotProject.API.Controllers
 {
@@ -15,7 +16,7 @@ namespace IotProject.API.Controllers
 	public class RoomController(AppDbContext context) : ControllerBase
 	{
 		// Get list of rooms by user id endpoint.
-		[HttpGet("get-all"), Authorize]
+		[HttpGet("GetAll"), Authorize]
 		public async Task<ActionResult<RoomGetAllResponse>> GetAll()
 		{
 			// Fetches data and checks for null or empty strings/references.
@@ -43,14 +44,14 @@ namespace IotProject.API.Controllers
 		}
 
 		// Get room by room id endpoint.
-		[HttpGet("get-room"), Authorize]
+		[HttpGet("GetRoom"), Authorize]
 		public async Task<ActionResult<RoomGetResponse>> GetRoom(string id)
 		{
             // Fetches data and checks for null or empty strings/references.
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return StatusCode(500);
             var room = await context.Rooms.FirstOrDefaultAsync(r => r.Id == id && r.OwnerId == userId);
-			if (room == null) return NotFound($"Room with id: {id} was not found.");
+			if (room == null) return NotFound($"Room with id: '{id}' was not found.");
 
 			return Ok(new RoomGetResponse(room.Id, room.Name, room.Description));
 		}
@@ -80,7 +81,7 @@ namespace IotProject.API.Controllers
 			await context.AddAsync(room);
 			await context.SaveChangesAsync();
 
-			return StatusCode(201, new RoomCreateResponse(Message: "Room successfully created."));
+			return StatusCode(201, new RoomCreateResponse(room.Id, "Room successfully created."));
 		}
 
 		// Update room endpoint.
@@ -94,7 +95,7 @@ namespace IotProject.API.Controllers
             //if (await context.Rooms.AnyAsync(r => r.Name == requestModel.Name && r.OwnerId == userId)) return BadRequest("Room name already in use.");
 
             var room = await context.Rooms.FirstOrDefaultAsync(r => r.Id == requestModel.Id && r.OwnerId == userId);
-			if (room == null) return NotFound($"Room with id: {requestModel.Id} was not found.");
+			if (room == null) return NotFound($"Room with id: '{requestModel.Id}' was not found.");
 
 			// Changes the required items on the room.
 			room.Name = requestModel.Name;
@@ -114,7 +115,7 @@ namespace IotProject.API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return StatusCode(500);
             var room = await context.Rooms.FirstOrDefaultAsync(r => r.Id == id && r.OwnerId == userId);
-			if (room == null) return NotFound($"Room with id: {id} was not found.");
+			if (room == null) return NotFound($"Room with id: '{id}' was not found.");
 
 			// Removes the room from the database, and saves the changes.
 			context.Rooms.Remove(room);
@@ -123,8 +124,52 @@ namespace IotProject.API.Controllers
 			return Ok("Room successfully deleted.");
 		}
 
-		// Generates a unique GUID for the rooms. 
-		private async Task<string> GenerateRoomID()
+        [HttpGet("GetDevices"), Authorize]
+        public async Task<ActionResult<List<DeviceResponse>>> GetDevices(string id)
+        {
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500);
+
+			var room = user.Rooms.FirstOrDefault(r => r.Id == id);
+            if (room == null) return NotFound($"Room with id: '{id}' was not found.");
+
+            return Ok(room.Devices.Select(d =>
+            {
+                // Find the newest Data.
+                var latest = d.Data.OrderByDescending(x => x.Timestamp).FirstOrDefault();
+
+                // Create a new DeviceResponse and add it to the list.
+                return new DeviceResponse(
+                    Id: d.Id,
+                    Name: d.Name ?? DeviceTypes.GetDeviceType(d.DeviceType)?.Name,
+                    Type: d.DeviceType,
+                    RoomId: d.RoomId!,
+                    Data: latest?.Data,
+                    LastUpdate: latest?.Timestamp
+                );
+            }));
+        }
+
+        /// <summary>
+        /// Finds the currently signed in user, using the <see cref="ClaimTypes"/> NameIdentifier from the JWT token.
+        /// </summary>
+        /// <returns>The currently signed in user. If no user was found, returns null.</returns>
+        private async Task<User?> GetSignedInUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return null;
+            var user = await context.Users.Where(u => u.Id == userId)
+                .Include(u => u.Rooms) // Include the users rooms.
+                .ThenInclude(r => r.Devices) // Include all devices in the room.
+                .ThenInclude(d => d.Data) // Include the data from the device.
+                .FirstOrDefaultAsync();
+            if (user == null) return null;
+
+            return user;
+        }
+
+        // Generates a unique GUID for the rooms. 
+        private async Task<string> GenerateRoomID()
 		{
 			while (true)
 			{
