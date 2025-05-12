@@ -24,7 +24,7 @@ namespace IotProject.API.Controllers
 			var rooms = await context.Rooms
 				.Where(r => r.OwnerId == userId)
 				.ToListAsync();
-			if (rooms.IsNullOrEmpty()) return StatusCode(500);
+			if (rooms.IsNullOrEmpty()) return NotFound("No rooms where registered.");
 
 			// Maps the rooms to the required response class.
 			List<RoomGetResponse> mappedRooms = new();
@@ -46,9 +46,11 @@ namespace IotProject.API.Controllers
 		[HttpGet("get-room"), Authorize]
 		public async Task<ActionResult<RoomGetResponse>> GetRoom(string id)
 		{
-			// Fetches data and checks for null or empty strings/references.
-			var room = await context.Rooms.FindAsync(id);
-			if (room == null) return StatusCode(500);
+            // Fetches data and checks for null or empty strings/references.
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return StatusCode(500);
+            var room = await context.Rooms.FirstOrDefaultAsync(r => r.Id == id && r.OwnerId == userId);
+			if (room == null) return NotFound($"Room with id: {id} was not found.");
 
 			return Ok(new RoomGetResponse(room.Id, room.Name, room.Description));
 		}
@@ -89,9 +91,10 @@ namespace IotProject.API.Controllers
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 			if (string.IsNullOrEmpty(userId)) return StatusCode(500);
 			if (requestModel == null) return BadRequest();
-			//if (await context.Rooms.AnyAsync(r => r.Name == requestModel.Name && r.OwnerId == userId)) return BadRequest("Room name already in use.");
-			var room = await context.Rooms.FindAsync(requestModel.Id);
-			if (room == null) return StatusCode(500);
+            //if (await context.Rooms.AnyAsync(r => r.Name == requestModel.Name && r.OwnerId == userId)) return BadRequest("Room name already in use.");
+
+            var room = await context.Rooms.FirstOrDefaultAsync(r => r.Id == requestModel.Id && r.OwnerId == userId);
+			if (room == null) return NotFound($"Room with id: {requestModel.Id} was not found.");
 
 			// Changes the required items on the room.
 			room.Name = requestModel.Name;
@@ -107,9 +110,11 @@ namespace IotProject.API.Controllers
 		[HttpDelete("Delete"), Authorize]
 		public async Task<ActionResult> Delete(string id)
 		{
-			// Fetches data and checks for null or empty strings/references.
-			var room = await context.Rooms.FindAsync(id);
-			if (room == null) return StatusCode(500);
+            // Fetches data and checks for null or empty strings/references.
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return StatusCode(500);
+            var room = await context.Rooms.FirstOrDefaultAsync(r => r.Id == id && r.OwnerId == userId);
+			if (room == null) return NotFound($"Room with id: {id} was not found.");
 
 			// Removes the room from the database, and saves the changes.
 			context.Rooms.Remove(room);

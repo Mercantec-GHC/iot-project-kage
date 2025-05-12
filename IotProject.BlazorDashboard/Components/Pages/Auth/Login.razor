@@ -73,7 +73,7 @@
     private async Task HandleLogin()
     {
         loading = true;
-        var isSuccess = await AuthService.Login(loginModel);
+        var isSuccess = await AuthService.Login(loginModel, remember);
         if(isSuccess)
         {
             NavigationManager.NavigateTo("/", true);
