@@ -12,6 +12,7 @@ namespace IotProject.API.Data
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Device> Devices { get; set; }
         public DbSet<DeviceData> DeviceData { get; set; }
+        public DbSet<DeviceConfig> DeviceConfigs { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -48,15 +49,26 @@ namespace IotProject.API.Data
                 .WithMany()
                 .HasForeignKey(t => t.UserId);
 
+            modelBuilder.Entity<DeviceConfig>()
+                .HasOne(dc => dc.Device)
+                .WithOne(d => d.DeviceConfig)
+                .HasForeignKey<DeviceConfig>(dc => dc.DeviceId)
+                .HasPrincipalKey<Device>(d => d.Id);
+
             var converter = new ValueConverter<Dictionary<string, object>, string>(
                 dict => JsonSerializer.Serialize(dict, (JsonSerializerOptions)null),
                 json => JsonSerializer.Deserialize<Dictionary<string, object>>(json, (JsonSerializerOptions)null)
             );
 
-            var entity = modelBuilder.Entity<DeviceData>();
-            entity.Property(e => e.Data)
-                  .HasConversion(converter)
-                  .HasColumnType("jsonb");
+            modelBuilder.Entity<DeviceData>()
+                .Property(e => e.Data)
+                .HasConversion(converter)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<DeviceConfig>()
+                .Property(e => e.Config)
+                .HasConversion(converter)
+                .HasColumnType("jsonb");
         }
     }
 }

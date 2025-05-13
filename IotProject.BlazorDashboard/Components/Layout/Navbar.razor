@@ -13,13 +13,29 @@
                 <div class="nav-item py-2 py-sm-1 col-12 col-sm-auto">
                     <hr class="d-sm-none my-0 text-white-50">
                 </div>
-                <NavLink class="nav-item nav-link" href="/logout">
+@*                 <NavLink class="nav-item nav-link" href="/logout">
                     <Icon Name="IconName.LockFill" /> Logout
-                </NavLink>
+                </NavLink> *@
                 <NavLink class="nav-item nav-link" href="/devices">
                     <Icon Name="IconName.Laptop" /> Devices
                 </NavLink>
             </div>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="navbar-nav" >
+                        <Dropdown Class="nav-item py-2 py-sm-0 d-none d-sm-block">
+                            <DropdownToggleButton Class="nav-link p-0 border-0 logo-highlight">
+                                <Icon Name="IconName.List"/>
+                            </DropdownToggleButton>
+                            <DropdownMenu Position="DropdownMenuPosition.End">
+                                <DropdownItem To="/account" Type="DropdownItemType.Link"><Icon Name="IconName.PersonFill"/> Account</DropdownItem>
+                                <DropdownDivider />
+                                <DropdownItem To="/logout" Type="DropdownItemType.Link"><Icon Name="IconName.LockFill"/> Logout</DropdownItem>
+                            </DropdownMenu>
+                        </Dropdown>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
         </NavbarCollapse> 
     </div>
 </nav>
