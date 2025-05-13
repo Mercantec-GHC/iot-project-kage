@@ -1,9 +1,11 @@
 ﻿namespace IotProject.Shared.Models.Responses
 {
-    public record DeviceRegisterResponse(string Id, string ApiKey, string Message = null!);
+    public record DeviceRegisterResponse(string Id, string ApiKey, string? Message = null);
+    public record DeviceNameResponse(string? Name, string? Message = null);
 
     public record DeviceResponse(
         string Id,
+        string? Name,
         string Type,
         string RoomId,
         Dictionary<string, object>? Data,
