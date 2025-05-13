@@ -2,6 +2,7 @@
 using IotProject.Shared.Models.Database;
 using IotProject.Shared.Models.Requests;
 using IotProject.Shared.Models.Responses;
+using IotProject.Shared.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,23 @@ namespace IotProject.API.Controllers
             return Ok(new DeviceRegisterResponse(device.Id, device.ApiKey, $"Device of type '{device.DeviceType}' successfully registered."));
         }
 
+        [HttpDelete("RemoveDevice")]
+        public async Task<ActionResult> RemoveDevice(DeviceRemoveRequest requestModel)
+        {
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500);
+
+            // Find the device with the given id.
+            var device = user.Devices.FirstOrDefault(d => d.Id == requestModel.Id);
+            if (device == null) return NotFound($"Device with id: '{requestModel.Id}', was not found.");
+
+            // Removes the device from the dabase.
+            context.Remove(device);
+            await context.SaveChangesAsync();
+
+            return Ok($"Device with id '{requestModel.Id}' was successfully removed.");
+        }
+
         [HttpGet("GetDevices"), Authorize]
         public async Task<ActionResult<List<DeviceResponse>>> GetDevices()
         {
@@ -49,6 +67,7 @@ namespace IotProject.API.Controllers
                 // Create a new DeviceResponse and add it to the list.
                 return new DeviceResponse(
                     Id: d.Id,
+                    Name: d.Name ?? DeviceTypes.GetDeviceType(d.DeviceType)?.Name,
                     Type: d.DeviceType,
                     RoomId: d.RoomId!,
                     Data: latest?.Data,
@@ -63,11 +82,8 @@ namespace IotProject.API.Controllers
             var user = await GetSignedInUser();
             if (user == null) return StatusCode(500);
 
-            // Find the device with the given id and include all data.
-            var device = await context.Devices.Where(d => d.Id == deviceId)
-                .Include(d => d.Data)
-                .FirstOrDefaultAsync();
-
+            // Find the device with the given id.
+            var device = user.Devices.FirstOrDefault(d => d.Id == deviceId);
             if (device == null) return NotFound($"Device with id: '{deviceId}', was not found.");
 
             return Ok(device.Data.OrderByDescending(d => d.Timestamp)
@@ -94,6 +110,48 @@ namespace IotProject.API.Controllers
             return Ok("Data successfully posted.");
         }
 
+        [HttpPut("SetName"), Authorize]
+        public async Task<ActionResult<DeviceNameResponse>> SetName(DeviceNameRequest requestModel)
+        {
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500);
+
+            // Find the device with the given id.
+            var device = user.Devices.FirstOrDefault(d => d.Id == requestModel.Id);
+            if (device == null) return NotFound($"Device with id: '{requestModel.Id}', was not found.");
+
+            // Handles empty an name and replaces it with null, to handle name removal.
+            string? newName = string.IsNullOrWhiteSpace(requestModel.Name) ? null : requestModel.Name.Trim();
+            if (device.Name == newName) return BadRequest("Nothing was changed.");
+
+            device.Name = newName;
+            await context.SaveChangesAsync();
+            return Ok(new DeviceNameResponse(newName ?? device.DeviceType, "The name was successfully changed."));
+        }
+
+        [HttpPut("SetRoom"), Authorize]
+        public async Task<ActionResult> SetRoom(DeviceRoomRequest requestModel)
+        {
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500);
+
+            // Find the device with the given id.
+            var device = user.Devices.FirstOrDefault(d => d.Id == requestModel.Id);
+            if (device == null) return NotFound($"Device with id: '{requestModel.Id}', was not found.");
+
+            // Find a room with the given id.
+            string? roomId = string.IsNullOrWhiteSpace(requestModel.RoomId) ? null : requestModel.RoomId.Trim();
+
+            // If a Room Id was given, tries to find the room.
+            if (roomId != null && user.Rooms.FirstOrDefault(r => r.Id == roomId) == null) return NotFound($"Room with id: '{requestModel.RoomId}', was not found.");
+            if (device.RoomId == roomId) return BadRequest("Nothing was changed.");
+
+            device.RoomId = roomId;
+            await context.SaveChangesAsync();
+
+            return Ok(roomId == null ? "Device room has been removed." : $"Device room set to '{roomId}'.");
+        }
+
         /// <summary>
         /// Finds the currently signed in user, using the <see cref="ClaimTypes"/> NameIdentifier from the JWT token.
         /// </summary>
@@ -103,6 +161,7 @@ namespace IotProject.API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return null;
             var user = await context.Users.Where(u => u.Id == userId)
+                .Include(u => u.Rooms) // Include the users rooms.
                 .Include(u => u.Devices) // Include all owned devices.
                 .ThenInclude(d => d.Data) // Include the data from the device.
                 .FirstOrDefaultAsync();
