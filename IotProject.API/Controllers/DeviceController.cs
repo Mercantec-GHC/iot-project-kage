@@ -24,7 +24,6 @@ namespace IotProject.API.Controllers
                 ApiKey = Guid.NewGuid().ToString(),
                 OwnerId = requestModel.OwnerId,
                 DeviceType = requestModel.DeviceType,
-                Config = requestModel.Config,
                 DateCreated = DateTime.UtcNow,
                 DateUpdated = DateTime.UtcNow
             };
@@ -46,7 +45,7 @@ namespace IotProject.API.Controllers
             var device = user.Devices.FirstOrDefault(d => d.Id == requestModel.Id);
             if (device == null) return NotFound($"Device with id: '{requestModel.Id}', was not found.");
 
-            // Removes the device from the dabase.
+            // Removes the device from the database.
             context.Remove(device);
             await context.SaveChangesAsync();
 
@@ -164,6 +163,7 @@ namespace IotProject.API.Controllers
                 .Include(u => u.Rooms) // Include the users rooms.
                 .Include(u => u.Devices) // Include all owned devices.
                 .ThenInclude(d => d.Data) // Include the data from the device.
+                .Include(u => u.Devices).ThenInclude(d => d.DeviceConfig) // Include the DeviceConfig from the device.
                 .FirstOrDefaultAsync();
             if (user == null) return null;
 
