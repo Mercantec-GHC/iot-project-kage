@@ -123,7 +123,7 @@ namespace IotProject.Auth.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns>A <see cref="UserEditPasswordResponse"/> if successfull, otherwise null.</returns>
-        public async Task<UserEditPasswordRequest> EditPassword(UserEditPasswordRequest request)
+        public async Task<bool> EditPassword(UserEditPasswordRequest request)
         {
             // Tries to obtain the jwt token from Local Storage.
             var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
@@ -131,18 +131,14 @@ namespace IotProject.Auth.Services
             {
                 // If unsuccessfull, tries to obtain the jwt token from Session Storage.
                 jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
-                if (string.IsNullOrWhiteSpace(jwtToken)) return null;
+                if (string.IsNullOrWhiteSpace(jwtToken)) return false;
             }
 
             var createAsJson = JsonSerializer.Serialize(request);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
-            var response = await httpClient.PostAsync("auth/updatepassword", new StringContent(createAsJson, Encoding.UTF8, "application/json"));
-            if (!response.IsSuccessStatusCode)
-            {
-                return null!;
-            }
+            var response = await httpClient.PatchAsync("auth/updatepassword", new StringContent(createAsJson, Encoding.UTF8, "application/json"));
 
-            return JsonSerializer.Deserialize<UserEditPasswordRequest>(await response.Content.ReadAsStringAsync(), JsonOptions)!;
+            return response.IsSuccessStatusCode;
         }
 
         /// <summary>
