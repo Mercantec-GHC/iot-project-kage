@@ -16,4 +16,9 @@
         Dictionary<string, object>? Data,
         DateTime? Timestamp
     );
+
+    public record DeviceGetConfigResponse(
+        Dictionary<string, object> Config,
+        long Timestamp
+    );
 }

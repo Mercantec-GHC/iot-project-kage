@@ -51,7 +51,7 @@ namespace IotProject.API.Data
 
             modelBuilder.Entity<DeviceConfig>()
                 .HasOne(dc => dc.Device)
-                .WithOne(d => d.DeviceConfig)
+                .WithOne(d => d.Config)
                 .HasForeignKey<DeviceConfig>(dc => dc.DeviceId)
                 .HasPrincipalKey<Device>(d => d.Id);
 

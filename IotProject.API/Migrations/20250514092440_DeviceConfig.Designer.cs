@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IotProject.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250512093939_DeviceName")]
-    partial class DeviceName
+    [Migration("20250514092440_DeviceConfig")]
+    partial class DeviceConfig
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,10 +31,6 @@ namespace IotProject.API.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ApiKey")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Config")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -65,6 +61,33 @@ namespace IotProject.API.Migrations
                     b.HasIndex("RoomId");
 
                     b.ToTable("Devices");
+                });
+
+            modelBuilder.Entity("IotProject.Shared.Models.Database.DeviceConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Config")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("Timestamp")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceId")
+                        .IsUnique();
+
+                    b.ToTable("DeviceConfigs");
                 });
 
             modelBuilder.Entity("IotProject.Shared.Models.Database.DeviceData", b =>
@@ -127,7 +150,6 @@ namespace IotProject.API.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -209,6 +231,17 @@ namespace IotProject.API.Migrations
                     b.Navigation("Room");
                 });
 
+            modelBuilder.Entity("IotProject.Shared.Models.Database.DeviceConfig", b =>
+                {
+                    b.HasOne("IotProject.Shared.Models.Database.Device", "Device")
+                        .WithOne("Config")
+                        .HasForeignKey("IotProject.Shared.Models.Database.DeviceConfig", "DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Device");
+                });
+
             modelBuilder.Entity("IotProject.Shared.Models.Database.DeviceData", b =>
                 {
                     b.HasOne("IotProject.Shared.Models.Database.Device", "Device")
@@ -244,6 +277,8 @@ namespace IotProject.API.Migrations
 
             modelBuilder.Entity("IotProject.Shared.Models.Database.Device", b =>
                 {
+                    b.Navigation("Config");
+
                     b.Navigation("Data");
                 });
 
