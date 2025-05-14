@@ -71,6 +71,7 @@
         if (isFirstRender)
         {
             rooms = await roomService.GetAll();
+            await InvokeAsync(StateHasChanged);
         }
     }
 }
