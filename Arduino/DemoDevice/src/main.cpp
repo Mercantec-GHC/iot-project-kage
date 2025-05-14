@@ -89,7 +89,7 @@ void Register() {
     DynamicJsonDocument JsonObject(512);
 
     // Add Key values to JSON object.
-    JsonObject["devicetype"] = "Work";
+    JsonObject["devicetype"] = "DemoDevice";
     JsonObject["ownerid"] = "fb00f216-cf0e-4ff5-8885-4448a36020cc";
     JsonObject["config"] = "";
 

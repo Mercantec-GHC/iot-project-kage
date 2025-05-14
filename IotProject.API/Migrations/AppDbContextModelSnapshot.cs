@@ -75,10 +75,8 @@ namespace IotProject.API.Migrations
                     b.Property<string>("DeviceId")
                         .IsRequired()
                         .HasColumnType("text");
-
                     b.Property<long>("Timestamp")
                         .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
                     b.HasIndex("DeviceId")
