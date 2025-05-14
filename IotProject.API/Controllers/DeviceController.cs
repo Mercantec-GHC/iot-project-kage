@@ -6,6 +6,7 @@ using IotProject.Shared.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
 namespace IotProject.API.Controllers
@@ -151,6 +152,55 @@ namespace IotProject.API.Controllers
             return Ok(roomId == null ? "Device room has been removed." : $"Device room set to '{roomId}'.");
         }
 
+        [HttpPost("SetConfiguration"), Authorize]
+        public async Task<ActionResult> SetConfiguration(DeviceSetConfigRequest requestModel) 
+        {
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500);
+
+            // Finds a users device by DeviceId. 
+            var device = user.Devices.FirstOrDefault(d => d.Id == requestModel.Id);
+            if (device == null) return NotFound($"Device with id: '{requestModel.Id}', was not found.");
+
+            // Find the device config.
+            var config = device.Config;
+            
+            // Adds a new config in case there is none.
+            if (config == null)
+            {
+                config = new DeviceConfig { DeviceId = requestModel.Id };
+                await context.DeviceConfigs.AddAsync(config);
+            }
+			// Sets parameters on the database.
+			foreach (var keyValuePair in requestModel.Config)
+			{
+                config.Config[keyValuePair.Key] = keyValuePair.Value;
+			}
+			//config.Config = requestModel.Config; 
+            config.Timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+            context.DeviceConfigs.Update(config);
+            await context.SaveChangesAsync();
+
+            return Ok("Config successfully saved.");
+		}
+
+        [HttpGet("GetConfiguration"), Authorize, AllowAnonymous]
+        public async Task<ActionResult<DeviceGetConfigResponse>> GetConfiguration([FromHeader] string DeviceId, [FromHeader] string? ApiKey)
+        {
+            // Finds the current signed in user.
+            var user = await GetSignedInUser();
+
+            // Find device using deviceId. If no user is signed in, use the ApiKey to authorize.
+            var device = user == null ? await context.Devices.Where(d => d.Id == DeviceId && d.ApiKey == ApiKey).Include(d => d.Config).FirstOrDefaultAsync() : user.Devices.FirstOrDefault(d => d.Id == DeviceId);
+            if (device == null) return NotFound($"Device with Id: '{DeviceId}' not found.");
+
+            // Fetches the device configuration.
+            var config = device.Config;
+            if (config == null) return NotFound("Configuration has not been set.");
+
+            return Ok(new DeviceGetConfigResponse(config.Config, config.Timestamp));
+        }
+
         /// <summary>
         /// Finds the currently signed in user, using the <see cref="ClaimTypes"/> NameIdentifier from the JWT token.
         /// </summary>
@@ -163,7 +213,7 @@ namespace IotProject.API.Controllers
                 .Include(u => u.Rooms) // Include the users rooms.
                 .Include(u => u.Devices) // Include all owned devices.
                 .ThenInclude(d => d.Data) // Include the data from the device.
-                .Include(u => u.Devices).ThenInclude(d => d.DeviceConfig) // Include the DeviceConfig from the device.
+                .Include(u => u.Devices).ThenInclude(d => d.Config) // Include the DeviceConfig from the device.
                 .FirstOrDefaultAsync();
             if (user == null) return null;
 

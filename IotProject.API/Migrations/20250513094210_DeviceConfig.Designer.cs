@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IotProject.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250513081225_DeviceConfig")]
+    [Migration("20250513094210_DeviceConfig")]
     partial class DeviceConfig
     {
         /// <inheritdoc />
@@ -79,8 +79,8 @@ namespace IotProject.API.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<long>("Timestamp")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -234,7 +234,7 @@ namespace IotProject.API.Migrations
             modelBuilder.Entity("IotProject.Shared.Models.Database.DeviceConfig", b =>
                 {
                     b.HasOne("IotProject.Shared.Models.Database.Device", "Device")
-                        .WithOne("DeviceConfig")
+                        .WithOne("Config")
                         .HasForeignKey("IotProject.Shared.Models.Database.DeviceConfig", "DeviceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -277,9 +277,9 @@ namespace IotProject.API.Migrations
 
             modelBuilder.Entity("IotProject.Shared.Models.Database.Device", b =>
                 {
-                    b.Navigation("Data");
+                    b.Navigation("Config");
 
-                    b.Navigation("DeviceConfig");
+                    b.Navigation("Data");
                 });
 
             modelBuilder.Entity("IotProject.Shared.Models.Database.Room", b =>

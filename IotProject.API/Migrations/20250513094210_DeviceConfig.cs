@@ -113,7 +113,7 @@ namespace IotProject.API.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     DeviceId = table.Column<string>(type: "text", nullable: false),
                     Config = table.Column<string>(type: "jsonb", nullable: false),
-                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Timestamp = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
