@@ -17,40 +17,48 @@ namespace IotProject.API.Controllers
 	{
 		// Get list of rooms by user id endpoint.
 		[HttpGet("GetAll"), Authorize]
-		public async Task<ActionResult<RoomGetAllResponse>> GetAll()
+		public async Task<ActionResult<List<RoomGetResponse>>> GetAll()
 		{
-			// Fetches data and checks for null or empty strings/references.
-			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-			if (string.IsNullOrEmpty(userId)) return StatusCode(500);
-			var rooms = await context.Rooms
-				.Where(r => r.OwnerId == userId)
-				.ToListAsync();
-			if (rooms.IsNullOrEmpty()) return NotFound("No rooms where registered.");
+			var user = await GetSignedInUser();
+			if (user == null) return StatusCode(500);
 
-			// Maps the rooms to the required response class.
-			List<RoomGetResponse> mappedRooms = new();
-			foreach (var room in rooms)
-			{
-				var mappedRoom = new RoomGetResponse
-				(
-					room.Id,
-					room.Name,
-					room.Description
-				);
-				mappedRooms.Add(mappedRoom);
-			}
+			var rooms = user.Rooms;
+			if (rooms == null) return new List<RoomGetResponse>();
 
-			return Ok(new RoomGetAllResponse(mappedRooms));
-		}
+            return Ok(rooms.Select(r => new RoomGetResponse(r.Id, r.Name, r.Description)).ToList());
+
+            //// Fetches data and checks for null or empty strings/references.
+            //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //if (string.IsNullOrEmpty(userId)) return StatusCode(500);
+            //var rooms = await context.Rooms
+            //	.Where(r => r.OwnerId == userId)
+            //	.ToListAsync();
+            //if (rooms.IsNullOrEmpty()) return NotFound("No rooms where registered.");
+
+            //// Maps the rooms to the required response class.
+            //List<RoomGetResponse> mappedRooms = new();
+            //foreach (var room in rooms)
+            //{
+            //	var mappedRoom = new RoomGetResponse
+            //	(
+            //		room.Id,
+            //		room.Name,
+            //		room.Description
+            //	);
+            //	mappedRooms.Add(mappedRoom);
+            //}
+
+            //return Ok(new RoomGetAllResponse(mappedRooms));
+        }
 
 		// Get room by room id endpoint.
 		[HttpGet("GetRoom"), Authorize]
 		public async Task<ActionResult<RoomGetResponse>> GetRoom(string id)
 		{
             // Fetches data and checks for null or empty strings/references.
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return StatusCode(500);
-            var room = await context.Rooms.FirstOrDefaultAsync(r => r.Id == id && r.OwnerId == userId);
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500); 
+			var room = user.Rooms.FirstOrDefault(r => r.Id == id);
 			if (room == null) return NotFound($"Room with id: '{id}' was not found.");
 
 			return Ok(new RoomGetResponse(room.Id, room.Name, room.Description));
@@ -60,10 +68,10 @@ namespace IotProject.API.Controllers
 		[HttpPost("Create"), Authorize]
 		public async Task<ActionResult<RoomCreateResponse>> Create(RoomCreateRequest requestModel)
 		{
-			// Fetches data and checks for null or empty strings/references.
-			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-			if (string.IsNullOrEmpty(userId)) return StatusCode(500);
-			if (requestModel == null) return BadRequest();
+            // Fetches data and checks for null or empty strings/references.
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500);
+            if (requestModel == null) return BadRequest();
 			if (string.IsNullOrEmpty(requestModel.Name)) return BadRequest("Room information incomplete.");
 			//if (await context.Rooms.AnyAsync(r => r.Name == requestModel.Name && r.OwnerId == userId)) return BadRequest("Room name already in use.");
 
@@ -72,13 +80,13 @@ namespace IotProject.API.Controllers
 			{
 				Id = await GenerateRoomID(),
 				Name = requestModel.Name,
-				OwnerId = userId,
+				OwnerId = user.Id,
 				Description = requestModel.Description!,
 				DateCreated = DateTime.UtcNow,
 				DateUpdated = DateTime.UtcNow
 			};
 
-			await context.AddAsync(room);
+			await context.Rooms.AddAsync(room);
 			await context.SaveChangesAsync();
 
 			return StatusCode(201, new RoomCreateResponse(room.Id, "Room successfully created."));
@@ -88,13 +96,13 @@ namespace IotProject.API.Controllers
 		[HttpPatch("Update"), Authorize]
 		public async Task<ActionResult> Update(RoomUpdateRequest requestModel)
 		{
-			// Fetches data and checks for null or empty strings/references.
-			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-			if (string.IsNullOrEmpty(userId)) return StatusCode(500);
-			if (requestModel == null) return BadRequest();
+            // Fetches data and checks for null or empty strings/references.
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500);
+            if (requestModel == null) return BadRequest();
             //if (await context.Rooms.AnyAsync(r => r.Name == requestModel.Name && r.OwnerId == userId)) return BadRequest("Room name already in use.");
 
-            var room = await context.Rooms.FirstOrDefaultAsync(r => r.Id == requestModel.Id && r.OwnerId == userId);
+            var room = user.Rooms.FirstOrDefault(r => r.Id == requestModel.Id);
 			if (room == null) return NotFound($"Room with id: '{requestModel.Id}' was not found.");
 
 			// Changes the required items on the room.
@@ -112,9 +120,9 @@ namespace IotProject.API.Controllers
 		public async Task<ActionResult> Delete(string id)
 		{
             // Fetches data and checks for null or empty strings/references.
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return StatusCode(500);
-            var room = await context.Rooms.FirstOrDefaultAsync(r => r.Id == id && r.OwnerId == userId);
+            var user = await GetSignedInUser();
+            if (user == null) return StatusCode(500);
+            var room = user.Rooms.FirstOrDefault(r => r.Id == id);
 			if (room == null) return NotFound($"Room with id: '{id}' was not found.");
 
 			// Removes the room from the database, and saves the changes.

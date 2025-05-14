@@ -77,12 +77,12 @@
                         <PasswordInput Id="confirm-password" @bind-value="editPasswordRequest.ConfirmPassword" />
                         <ValidationMessage For="@(() => editPasswordRequest.ConfirmPassword)" />
                     </div>
+                    <div class="modal-footer">
+                        <Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4" Loading="loading" LoadingText="Saving changes" Disabled="loading">
+                            <span class="text-white">Save Changes</span>
+                        </Button>
+                    </div>
                 </EditForm>
-            </div>
-            <div class="modal-footer">
-                <Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4" Loading="loading" LoadingText="Saving changes" Disabled="loading">
-                    <span class="text-white">Save Changes</span>
-                </Button>
             </div>
         </div>
     </div>
@@ -124,6 +124,10 @@
     {
         loading = true;
         var response = await AuthService.EditPassword(editPasswordRequest);
+        if (response)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, true);
+        }
 
         loading = false;
     }
