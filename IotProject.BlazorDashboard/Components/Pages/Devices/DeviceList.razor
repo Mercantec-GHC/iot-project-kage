@@ -4,8 +4,9 @@
 @using IotProject.RazorShared.Services
 @using BlazorBootstrap
 @using IotProject.Shared.Models.Responses
-@inject IDeviceService DeviceService
+@inject IotDeviceService DeviceService
 @inject IJSRuntime JSRuntime
+@attribute [Authorize]
 
     <div class="row justify-content-center">
         <div class="col-12">
@@ -42,8 +43,8 @@
                 </CardFooter>
             </Card>
         </Card>
-        </div>
     </div>
+</div>
 
 @code {
     private List<DeviceResponse> devices = new();
@@ -65,12 +66,13 @@
             Console.WriteLine(ex);
         }
 
-        // devices = DeviceService.GetDevices();
+        devices = await DeviceService.GetAllDevices();
 
-        while (devices.Count < 30)
-        {
-            devices.Add(new DeviceResponse($"{devices.Count + 1}", $"Demo Device {devices.Count + 1}", "DemoDevice", "", null, null));
-        }
+        // while (devices.Count < 30)
+        // {
+        //     devices.Add(new DeviceResponse($"{devices.Count + 1}", $"Demo Device {devices.Count + 1}", "DemoDevice", "", null, null));
+        // }
+
 		StateHasChanged();
     }
 
