@@ -6,6 +6,6 @@
 		public string DeviceId { get; set; }
 		public Device Device { get; set; }
 		public Dictionary<string, object> Config { get; set; }
-		public DateTime Timestamp { get; set; }
+		public long Timestamp { get; set; }
 	}
 }
