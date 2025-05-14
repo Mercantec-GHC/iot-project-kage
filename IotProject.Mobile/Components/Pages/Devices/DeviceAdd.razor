@@ -1,0 +1,138 @@
+@page "/devices/add"
+@using Plugin.BLE
+@using Plugin.BLE.Abstractions.Contracts
+@implements IAsyncDisposable
+@inject NavigationManager NavigationManager
+
+<MudCard Class="mb-3">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4">Add Device</MudText>
+        </CardHeaderContent>
+        <CardHeaderActions>
+            <MudButton Class="align-self-center" Disabled="@isScanning" OnClick="StartScan" Variant="Variant.Text" >
+                @if (isScanning)
+                {
+                    <MudText Class="me-2">Scanning</MudText>
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                }
+                else
+                {
+                    <MudText Class="me-2">Scan</MudText>
+                    <MudIcon Class="ms-n1" Icon="@Icons.Material.Filled.Refresh"></MudIcon>
+                }
+            </MudButton>
+        </CardHeaderActions>
+    </MudCardHeader>
+
+    <MudDivider />
+
+    <MudTable Items="@devices" Hover="true" Breakpoint="Breakpoint.None" Loading="@isScanning" LoadingProgressColor="Color.Info">
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.Id</MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    @if (showNoDevices)
+    {
+        <MudCardContent>
+            <p>No devices were found.</p>
+        </MudCardContent>
+    }
+
+</MudCard>
+
+@code {
+    // List of dicovered Bluetooth devices.
+    private List<IDevice> devices = new();
+    private bool isScanning = false;
+    private bool showNoDevices = false;
+    private CancellationTokenSource? scanningCts;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await StartScan();
+        }
+    }
+
+    private async Task StartScan()
+    {
+        bool permissionsGranted = await BluetoothPermisions.CheckAndRequestPermissions();
+        if (!permissionsGranted)
+        {
+            NavigationManager.NavigateTo("/devices");
+            return;
+        }
+
+        // Clear the list of previously dicorvered devices.
+        devices.Clear();
+        isScanning = true;
+        showNoDevices = false;
+        scanningCts = new CancellationTokenSource();
+        await InvokeAsync(StateHasChanged);
+
+        var adapter = CrossBluetoothLE.Current.Adapter;
+
+        // Register the event for dicorvered devices.
+        adapter.DeviceDiscovered += OnDeviceDiscovered!;
+
+        try
+        {
+            // Starter scanning – denne metode blokerer, indtil scanningen afsluttes
+            await adapter.StartScanningForDevicesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error during scanning: " + ex.Message);
+        }
+        finally
+        {
+            isScanning = false;
+            // Removes the eventhandler to prevent dupelicates.
+            adapter.DeviceDiscovered -= OnDeviceDiscovered!;
+            scanningCts?.Dispose();
+            scanningCts = null;
+            if (!devices.Any()) showNoDevices = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // Eventhandler for device discovery.
+    private void OnDeviceDiscovered(object sender, Plugin.BLE.Abstractions.EventArgs.DeviceEventArgs args)
+    {
+        if (!string.IsNullOrWhiteSpace(args.Device.Name)/*  && args.Device.Name.Contains("Arduino") */)
+        {
+            // Tjek for dubletter
+            if (!devices.Any(d => d.Id == args.Device.Id))
+            {
+                devices.Add(args.Device);
+                // Da vi er i en eventtråd, skal vi bede UI-tråden om at opdatere
+                InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    // Used to unregister the eventhandler when leaving the page.
+    public async ValueTask DisposeAsync()
+    {
+        // If the scanning is active, cancel it.
+        if (isScanning)
+        {
+            scanningCts?.Cancel();
+            var adapter = CrossBluetoothLE.Current.Adapter;
+            try
+            {
+                await adapter.StopScanningForDevicesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error during stop of scanning: " + ex.Message);
+            }
+        }
+        // Remove the eventhandler to prevent memory leaks.
+        CrossBluetoothLE.Current.Adapter.DeviceDiscovered -= OnDeviceDiscovered;
+    }
+}
