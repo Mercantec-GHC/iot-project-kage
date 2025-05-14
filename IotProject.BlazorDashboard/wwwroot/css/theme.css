@@ -1,5 +1,4 @@
 ﻿:root {
-    
 }
 
 .navbar-brand img, .logo-highlight {
@@ -97,21 +96,36 @@
         z-index: 0;
     }
 
-.btn-gradient:hover::before {
-    opacity: 1;
-}
+    .btn-gradient:hover::before {
+        opacity: 1;
+    }
 
-.btn-gradient:hover {
-    border-color: white;
-    color: white;
-}
+    .btn-gradient:hover {
+        border-color: white;
+        color: white;
+        opacity: 1;
+    }
 
-/* Ensure text stays above the gradient */
-.btn-gradient > * {
-    position: relative;
-    z-index: 1;
-}
+    /* Ensure text stays above the gradient */
+    .btn-gradient > * {
+        position: relative;
+        z-index: 2;
+    }
 
 .d-absolute {
     position: absolute;
+}
+
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-item .page-link {
+    color: rgba(179, 91, 64, 1);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: rgba(204, 104, 73, 1);
+    border-color: rgba(204, 104, 73, 1);
+    color: white;
 }
