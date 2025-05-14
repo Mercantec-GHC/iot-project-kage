@@ -25,32 +25,39 @@ namespace IotProject.Auth.Services
         /// <returns><see cref="bool"/> of true, if the user was successfully logged in.</returns>
         public async Task<bool> Login(UserLoginRequest request, bool remember = false)
         {
-            // Creates and posts the login request.
-            var loginAsJson = JsonSerializer.Serialize(request);
-            var response = await httpClient.PostAsync("auth/login", new StringContent(loginAsJson, Encoding.UTF8, "application/json"));
-            if (!response.IsSuccessStatusCode)
+            try
+            {
+                // Creates and posts the login request.
+                var loginAsJson = JsonSerializer.Serialize(request);
+                var response = await httpClient.PostAsync("auth/login", new StringContent(loginAsJson, Encoding.UTF8, "application/json"));
+                if (!response.IsSuccessStatusCode)
+                {
+                    return false;
+                }
+
+                // Deserializes response as a UserLoginResponse.
+                var loginResult = JsonSerializer.Deserialize<UserLoginResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
+                if (remember)
+                {
+                    // Stores the token in Local Storage.
+                    await localStorage.SetItemAsync("JwtToken", loginResult!.Token);
+                    await localStorage.SetItemAsync("RefreshToken", loginResult.RefreshToken);
+                }
+                else
+                {
+                    // Stores the token in Session Storage.
+                    await sessionStorage.SetItemAsync("JwtToken", loginResult!.Token);
+                    await sessionStorage.SetItemAsync("RefreshToken", loginResult.RefreshToken);
+                }
+                // Calls the CustomAuthenticationStateProvider to mark the user as signed in.
+                ((CustomAuthenticationStateProvider)authenticationStateProvider).MarkUserAsAuthenticated(loginResult.Token);
+            
+                return true;
+            }
+            catch (Exception ex)
             {
                 return false;
             }
-
-            // Deserializes response as a UserLoginResponse.
-            var loginResult = JsonSerializer.Deserialize<UserLoginResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
-            if (remember)
-            {
-                // Stores the token in Local Storage.
-                await localStorage.SetItemAsync("JwtToken", loginResult!.Token);
-                await localStorage.SetItemAsync("RefreshToken", loginResult.RefreshToken);
-            }
-            else
-            {
-                // Stores the token in Session Storage.
-                await sessionStorage.SetItemAsync("JwtToken", loginResult!.Token);
-                await sessionStorage.SetItemAsync("RefreshToken", loginResult.RefreshToken);
-            }
-            // Calls the CustomAuthenticationStateProvider to mark the user as signed in.
-            ((CustomAuthenticationStateProvider)authenticationStateProvider).MarkUserAsAuthenticated(loginResult.Token);
-            
-            return true;
         }
 
         /// <summary>
