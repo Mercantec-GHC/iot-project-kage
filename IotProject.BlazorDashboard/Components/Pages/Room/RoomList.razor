@@ -1,68 +1,63 @@
 ﻿@page "/rooms"
 @using IotProject.Shared.Models.Responses
+@using IotProject.Auth.Services
+@inject RoomService roomService
 
-<button class="btn btn-gradient mb-3" data-bs-toggle="modal" data-bs-target="#AddRoomModal">Add New Room</button>
+<div>
+    <Button class="btn btn-gradient mb-3" @onclick="() => addRoomModal.ShowAsync()">Add New Room</Button>
 
-<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
-    @foreach (var item in rooms)
-    {
-        <div class="col">
-            <Card Class="card-gradient">
-                <Card Class="h-100">
-                    <CardHeader Style="padding: 0;">
-                        <img src="/images/background.jpg" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
-                    </CardHeader>
-                    <CardBody>
-                        <CardTitle>@item.Name</CardTitle>
-                        <CardText>@item.Description</CardText>
-                    </CardBody>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+        @foreach (var item in rooms)
+        {
+            <div class="col">
+                <Card Class="card-gradient">
+                    <Card Class="h-100 overflow-hidden">
+                        <CardHeader Class="ratio ratio-16x9" Style="padding: 0;">
+                            <img src="/images/room.jpg" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
+                        </CardHeader>
+                        <CardBody>
+                            <CardTitle>@item.Name</CardTitle>
+                            <CardText>@item.Description</CardText>
+                        </CardBody>
+                    </Card>
                 </Card>
-            </Card>
-        </div>
-    }
-</div>
-
-<div class="modal fade" id="AddRoomModal" tabindex="-1" aria-labelledby="AddRoomModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="AddRoomModalLabel">Add New Room</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <EditForm Model="newRoom" OnValidSubmit="HandleAddNewRoom">
-                    <DataAnnotationsValidator />
-                    <div class="mb-3">
-                        <label for="room-name" class="col-form-label">Room Name:</label>
-                        <InputText Id="room-name" Class="form-control" @bind-Value="newRoom.Name" />
-                        <ValidationMessage For="@(() => newRoom.Name)" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="room-description" class="col-form-label">Room Description:</label>
-                        <InputTextArea Id="room-description" Class="form-control" @bind-Value="newRoom.Description" />
-                        <ValidationMessage For="@(() => newRoom.Description)" />
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-gradient w-100">Add Room</button>
-                    </div>
-                </EditForm>
-            </div>
-        </div>
+        }
     </div>
 </div>
 
+<Modal @ref="addRoomModal" Title="Add Room" Size="ModalSize.Large">
+    <HeaderTemplate>
+        <h5 class="modal-title" id="AddRoomModalLabel">Add New Room</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </HeaderTemplate>
+
+    <BodyTemplate>
+        <EditForm Model="newRoom" OnValidSubmit="HandleAddNewRoom">
+            <DataAnnotationsValidator />
+            <div class="mb-3">
+                <label for="room-name" class="col-form-label">Room Name:</label>
+                <InputText Id="room-name" Class="form-control" @bind-Value="newRoom.Name" />
+                <ValidationMessage For="@(() => newRoom.Name)" />
+            </div>
+            <div class="mb-3">
+                <label for="room-description" class="col-form-label">Room Description:</label>
+                <InputTextArea Id="room-description" Class="form-control" @bind-Value="newRoom.Description" />
+                <ValidationMessage For="@(() => newRoom.Description)" />
+            </div>
+            <button type="submit" class="btn btn-gradient w-100">Add Room</button>
+        </EditForm>
+    </BodyTemplate>
+</Modal>
+
 @code {
-    private List<dynamic> rooms = new();
+    private List<RoomGetResponse> rooms = new();
     private RoomModel newRoom = new();
+    private Modal addRoomModal = default!;
 
     private void HandleAddNewRoom()
     {
-        if (!string.IsNullOrWhiteSpace(newRoom.Name) && !string.IsNullOrWhiteSpace(newRoom.Description))
-        {
-            var newRoomEntry = new { Id = rooms.Count + 1, Name = newRoom.Name, Description = newRoom.Description };
-            rooms.Add(newRoomEntry);
-            newRoom = new RoomModel();
-        }
+
     }
 
     private class RoomModel
@@ -71,22 +66,11 @@
         public string Description { get; set; } = string.Empty;
     }
 
-    protected override Task OnInitializedAsync()
+    protected async override Task OnAfterRenderAsync(bool isFirstRender)
     {
-        // Dummy data for rooms
-        rooms = new List<dynamic>
-      {
-          new { Id = 1, Name = "Living Room", Description = "A cozy living room." },
-          new { Id = 2, Name = "Bedroom", Description = "A peaceful bedroom." },
-          new { Id = 3, Name = "Kitchen", Description = "A modern kitchen." },
-          new { Id = 4, Name = "Living Room", Description = "A cozy living room." },
-          new { Id = 5, Name = "Bedroom", Description = "A peaceful bedroom." },
-          new { Id = 6, Name = "Kitchen", Description = "A modern kitchen." },
-          new { Id = 7, Name = "Living Room", Description = "A cozy living room." },
-          new { Id = 8, Name = "Bedroom", Description = "A peaceful bedroom." },
-          new { Id = 9, Name = "Kitchen", Description = "A modern kitchen." },
-      };
-
-        return Task.CompletedTask;
+        if (isFirstRender)
+        {
+            rooms = await roomService.GetAll();
+        }
     }
 }
