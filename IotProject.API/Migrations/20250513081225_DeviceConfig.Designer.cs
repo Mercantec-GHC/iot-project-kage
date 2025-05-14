@@ -3,6 +3,7 @@ using System;
 using IotProject.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IotProject.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250513081225_DeviceConfig")]
+    partial class DeviceConfig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,8 +79,8 @@ namespace IotProject.API.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("Timestamp")
-                        .HasColumnType("bigint");
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -231,7 +234,7 @@ namespace IotProject.API.Migrations
             modelBuilder.Entity("IotProject.Shared.Models.Database.DeviceConfig", b =>
                 {
                     b.HasOne("IotProject.Shared.Models.Database.Device", "Device")
-                        .WithOne("Config")
+                        .WithOne("DeviceConfig")
                         .HasForeignKey("IotProject.Shared.Models.Database.DeviceConfig", "DeviceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -274,8 +277,6 @@ namespace IotProject.API.Migrations
 
             modelBuilder.Entity("IotProject.Shared.Models.Database.Device", b =>
                 {
-                    b.Navigation("Config");
-
                     b.Navigation("Data");
 
                     b.Navigation("DeviceConfig");
