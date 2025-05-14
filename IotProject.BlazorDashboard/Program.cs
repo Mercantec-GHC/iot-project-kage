@@ -1,4 +1,9 @@
 using IotProject.BlazorDashboard.Components;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Blazored.LocalStorage;
+using Blazored.SessionStorage;
+
 
 namespace IotProject.BlazorDashboard
 {
@@ -16,7 +21,7 @@ namespace IotProject.BlazorDashboard
 
             builder.Services.AddJwtAuth(builder.Configuration);
 
-            builder.Services.AddIotServices();
+            builder.Services.AddIotServices(builder.Configuration);
 
             var app = builder.Build();
 
