@@ -22,4 +22,10 @@
         public string Id { get; set; }
         public string? RoomId { get; set; }
     }
+
+    public class DeviceSetConfigRequest
+    {
+        public string Id { get; set; }
+        public Dictionary<string, object> Config { get; set; }
+    }
 }
