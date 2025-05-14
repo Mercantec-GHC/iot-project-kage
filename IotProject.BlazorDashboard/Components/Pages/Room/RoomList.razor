@@ -1,0 +1,76 @@
+﻿@page "/rooms"
+@using IotProject.Shared.Models.Responses
+@using IotProject.Auth.Services
+@inject RoomService roomService
+
+<div>
+    <Button class="btn btn-gradient mb-3" @onclick="() => addRoomModal.ShowAsync()">Add New Room</Button>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+        @foreach (var item in rooms)
+        {
+            <div class="col">
+                <Card Class="card-gradient">
+                    <Card Class="h-100 overflow-hidden">
+                        <CardHeader Class="ratio ratio-16x9" Style="padding: 0;">
+                            <img src="/images/room.jpg" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
+                        </CardHeader>
+                        <CardBody>
+                            <CardTitle>@item.Name</CardTitle>
+                            <CardText>@item.Description</CardText>
+                        </CardBody>
+                    </Card>
+                </Card>
+            </div>
+        }
+    </div>
+</div>
+
+<Modal @ref="addRoomModal" Title="Add Room" Size="ModalSize.Large">
+    <HeaderTemplate>
+        <h5 class="modal-title" id="AddRoomModalLabel">Add New Room</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </HeaderTemplate>
+
+    <BodyTemplate>
+        <EditForm Model="newRoom" OnValidSubmit="HandleAddNewRoom">
+            <DataAnnotationsValidator />
+            <div class="mb-3">
+                <label for="room-name" class="col-form-label">Room Name:</label>
+                <InputText Id="room-name" Class="form-control" @bind-Value="newRoom.Name" />
+                <ValidationMessage For="@(() => newRoom.Name)" />
+            </div>
+            <div class="mb-3">
+                <label for="room-description" class="col-form-label">Room Description:</label>
+                <InputTextArea Id="room-description" Class="form-control" @bind-Value="newRoom.Description" />
+                <ValidationMessage For="@(() => newRoom.Description)" />
+            </div>
+            <button type="submit" class="btn btn-gradient w-100">Add Room</button>
+        </EditForm>
+    </BodyTemplate>
+</Modal>
+
+@code {
+    private List<RoomGetResponse> rooms = new();
+    private RoomModel newRoom = new();
+    private Modal addRoomModal = default!;
+
+    private void HandleAddNewRoom()
+    {
+
+    }
+
+    private class RoomModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+
+    protected async override Task OnAfterRenderAsync(bool isFirstRender)
+    {
+        if (isFirstRender)
+        {
+            rooms = await roomService.GetAll();
+        }
+    }
+}

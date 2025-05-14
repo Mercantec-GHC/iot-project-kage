@@ -190,7 +190,8 @@ namespace IotProject.API.Controllers
             
             user.Password = BCrypt.Net.BCrypt.HashPassword(userEditPassword.Password);
             await context.SaveChangesAsync();
-            return Ok("User info has been changed."); 
+
+            return Ok("User password has been changed."); 
         }
 
         [HttpDelete("Delete"), Authorize]
