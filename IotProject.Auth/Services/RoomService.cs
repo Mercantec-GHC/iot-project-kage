@@ -22,7 +22,7 @@ namespace IotProject.Auth.Services
             }
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
-            var response = await httpClient.GetAsync("Room/get-all");
+            var response = await httpClient.GetAsync("Room/getall");
             if (!response.IsSuccessStatusCode) return new List<RoomGetResponse>();
 
             var roomResult = JsonSerializer.Deserialize<List<RoomGetResponse>>(await response.Content.ReadAsStringAsync(), JsonOptions);
