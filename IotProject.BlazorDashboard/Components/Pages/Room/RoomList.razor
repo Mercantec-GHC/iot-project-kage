@@ -1,7 +1,9 @@
 ﻿@page "/rooms"
 @using IotProject.Shared.Models.Responses
 @using IotProject.Auth.Services
+@using System.ComponentModel.DataAnnotations
 @inject RoomService roomService
+
 
 <div>
     <Button class="btn btn-gradient mb-3" @onclick="() => addRoomModal.ShowAsync()">Add New Room</Button>
@@ -12,9 +14,19 @@
             <div class="col">
                 <Card Class="card-gradient">
                     <Card Class="h-100 overflow-hidden">
-                        <CardHeader Class="ratio ratio-16x9" Style="padding: 0;">
+                        <CardHeader Class="ratio ratio-16x9" Style="padding: 0; position: relative;">
+                            <div class="position-absolute top-0 end-0 z-1 m-2">
+                                <Dropdown>
+                                    <DropdownToggleButton><i class="bi bi-three-dots"></i></DropdownToggleButton>
+                                    <DropdownMenu>
+                                        <DropdownItem To="#" Type="DropdownItemType.Link">Edit</DropdownItem>
+                                        <DropdownItem To="#" Type="DropdownItemType.Link">Delete</DropdownItem>
+                                    </DropdownMenu>
+                                </Dropdown>
+                            </div>
                             <img src="/images/room.jpg" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
                         </CardHeader>
+
                         <CardBody>
                             <CardTitle>@item.Name</CardTitle>
                             <CardText>@item.Description</CardText>
@@ -29,12 +41,14 @@
 <Modal @ref="addRoomModal" Title="Add Room" Size="ModalSize.Large">
     <HeaderTemplate>
         <h5 class="modal-title" id="AddRoomModalLabel">Add New Room</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <Button @onclick="() => addRoomModal.HideAsync()" Class="btn-close" />
     </HeaderTemplate>
 
     <BodyTemplate>
         <EditForm Model="newRoom" OnValidSubmit="HandleAddNewRoom">
             <DataAnnotationsValidator />
+            <ValidationSummary />
+
             <div class="mb-3">
                 <label for="room-name" class="col-form-label">Room Name:</label>
                 <InputText Id="room-name" Class="form-control" @bind-Value="newRoom.Name" />
@@ -55,9 +69,21 @@
     private RoomModel newRoom = new();
     private Modal addRoomModal = default!;
 
-    private void HandleAddNewRoom()
+    private async Task HandleAddNewRoom()
     {
+        var request = new RoomCreateRequest
+            {
+                Name = newRoom.Name,
+                Description = newRoom.Description
+            };
 
+        var result = await roomService.AddRoom(request);
+        if (result)
+        {
+            rooms = await roomService.GetAll();
+            newRoom = new RoomModel();
+            await addRoomModal.HideAsync();
+        }
     }
 
     private class RoomModel
