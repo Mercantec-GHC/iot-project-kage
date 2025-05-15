@@ -168,9 +168,11 @@ namespace IotProject.API.Controllers
             // Adds a new config in case there is none.
             if (config == null)
             {
-                config = new DeviceConfig { DeviceId = requestModel.Id };
+                config = new DeviceConfig { DeviceId = requestModel.Id, Config = new Dictionary<string, object>() };
                 await context.DeviceConfigs.AddAsync(config);
             }
+            else context.DeviceConfigs.Update(config); // Marks the configuration to be updated if it exsists.
+
 			// Sets parameters on the database.
 			foreach (var keyValuePair in requestModel.Config)
 			{
@@ -178,7 +180,6 @@ namespace IotProject.API.Controllers
 			}
 			//config.Config = requestModel.Config; 
             config.Timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-            context.DeviceConfigs.Update(config);
             await context.SaveChangesAsync();
 
             return Ok("Config successfully saved.");
