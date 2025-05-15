@@ -32,6 +32,24 @@ namespace IotProject.Auth.Services
             return roomResult!;
         }
 
+        public async Task<RoomGetResponse?> GetRoom(string id)
+        {
+            // Try to get the JWT token from local or session storage
+            var jwtToken = await localStorage.GetItemAsync<string>("JwtToken") ?? await sessionStorage.GetItemAsync<string>("JwtToken");
+            if (string.IsNullOrWhiteSpace(jwtToken)) return null;
+
+            // Set the authorization header
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+
+            // Call the API endpoint
+            var response = await httpClient.GetAsync($"Room/GetRoom?id={id}");
+            if (!response.IsSuccessStatusCode) return null;
+
+            var room = JsonSerializer.Deserialize<RoomGetResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
+            return room;
+        }
+
+
         public async Task<bool> AddRoom(RoomCreateRequest request)
         {
             // Try to get the JWT token from local or session storage
