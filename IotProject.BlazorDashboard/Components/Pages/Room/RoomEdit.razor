@@ -1,0 +1,76 @@
+﻿@page "/rooms/edit/{Id}"
+@using System.ComponentModel.DataAnnotations
+@inject RoomService roomService
+@inject NavigationManager navigationManager
+
+<Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
+    <Card Class="rounded-top-4 overflow-hidden">
+        <CardHeader>
+            <h5>Edit Room</h5>
+        </CardHeader>
+        <CardBody>
+            <EditForm Model="room" OnValidSubmit="HandleEditRoom">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="mb-3">
+                    <label for="room-name" class="col-form-label">Room Name:</label>
+                    <InputText Id="room-name" Class="form-control" @bind-Value="room.Name" />
+                    <ValidationMessage For="@(() => room.Name)" />
+                </div>
+                <div class="mb-3">
+                    <label for="room-description" class="col-form-label">Room Description:</label>
+                    <InputTextArea Id="room-description" Class="form-control" @bind-Value="room.Description" />
+                    <ValidationMessage For="@(() => room.Description)" />
+                </div>
+                <button type="submit" class="btn-gradient text-white w-100 mt-4">Save Changes</button>
+            </EditForm>
+        </CardBody>
+    </Card>
+</Card>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private RoomEditModel room = new();
+
+    private class RoomEditModel
+    {
+        [Required(ErrorMessage = "Room name is required.")]
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await roomService.GetRoom(Id);
+        if (result != null)
+        {
+            room = new RoomEditModel
+                {
+                    Name = result.Name,
+                    Description = result.Description
+                };
+        }
+        else
+        {
+            navigationManager.NavigateTo("/rooms");
+        }
+    }
+
+    private async Task HandleEditRoom()
+    {
+        var updateRequest = new RoomUpdateRequest
+            {
+                Id = Id,
+                Name = room.Name,
+                Description = room.Description
+            };
+
+        var success = await roomService.UpdateRoom(updateRequest);
+        if (success)
+        {
+            navigationManager.NavigateTo("/rooms");
+        }
+    }
+}
