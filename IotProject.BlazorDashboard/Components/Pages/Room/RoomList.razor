@@ -109,7 +109,6 @@
 
 </Modal>
 
-
 @code {
     private List<RoomGetResponse> rooms = new();
     private RoomModel newRoom = new();
@@ -174,8 +173,6 @@
         }
     }
 
-
-
     private class RoomModel
     {
         public string Name { get; set; } = string.Empty;
@@ -192,5 +189,4 @@
             await InvokeAsync(StateHasChanged);
         }
     }
-
 }

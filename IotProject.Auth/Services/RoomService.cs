@@ -88,6 +88,5 @@ namespace IotProject.Auth.Services
 
             return response.IsSuccessStatusCode;
         }
-
     }
 }

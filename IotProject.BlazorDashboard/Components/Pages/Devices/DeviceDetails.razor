@@ -1,0 +1,191 @@
+﻿@page "/device/{DeviceId}"
+@using IotProject.RazorShared.Models.Devices
+@using IotProject.RazorShared.Models.Sensors
+@using IotProject.RazorShared.Services
+@using BlazorBootstrap
+@using IotProject.Shared.Models.Responses
+@inject IotDeviceService DeviceService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+
+<div class="row justify-content-center">
+    <div class="col-12">
+        <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
+            <Card class="rounded-top-4 overflow-hidden">
+                <CardHeader class="text-center p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h2 class="mb-0">Device Details</h2>
+                        <a href="/devices" class="d-flex align-items-center text-secondary" style="text-decoration: none;">
+                            <Icon Name="IconName.ArrowLeft" />
+                            <span class="ms-1">Back to Devices</span>
+                        </a>
+                    </div>
+                </CardHeader>
+                
+                
+                <CardBody class="p-4">
+                    @if (isLoading)
+                    {
+                        // Loading spinner shown while fetching device data
+                        <div class="d-flex justify-content-center align-items-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (device != null)
+                    {
+                        // Device information section with two cards
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card shadow-sm h-100">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">
+                                            <i class="bi bi-info-circle me-2"></i>Device Information
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row mb-0">
+                                            <dt class="col-sm-4 text-muted">Name</dt>
+                                            <dd class="col-sm-8 fw-bold">@device.Name</dd>
+
+                                            <dt class="col-sm-4 text-muted">Type</dt>
+                                            <dd class="col-sm-8">@device.Type</dd>
+
+                                            <dt class="col-sm-4 text-muted">Room</dt>
+                                            <dd class="col-sm-8">
+                                                <span class="badge bg-primary">@(device.RoomId ?? "Not assigned")</span>
+                                            </dd>
+
+                                            <dt class="col-sm-4 text-muted">Last Update</dt>
+                                            <dd class="col-sm-8">
+                                                @if (device.LastUpdate.HasValue)
+                                                {
+                                                    <span class="text-success">
+                                                        <i class="bi bi-clock-history me-1"></i>
+                                                        @device.LastUpdate.Value.ToString("g")
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Never</span>
+                                                }
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card shadow-sm h-100">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">
+                                            <i class="bi bi-graph-up me-2"></i>Latest Data
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        @if (device.Data != null && device.Data.Any())
+                                        {
+                                            <dl class="row mb-0">
+                                                @foreach (var item in device.Data)
+                                                {
+                                                    <dt class="col-sm-4 text-muted">@item.Key</dt>
+                                                    <dd class="col-sm-8">
+                                                        <span class="badge bg-info text-dark">@item.Value</span>
+                                                    </dd>
+                                                }
+                                            </dl>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-center py-4">
+                                                <i class="bi bi-database-slash text-muted" style="font-size: 2rem;"></i>
+                                                <p class="text-muted mt-2 mb-0">No data available</p>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        // Widgets section for future device-specific widgets
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">
+                                            <i class="bi bi-grid-3x3-gap me-2"></i>Widgets
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-4">
+                                            <div class="col-12 col-md-6">
+                                                <div class="card h-100 border-0">
+                                                    <div class="card-body">
+                                                        <h6 class="card-subtitle mb-3 text-muted">
+                                                            <i class="bi bi-box me-2"></i>Widget 1
+                                                        </h6>
+                                                        <div class="text-center py-4">
+                                                            <i class="bi bi-plus-circle text-muted" style="font-size: 2rem;"></i>
+                                                            <p class="text-muted mt-2 mb-0">Widget content will be added here</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <div class="card h-100 border-0">
+                                                    <div class="card-body">
+                                                        <h6 class="card-subtitle mb-3 text-muted">
+                                                            <i class="bi bi-box me-2"></i>Widget 2
+                                                        </h6>
+                                                        <div class="text-center py-4">
+                                                            <i class="bi bi-plus-circle text-muted" style="font-size: 2rem;"></i>
+                                                            <p class="text-muted mt-2 mb-0">Widget content will be added here</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        // Error message when device is not found
+                        <div class="alert alert-warning d-flex align-items-center" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <div>Device not found</div>
+                        </div>
+                    }
+                </CardBody>
+            </Card>
+        </Card>
+    </div>
+</div>
+
+@code {
+    // Route parameter for device ID
+    [Parameter]
+    public string DeviceId { get; set; }
+
+    // State variables
+    private DeviceResponse? device;
+    private bool isLoading = true;
+
+    // Initialize the page and load device data
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            var devices = await DeviceService.GetAllDevices();
+            device = devices.FirstOrDefault(d => d.Id == DeviceId);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+} 
