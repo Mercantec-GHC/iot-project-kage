@@ -66,50 +66,57 @@ namespace IotProject.Auth.Services
         /// <returns><see cref="bool"/> of true, if a new JWT token was retrived.</returns>
         public async Task<bool> Refresh()
         {
-            // Tries to obtain the refresh token from Local Storage.
-            var refreshToken = await localStorage.GetItemAsync<string>("RefreshToken");
-            bool isLocalStorage = true;
+            try
+            {
+                // Tries to obtain the refresh token from Local Storage.
+                var refreshToken = await localStorage.GetItemAsync<string>("RefreshToken");
+                bool isLocalStorage = true;
 
-            if (string.IsNullOrWhiteSpace(refreshToken))
-            {
-                // If unsuccessfull, tries to obtain the refresh token from Session Storage.
-                refreshToken = await sessionStorage.GetItemAsync<string>("RefreshToken");
-                isLocalStorage = false;
-                if (string.IsNullOrWhiteSpace(refreshToken)) return false;
-            }
+                if (string.IsNullOrWhiteSpace(refreshToken))
+                {
+                    // If unsuccessfull, tries to obtain the refresh token from Session Storage.
+                    refreshToken = await sessionStorage.GetItemAsync<string>("RefreshToken");
+                    isLocalStorage = false;
+                    if (string.IsNullOrWhiteSpace(refreshToken)) return false;
+                }
 
-            // Creates a new UserRefreshRequest with the given token.
-            UserRefreshRequest request = new UserRefreshRequest
-            {
-                Token = refreshToken,
-            };
+                // Creates a new UserRefreshRequest with the given token.
+                UserRefreshRequest request = new UserRefreshRequest
+                {
+                    Token = refreshToken,
+                };
 
-            // Sends the refresh token to the API server.
-            var refreshAsJson = JsonSerializer.Serialize(request);
-            var response = await httpClient.PostAsync("auth/refresh", new StringContent(refreshAsJson, Encoding.UTF8, "application/json"));
-            if (!response.IsSuccessStatusCode)
-            {
-                return false;
-            }
+                // Sends the refresh token to the API server.
+                var refreshAsJson = JsonSerializer.Serialize(request);
+                var response = await httpClient.PostAsync("auth/refresh", new StringContent(refreshAsJson, Encoding.UTF8, "application/json"));
+                if (!response.IsSuccessStatusCode)
+                {
+                    return false;
+                }
 
-            // Deserializes response as a UserLoginResponse.
-            var loginResult = JsonSerializer.Deserialize<UserLoginResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
-            if (isLocalStorage)
-            {
-                // Stores the token in Local Storage.
-                await localStorage.SetItemAsync("JwtToken", loginResult!.Token);
-                await localStorage.SetItemAsync("RefreshToken", loginResult.RefreshToken);
-            }
-            else
-            {
-                // Stores the token in Session Storage.
-                await sessionStorage.SetItemAsync("JwtToken", loginResult!.Token);
-                await sessionStorage.SetItemAsync("RefreshToken", loginResult.RefreshToken);
-            }
+                // Deserializes response as a UserLoginResponse.
+                var loginResult = JsonSerializer.Deserialize<UserLoginResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
+                if (isLocalStorage)
+                {
+                    // Stores the token in Local Storage.
+                    await localStorage.SetItemAsync("JwtToken", loginResult!.Token);
+                    await localStorage.SetItemAsync("RefreshToken", loginResult.RefreshToken);
+                }
+                else
+                {
+                    // Stores the token in Session Storage.
+                    await sessionStorage.SetItemAsync("JwtToken", loginResult!.Token);
+                    await sessionStorage.SetItemAsync("RefreshToken", loginResult.RefreshToken);
+                }
             // Calls the CustomAuthenticationStateProvider to mark the user as signed in.
             ((CustomAuthenticationStateProvider)authenticationStateProvider).MarkUserAsAuthenticated(loginResult.Token);
 
-            return true;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -118,10 +125,14 @@ namespace IotProject.Auth.Services
         /// <returns></returns>
         public async Task Logout()
         {
-            await localStorage.RemoveItemAsync("JwtToken");
-            await localStorage.RemoveItemAsync("RefreshToken");
-            await sessionStorage.RemoveItemAsync("JwtToken");
-            await sessionStorage.RemoveItemAsync("RefreshToken");
+            try
+            {
+                await localStorage.RemoveItemAsync("JwtToken");
+                await localStorage.RemoveItemAsync("RefreshToken");
+                await sessionStorage.RemoveItemAsync("JwtToken");
+                await sessionStorage.RemoveItemAsync("RefreshToken");
+            }
+            catch { }
             ((CustomAuthenticationStateProvider)authenticationStateProvider).MarkUserAsLoggedOut();
         }
 

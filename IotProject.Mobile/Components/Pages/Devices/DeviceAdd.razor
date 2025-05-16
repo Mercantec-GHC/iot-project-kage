@@ -1,53 +1,82 @@
 @page "/devices/add"
 @using Plugin.BLE
+@using Plugin.BLE.Abstractions
 @using Plugin.BLE.Abstractions.Contracts
+@using Plugin.BLE.Abstractions.EventArgs
 @implements IAsyncDisposable
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
 
-<MudCard Class="mb-3">
-    <MudCardHeader>
-        <CardHeaderContent>
-            <MudText Typo="Typo.h4">Add Device</MudText>
-        </CardHeaderContent>
-        <CardHeaderActions>
-            <MudButton Class="align-self-center" Disabled="@isScanning" OnClick="StartScan" Variant="Variant.Text" >
-                @if (isScanning)
-                {
-                    <MudText Class="me-2">Scanning</MudText>
-                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
-                }
-                else
-                {
-                    <MudText Class="me-2">Scan</MudText>
-                    <MudIcon Class="ms-n1" Icon="@Icons.Material.Filled.Refresh"></MudIcon>
-                }
-            </MudButton>
-        </CardHeaderActions>
-    </MudCardHeader>
+@if (step == 1)
+{
+    <MudCard Class="mb-3">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h4">Add Device</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton Class="align-self-center" Disabled="@isScanning" OnClick="StartScan" Variant="Variant.Text">
+                    @if (isScanning)
+                    {
+                        <MudText Class="me-2">Scanning</MudText>
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    }
+                    else
+                    {
+                        <MudText Class="me-2">Scan</MudText>
+                        <MudIcon Class="ms-n1" Icon="@Icons.Material.Filled.Refresh"></MudIcon>
+                    }
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
 
-    <MudDivider />
+        <MudDivider />
 
-    <MudTable Items="@devices" Hover="true" Breakpoint="Breakpoint.None" Loading="@isScanning" LoadingProgressColor="Color.Info">
-        <RowTemplate>
-            <MudTd>@context.Name</MudTd>
-            <MudTd>@context.Id</MudTd>
-        </RowTemplate>
-    </MudTable>
+        <MudTable Items="@devices" Hover="true" Breakpoint="Breakpoint.None" Loading="@isScanning" LoadingProgressColor="Color.Info">
+            <RowTemplate>
+                <MudTd>@context.Name</MudTd>
+                <MudTd>@context.Id</MudTd>
+                <MudTd>
+                    <MudButton OnClick="@(() => SetDevice(context))" Variant="Variant.Filled">Connect</MudButton>
+                </MudTd>
 
-    @if (showNoDevices)
-    {
+            </RowTemplate>
+        </MudTable>
+
+        @if (showNoDevices)
+        {
+            <MudCardContent>
+                <p>No devices were found.</p>
+            </MudCardContent>
+        }
+
+    </MudCard>
+}
+else if (step == 2)
+{
+    <MudCard Class="mb-3">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h4">@selectedDevice?.Name</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudDivider />
+        <MudProgressLinear Color="Color.Info" Indeterminate="true" />
         <MudCardContent>
-            <p>No devices were found.</p>
+            <p>@test</p>
         </MudCardContent>
-    }
-
-</MudCard>
+    </MudCard>
+}
 
 @code {
     // List of dicovered Bluetooth devices.
     private List<IDevice> devices = new();
+    private IDevice? selectedDevice = null;
     private bool isScanning = false;
     private bool showNoDevices = false;
+    private int step = 1;
+    private string? test;
     private CancellationTokenSource? scanningCts;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -81,7 +110,7 @@
 
         try
         {
-            // Starter scanning � denne metode blokerer, indtil scanningen afsluttes
+            // Starter scanning – denne metode blokerer, indtil scanningen afsluttes
             await adapter.StartScanningForDevicesAsync();
         }
         catch (Exception ex)
@@ -101,7 +130,7 @@
     }
 
     // Eventhandler for device discovery.
-    private void OnDeviceDiscovered(object sender, Plugin.BLE.Abstractions.EventArgs.DeviceEventArgs args)
+    private void OnDeviceDiscovered(object sender, DeviceEventArgs args)
     {
         if (!string.IsNullOrWhiteSpace(args.Device.Name)/*  && args.Device.Name.Contains("Arduino") */)
         {
@@ -109,10 +138,125 @@
             if (!devices.Any(d => d.Id == args.Device.Id))
             {
                 devices.Add(args.Device);
-                // Da vi er i en eventtr�d, skal vi bede UI-tr�den om at opdatere
+                // Da vi er i en eventtråd, skal vi bede UI-tråden om at opdatere
                 InvokeAsync(StateHasChanged);
             }
         }
+    }
+
+    private async Task SetDevice(IDevice device)
+    {
+        await DisposeAsync();
+        selectedDevice = device;
+        step = 2;
+        test = await SendTestMessage(device);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<string?> SendTestMessage(IDevice device)
+    {
+        var adapter = CrossBluetoothLE.Current.Adapter;
+
+        // Sørg for, at enheden er forbundet.
+        if (device.State != DeviceState.Connected)
+        {
+            try
+            {
+                await adapter.ConnectToDeviceAsync(device);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Kunne ikke forbinde til enheden: {ex.Message}");
+                return null;
+            }
+        }
+
+        // Definer UUID'er for service og karakteristikker.
+        Guid serviceGuid = Guid.Parse("19B10000-E8F2-537E-4F6C-D104768A1214");
+        Guid rxCharacteristicGuid = Guid.Parse("19B10001-E8F2-537E-4F6C-D104768A1214"); // til skrivning
+        Guid txCharacteristicGuid = Guid.Parse("7c2d4e17-fd29-47d4-8e2a-0d64c65e96b7"); // til notifikationer/svar
+
+        // Hent servicen fra enheden.
+        var service = await device.GetServiceAsync(serviceGuid);
+        if (service == null)
+        {
+            Console.WriteLine("Service med den specificerede UUID blev ikke fundet på enheden.");
+            return null;
+        }
+
+        // Hent de relevante karakteristikker.
+        var rxCharacteristic = await service.GetCharacteristicAsync(rxCharacteristicGuid);
+        if (rxCharacteristic == null)
+        {
+            Console.WriteLine("RX-karakteristik med den specificerede UUID blev ikke fundet.");
+            return null;
+        }
+        var txCharacteristic = await service.GetCharacteristicAsync(txCharacteristicGuid);
+        if (txCharacteristic == null)
+        {
+            Console.WriteLine("TX-karakteristik med den specificerede UUID blev ikke fundet.");
+            return null;
+        }
+
+        // Opret et TaskCompletionSource, der venter på den modtagne besked.
+        var responseTcs = new TaskCompletionSource<string>();
+
+        // Definer en event handler, der konverterer den modtagne byte-array til en streng og sætter resultatet.
+        EventHandler<CharacteristicUpdatedEventArgs>? handler = null;
+        handler = (s, args) =>
+        {
+            try
+            {
+                var response = System.Text.Encoding.UTF8.GetString(args.Characteristic.Value);
+                Console.WriteLine($"Modtaget notifikation: {response}");
+                responseTcs.TrySetResult(response);
+            }
+            catch (Exception ex)
+            {
+                responseTcs.TrySetException(ex);
+            }
+        };
+
+        // Abonner på notifikationer fra TX-characteristikken og start opdaterings-flowet.
+        txCharacteristic.ValueUpdated += handler;
+        await txCharacteristic.StartUpdatesAsync();
+        Console.WriteLine("Abonneret på TX-notifikationer og vent på svar.");
+
+        // Forbered beskeden – her bruger vi fx "Test123". I din kode sendes bruger-id.
+        byte[] messageBytes = System.Text.Encoding.UTF8.GetBytes("Test123");
+
+        // Skriv beskeden til RX-karakteristikken.
+        var writeResult = await rxCharacteristic.WriteAsync(messageBytes);
+        if (writeResult != 0)
+        {
+            Console.WriteLine("Det lykkedes ikke at sende beskeden.");
+            // Stop og fjern notifikations-abonnement før returnering.
+            await txCharacteristic.StopUpdatesAsync();
+            txCharacteristic.ValueUpdated -= handler;
+            return null;
+        }
+        Console.WriteLine("Beskeden blev sendt med succes og venter nu på svar...");
+
+        // Vent på et svar via TaskCompletionSource.
+        // Du kan evt. tilføje en timeout her med en CancellationToken, hvis der ikke modtages svar.
+        string responseMessage = await responseTcs.Task;
+
+        // Når vi har modtaget svaret, stopper vi notifikationerne og afbryder forbindelsen, hvis ønsket.
+        await txCharacteristic.StopUpdatesAsync();
+        txCharacteristic.ValueUpdated -= handler;
+
+        try
+        {
+            await adapter.DisconnectDeviceAsync(device);
+            Console.WriteLine("Forbindelsen til enheden er lukket.");
+        }
+        catch (Exception disconnectEx)
+        {
+            Console.WriteLine($"Fejl ved disconnect: {disconnectEx.Message}");
+        }
+
+        // Returnerer det modtagne svar.
+        return responseMessage;
     }
 
     // Used to unregister the eventhandler when leaving the page.
@@ -133,6 +277,6 @@
             }
         }
         // Remove the eventhandler to prevent memory leaks.
-        CrossBluetoothLE.Current.Adapter.DeviceDiscovered -= OnDeviceDiscovered;
+        CrossBluetoothLE.Current.Adapter.DeviceDiscovered -= OnDeviceDiscovered!;
     }
 }
