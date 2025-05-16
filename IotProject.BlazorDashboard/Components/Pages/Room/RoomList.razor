@@ -4,7 +4,6 @@
 @using System.ComponentModel.DataAnnotations
 @inject RoomService roomService
 
-
 <Button class="btn btn-gradient mb-3" @onclick="() => addRoomModal.ShowAsync()">Add New Room</Button>
     @if (isLoadingRooms)
     {
@@ -47,12 +46,9 @@
                     </Card>
                 </Card>
             </div>
-
-
         }
     </div>
 }
-
 
 <Modal @ref="addRoomModal" Title="Add Room" Size="ModalSize.Large">
     <HeaderTemplate>
@@ -125,7 +121,6 @@
     private bool isDeletingRoom = false;
     private bool isLoadingRooms = true;
 
-
     private async Task ShowDeleteModal(string id)
     {
         roomIdToDelete = id;
@@ -142,7 +137,6 @@
                     Name = newRoom.Name,
                     Description = newRoom.Description
                 };
-
             var result = await roomService.AddRoom(request);
             if (result)
             {
