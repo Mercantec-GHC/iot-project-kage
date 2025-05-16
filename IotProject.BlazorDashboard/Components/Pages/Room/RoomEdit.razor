@@ -3,36 +3,59 @@
 @inject RoomService roomService
 @inject NavigationManager navigationManager
 
+
 <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
     <Card Class="rounded-top-4 overflow-hidden">
         <CardHeader>
             <h5>Edit Room</h5>
+            <div class="w-100">
+                <a href="/rooms" class="position-absolute text-secondary top-0 end-0 m-2" style="text-decoration: none;">
+                    <Icon Name="IconName.ArrowLeft" />
+                    <span>Back</span>
+                </a>
+            </div>
+
         </CardHeader>
         <CardBody>
-            <EditForm Model="room" OnValidSubmit="HandleEditRoom">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-                <div class="mb-3">
-                    <label for="room-name" class="col-form-label">Room Name:</label>
-                    <InputText Id="room-name" Class="form-control" @bind-Value="room.Name" />
-                    <ValidationMessage For="@(() => room.Name)" />
+            @if (isLoading)
+            {
+                <div class="text-center my-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="room-description" class="col-form-label">Room Description:</label>
-                    <InputTextArea Id="room-description" Class="form-control" @bind-Value="room.Description" />
-                    <ValidationMessage For="@(() => room.Description)" />
-                </div>
-                <button type="submit" class="btn-gradient text-white w-100 mt-4">Save Changes</button>
-            </EditForm>
+            }
+            else
+            {
+                <EditForm Model="room" OnValidSubmit="HandleEditRoom">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="mb-3">
+                        <label for="room-name" class="col-form-label">Room Name:</label>
+                        <InputText Id="room-name" Class="form-control" @bind-Value="room.Name" />
+                        <ValidationMessage For="@(() => room.Name)" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="room-description" class="col-form-label">Room Description:</label>
+                        <InputTextArea Id="room-description" Class="form-control"  @bind-Value="room.Description" />
+                        <ValidationMessage For="@(() => room.Description)" />
+                    </div>
+                    <button type="submit" class="btn btn-gradient text-white w-100 mt-4">Save Changes</button>
+                </EditForm>
+            }
         </CardBody>
     </Card>
 </Card>
+
+
 
 @code {
     [Parameter]
     public string Id { get; set; } = string.Empty;
 
     private RoomEditModel room = new();
+    private bool isLoading = true;
+
 
     private class RoomEditModel
     {
@@ -43,6 +66,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        isLoading = true;
+
         var result = await roomService.GetRoom(Id);
         if (result != null)
         {
@@ -56,6 +81,7 @@
         {
             navigationManager.NavigateTo("/rooms");
         }
+        isLoading = false;
     }
 
     private async Task HandleEditRoom()
