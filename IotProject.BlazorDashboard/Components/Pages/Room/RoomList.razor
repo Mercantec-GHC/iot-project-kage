@@ -7,35 +7,45 @@
 
 <div>
     <Button class="btn btn-gradient mb-3" @onclick="() => addRoomModal.ShowAsync()">Add New Room</Button>
-
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
-        @foreach (var item in rooms)
-        {
-            <div class="col">
-                <Card Class="card-gradient">
-                    <Card Class="h-100 overflow-hidden">
-                        <CardHeader Class="ratio ratio-16x9" Style="padding: 0; position: relative;">
-                            <div class="position-absolute top-0 end-0 z-1 m-2">
-                                <Dropdown>
-                                    <DropdownToggleButton><i class="bi bi-three-dots"></i></DropdownToggleButton>
-                                    <DropdownMenu>
-                                        <DropdownItem To="@($"/rooms/edit/{item.Id}")" Type="DropdownItemType.Link">Edit</DropdownItem>
-                                        <DropdownItem To="#" Type="DropdownItemType.Link">Delete</DropdownItem>
-                                    </DropdownMenu>
-                                </Dropdown>
-                            </div>
-                            <img src="/images/room.jpg" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
-                        </CardHeader>
-
-                        <CardBody>
-                            <CardTitle>@item.Name</CardTitle>
-                            <CardText>@item.Description</CardText>
-                        </CardBody>
-                    </Card>
-                </Card>
-            </div>
-        }
+    @if (isLoadingRooms)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
     </div>
+}
+    else
+    {
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+            @foreach (var item in rooms)
+            {
+                <div class="col">
+                    <Card Class="card-gradient">
+                        <Card Class="h-100 overflow-hidden">
+                            <CardHeader Class="ratio ratio-16x9" Style="padding: 0; position: relative;">
+                                <div class="position-absolute top-0 end-0 z-1 m-2">
+                                    <Dropdown>
+                                        <DropdownToggleButton><i class="bi bi-three-dots"></i></DropdownToggleButton>
+                                        <DropdownMenu>
+                                            <DropdownItem To="@($"/rooms/edit/{item.Id}")" Type="DropdownItemType.Link">Edit</DropdownItem>
+                                            <DropdownItem @onclick="() => ShowDeleteModal(item.Id)" Type="DropdownItemType.Link">Delete</DropdownItem>
+                                        </DropdownMenu>
+                                    </Dropdown>
+                                </div>
+                                <img src="/images/room.jpg" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
+                            </CardHeader>
+
+                            <CardBody>
+                                <CardTitle>@item.Name</CardTitle>
+                                <CardText>@item.Description</CardText>
+                            </CardBody>
+                        </Card>
+                    </Card>
+                </div>
+            }
+        </div>
+    }
 </div>
 
 <Modal @ref="addRoomModal" Title="Add Room" Size="ModalSize.Large">
@@ -45,46 +55,126 @@
     </HeaderTemplate>
 
     <BodyTemplate>
-        <EditForm Model="newRoom" OnValidSubmit="HandleAddNewRoom">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+        @if (isAddingRoom)
+        {
+            <div class="text-center my-3">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div>Adding room...</div>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="newRoom" OnValidSubmit="HandleAddNewRoom">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-            <div class="mb-3">
-                <label for="room-name" class="col-form-label">Room Name:</label>
-                <InputText Id="room-name" Class="form-control" @bind-Value="newRoom.Name" />
-                <ValidationMessage For="@(() => newRoom.Name)" />
-            </div>
-            <div class="mb-3">
-                <label for="room-description" class="col-form-label">Room Description:</label>
-                <InputTextArea Id="room-description" Class="form-control" @bind-Value="newRoom.Description" />
-                <ValidationMessage For="@(() => newRoom.Description)" />
-            </div>
-            <button type="submit" class="btn btn-gradient w-100">Add Room</button>
-        </EditForm>
+                <div class="mb-3">
+                    <label for="room-name" class="col-form-label">Room Name:</label>
+                    <InputText Id="room-name" Class="form-control" @bind-Value="newRoom.Name" />
+                    <ValidationMessage For="@(() => newRoom.Name)" />
+                </div>
+                <div class="mb-3">
+                    <label for="room-description" class="col-form-label">Room Description:</label>
+                    <InputTextArea Id="room-description" Class="form-control" @bind-Value="newRoom.Description" />
+                    <ValidationMessage For="@(() => newRoom.Description)" />
+                </div>
+                <button type="submit" class="btn btn-gradient w-100">Add Room</button>
+            </EditForm>
+        }
     </BodyTemplate>
 </Modal>
+
+<Modal @ref="confirmRoomDeleteModal" Title="Delete Room" Size="ModalSize.Large">
+    <HeaderTemplate>
+        <h5 class="modal-title" id="AddRoomModalLabel">Delete Room</h5>
+        <Button @onclick="() => confirmRoomDeleteModal.HideAsync()" Class="btn-close" />
+    </HeaderTemplate>
+    <BodyTemplate>
+        @if (isDeletingRoom)
+        {
+            <div class="text-center my-3">
+                <div class="spinner-border text-danger" role="status"></div>
+                <div>Deleting room...</div>
+            </div>
+        }
+        else
+        {
+            <p>Are you sure you want to delete this room?</p>
+            <div class="d-flex justify-content-end">
+                <Button @onclick="() => confirmRoomDeleteModal.HideAsync()" Class="btn btn-secondary me-2">Cancel</Button>
+                <Button Class="btn btn-danger" @onclick="HandleDeleteRoom">Delete</Button>
+            </div>
+        }
+    </BodyTemplate>
+
+</Modal>
+
 
 @code {
     private List<RoomGetResponse> rooms = new();
     private RoomModel newRoom = new();
     private Modal addRoomModal = default!;
+    private Modal confirmRoomDeleteModal = default!;
+    private string? roomIdToDelete;
+    private bool isAddingRoom = false;
+    private bool isDeletingRoom = false;
+    private bool isLoadingRooms = true;
+
+
+    private async Task ShowDeleteModal(string id)
+    {
+        roomIdToDelete = id;
+        await confirmRoomDeleteModal.ShowAsync();
+    }
 
     private async Task HandleAddNewRoom()
     {
-        var request = new RoomCreateRequest
-            {
-                Name = newRoom.Name,
-                Description = newRoom.Description
-            };
-
-        var result = await roomService.AddRoom(request);
-        if (result)
+        isAddingRoom = true;
+        try
         {
-            rooms = await roomService.GetAll();
-            newRoom = new RoomModel();
-            await addRoomModal.HideAsync();
+            var request = new RoomCreateRequest
+                {
+                    Name = newRoom.Name,
+                    Description = newRoom.Description
+                };
+
+            var result = await roomService.AddRoom(request);
+            if (result)
+            {
+                rooms = await roomService.GetAll();
+                newRoom = new RoomModel();
+                await addRoomModal.HideAsync();
+            }
+        }
+        finally
+        {
+            isAddingRoom = false;
         }
     }
+
+    private async Task HandleDeleteRoom()
+    {
+        isDeletingRoom = true;
+        try
+        {
+            if (!string.IsNullOrEmpty(roomIdToDelete))
+            {
+                var result = await roomService.DeleteRoom(roomIdToDelete);
+                if (result)
+                {
+                    rooms = await roomService.GetAll();
+                }
+                roomIdToDelete = null;
+            }
+            await confirmRoomDeleteModal.HideAsync();
+        }
+        finally
+        {
+            isDeletingRoom = false;
+        }
+    }
+
+
 
     private class RoomModel
     {
@@ -96,8 +186,11 @@
     {
         if (isFirstRender)
         {
+            isLoadingRooms = true;
             rooms = await roomService.GetAll();
+            isLoadingRooms = false;
             await InvokeAsync(StateHasChanged);
         }
     }
+
 }

@@ -77,5 +77,17 @@ namespace IotProject.Auth.Services
 
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<bool> DeleteRoom(string id)
+        {
+            var jwtToken = await localStorage.GetItemAsync<string>("JwtToken") ?? await sessionStorage.GetItemAsync<string>("JwtToken");
+            if (string.IsNullOrWhiteSpace(jwtToken)) return false;
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+            var response = await httpClient.DeleteAsync($"Room/Delete?id={id}");
+
+            return response.IsSuccessStatusCode;
+        }
+
     }
 }
