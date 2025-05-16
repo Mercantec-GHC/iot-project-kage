@@ -129,3 +129,16 @@
     border-color: rgba(204, 104, 73, 1);
     color: white;
 }
+
+/* Device List Hover Effects */
+.list-group-item.hover-effect {
+    transition: all 0.2s ease-in-out !important;
+    cursor: pointer;
+}
+
+.list-group-item.hover-effect:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    background-color: rgba(var(--bs-primary-rgb), 0.03) !important;
+    border-color: rgba(var(--bs-primary-rgb), 0.2) !important;
+}
