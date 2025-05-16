@@ -110,7 +110,7 @@ else if (step == 2)
 
         try
         {
-            // Starter scanning – denne metode blokerer, indtil scanningen afsluttes
+            // Starter scanning â€“ denne metode blokerer, indtil scanningen afsluttes
             await adapter.StartScanningForDevicesAsync();
         }
         catch (Exception ex)
@@ -138,7 +138,7 @@ else if (step == 2)
             if (!devices.Any(d => d.Id == args.Device.Id))
             {
                 devices.Add(args.Device);
-                // Da vi er i en eventtråd, skal vi bede UI-tråden om at opdatere
+                // Da vi er i en eventtrÃ¥d, skal vi bede UI-trÃ¥den om at opdatere
                 InvokeAsync(StateHasChanged);
             }
         }
@@ -157,7 +157,7 @@ else if (step == 2)
     {
         var adapter = CrossBluetoothLE.Current.Adapter;
 
-        // Sørg for, at enheden er forbundet.
+        // SÃ¸rg for, at enheden er forbundet.
         if (device.State != DeviceState.Connected)
         {
             try
@@ -180,7 +180,7 @@ else if (step == 2)
         var service = await device.GetServiceAsync(serviceGuid);
         if (service == null)
         {
-            Console.WriteLine("Service med den specificerede UUID blev ikke fundet på enheden.");
+            Console.WriteLine("Service med den specificerede UUID blev ikke fundet pÃ¥ enheden.");
             return null;
         }
 
@@ -198,10 +198,10 @@ else if (step == 2)
             return null;
         }
 
-        // Opret et TaskCompletionSource, der venter på den modtagne besked.
+        // Opret et TaskCompletionSource, der venter pÃ¥ den modtagne besked.
         var responseTcs = new TaskCompletionSource<string>();
 
-        // Definer en event handler, der konverterer den modtagne byte-array til en streng og sætter resultatet.
+        // Definer en event handler, der konverterer den modtagne byte-array til en streng og sÃ¦tter resultatet.
         EventHandler<CharacteristicUpdatedEventArgs>? handler = null;
         handler = (s, args) =>
         {
@@ -217,12 +217,12 @@ else if (step == 2)
             }
         };
 
-        // Abonner på notifikationer fra TX-characteristikken og start opdaterings-flowet.
+        // Abonner pÃ¥ notifikationer fra TX-characteristikken og start opdaterings-flowet.
         txCharacteristic.ValueUpdated += handler;
         await txCharacteristic.StartUpdatesAsync();
-        Console.WriteLine("Abonneret på TX-notifikationer og vent på svar.");
+        Console.WriteLine("Abonneret pÃ¥ TX-notifikationer og vent pÃ¥ svar.");
 
-        // Forbered beskeden – her bruger vi fx "Test123". I din kode sendes bruger-id.
+        // Forbered beskeden â€“ her bruger vi fx "Test123". I din kode sendes bruger-id.
         byte[] messageBytes = System.Text.Encoding.UTF8.GetBytes("Test123");
 
         // Skriv beskeden til RX-karakteristikken.
@@ -230,18 +230,18 @@ else if (step == 2)
         if (writeResult != 0)
         {
             Console.WriteLine("Det lykkedes ikke at sende beskeden.");
-            // Stop og fjern notifikations-abonnement før returnering.
+            // Stop og fjern notifikations-abonnement fÃ¸r returnering.
             await txCharacteristic.StopUpdatesAsync();
             txCharacteristic.ValueUpdated -= handler;
             return null;
         }
-        Console.WriteLine("Beskeden blev sendt med succes og venter nu på svar...");
+        Console.WriteLine("Beskeden blev sendt med succes og venter nu pÃ¥ svar...");
 
-        // Vent på et svar via TaskCompletionSource.
-        // Du kan evt. tilføje en timeout her med en CancellationToken, hvis der ikke modtages svar.
+        // Vent pÃ¥ et svar via TaskCompletionSource.
+        // Du kan evt. tilfÃ¸je en timeout her med en CancellationToken, hvis der ikke modtages svar.
         string responseMessage = await responseTcs.Task;
 
-        // Når vi har modtaget svaret, stopper vi notifikationerne og afbryder forbindelsen, hvis ønsket.
+        // NÃ¥r vi har modtaget svaret, stopper vi notifikationerne og afbryder forbindelsen, hvis Ã¸nsket.
         await txCharacteristic.StopUpdatesAsync();
         txCharacteristic.ValueUpdated -= handler;
 
