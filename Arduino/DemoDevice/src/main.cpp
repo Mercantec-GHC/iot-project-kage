@@ -318,6 +318,7 @@ void HttpGetLedConfigRequest() {
                 carrier.leds.setPixelColor(4, carrier.leds.Color(r, g, b));
                 carrier.leds.show();
             }
+
             //   if (jsonObject.containsKey("display")) {
             //     if (jsonObject["display"]["sensor"] == "temp celcius") {
             //       text = jsonObject["display"]["sensor"].as<String>();
