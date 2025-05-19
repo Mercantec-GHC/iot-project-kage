@@ -34,15 +34,6 @@ float lastTempC = NAN;
 unsigned long lastPrintTime = 0;
 const unsigned long printInterval = 300000;
 
-// For config of the LEDs
-int R;
-int G;
-int B;
-uint32_t Led1;
-uint32_t Led2;
-uint32_t Led3;
-uint32_t Led4;
-uint32_t Led5;
 int32_t UnixTimeStamp = NAN;
 
 void setup() {
@@ -65,6 +56,7 @@ void setup() {
         // Registeres the device on the server and calls the HttpRequest() & SaveConfig() functions.
         Register();
     }
+    HttpGetLedConfigRequest();
 }
 
 void loop() {
@@ -77,8 +69,12 @@ void loop() {
     bool significantChange = !isnan(lastTempC) && abs(tempC - lastTempC) >= 5.0;
     bool timeElapsed = currenTime - lastPrintTime >= printInterval;
 
+    if (lastPrintTime >= 60000) {
+        HttpGetLedConfigRequest();
+    }
+
     if (significantChange || timeElapsed || isnan(lastTempC)) {
-        DynamicJsonDocument jsonDoc(300);
+        JsonDocument jsonDoc;
         JsonObject temp = jsonDoc.createNestedObject("temperature");
         temp["celsius"] = tempC;
         temp["fahrenheit"] = tempF;
@@ -252,90 +248,86 @@ void HttpDataRequest(String jsonBody) {
 }
 
 void HttpGetLedConfigRequest() {
-      Serial.println("Making get request");
+    Serial.println("Making get request");
 
-  client.get("/device/getconfiguration");
-  client.sendHeader("deviceid", Id);
-  client.sendHeader("apikey", ApiKey);
-  int statusCode = client.responseStatusCode();
-  String response = client.responseBody();
-  Serial.print("Status code: ");
-  Serial.println(statusCode);
-  Serial.print("Response: ");
-  Serial.println(response);
-
-  int jsonObjectStart = response.indexOf("content\":");
-  int jsonContentStart = response.indexOf("{", jsonObjectStart);
-  int jsonContentEnd = response.indexOf("}", jsonObjectStart);
-  String jsonContent = response.substring(jsonContentStart + 1, jsonContentEnd);
-  Serial.println(jsonContent);
-  
-  DynamicJsonDocument jsonObject(512);
-  DeserializationError error = deserializeJson(jsonObject, jsonContent);
-  if (error) {
-    Serial.print("Failed to parse JSON: ");
-    Serial.println(error.c_str());
-  }
-
-  String text;
-  if (jsonObject.containsKey("timestamp")) {
-    int32_t timeStamp = jsonObject["timestamp"].as<int32_t>();
-    if (UnixTimeStamp > timeStamp || isnan(UnixTimeStamp)) {
-      if (jsonObject.containsKey("led_1")) {
-        R = jsonObject["led_1"]["r"].as<int>();
-        G = jsonObject["led_1"]["g"].as<int>();
-        B = jsonObject["led_1"]["b"].as<int>();
-        Led1 = carrier.leds.Color(R, G, B);
-        Serial.print("led 1: ");
-        Serial.println(Led1);
-      }
-      if (jsonObject.containsKey("led_2")) {
-        R = jsonObject["led_2"]["r"].as<int>();
-        G = jsonObject["led_2"]["g"].as<int>();
-        B = jsonObject["led_2"]["b"].as<int>();
-        Led2 = carrier.leds.Color(R, G, B);
-        Serial.print("led 2: ");
-        Serial.println(Led2);
-      }
-      if (jsonObject.containsKey("led_3")) {
-        R = jsonObject["led_3"]["r"].as<int>();
-        G = jsonObject["led_3"]["g"].as<int>();
-        B = jsonObject["led_3"]["b"].as<int>();
-        Led3 = carrier.leds.Color(R, G, B);
-        Serial.print("led 3: ");
-        Serial.println(Led3);
-      }
-      if (jsonObject.containsKey("led_4")) {
-        R = jsonObject["led_4"]["r"].as<int>();
-        G = jsonObject["led_4"]["g"].as<int>();
-        B = jsonObject["led_4"]["b"].as<int>();
-        Led4 = carrier.leds.Color(R, G, B);
-        Serial.print("led 4: ");
-        Serial.println(Led4);
-      }
-      if (jsonObject.containsKey("led_5")) {
-        R = jsonObject["led_5"]["r"].as<int>();
-        G = jsonObject["led_5"]["g"].as<int>();
-        B = jsonObject["led_5"]["b"].as<int>();
-        Led5 = carrier.leds.Color(R, G, B);
-        Serial.print("led 5: ");
-        Serial.println(Led5);
-      }
-      // if (jsonObject.containsKey("display")) {
-      //   if (jsonObject["display"]["sensor"] == "temp celcius") {
-      //     text = jsonObject["display"]["sensor"].as<String>();
-      //     text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
-      //     Serial.println(ScreenDisplay);
-      //   } else if (jsonObject["display"]["sensor"] == "temp fahrenheit") {
-      //     text = jsonObject["display"]["sensor"].as<String>();
-      //     text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
-      //     Serial.println(ScreenDisplay);
-      //   } else if (jsonObject["display"]["sensor"] == "humidity") {
-      //     text = jsonObject["display"]["sensor"].as<String>();
-      //     text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
-      //     Serial.println(ScreenDisplay);
-      //   }
-      // }
+    Serial.println(Id);
+    Serial.println(ApiKey);
+    client.beginRequest();
+    client.get("/device/getconfiguration");
+    client.sendHeader("DeviceId", Id);
+    client.sendHeader("ApiKey", ApiKey);
+    client.endRequest();
+    int statusCode = client.responseStatusCode();
+    String response = client.responseBody();
+    Serial.print("Status code: ");
+    Serial.println(statusCode);
+    Serial.print("Response: ");
+    Serial.println(response);
+    
+    JsonDocument jsonObject;
+    DeserializationError error = deserializeJson(jsonObject, response);
+    if (error) {
+        Serial.print("Failed to parse JSON: ");
+        Serial.println(error.c_str());
+        return;
     }
-  }     
+
+    uint32_t R;
+    uint32_t G;
+    uint32_t B;
+    if (jsonObject.containsKey("timestamp")) {
+        int32_t timeStamp = jsonObject["timestamp"].as<int32_t>();
+        if (UnixTimeStamp > timeStamp || isnan(UnixTimeStamp)) {
+            if (jsonObject.containsKey("led_1")) {
+                R = jsonObject["led_1"]["r"].as<int>();
+                G = jsonObject["led_1"]["g"].as<int>();
+                B = jsonObject["led_1"]["b"].as<int>();
+                carrier.leds.setPixelColor(1, carrier.leds.Color(R, G, B));
+                carrier.leds.show();
+            }
+            if (jsonObject.containsKey("led_2")) {
+                R = jsonObject["led_2"]["r"].as<int>();
+                G = jsonObject["led_2"]["g"].as<int>();
+                B = jsonObject["led_2"]["b"].as<int>();
+                carrier.leds.setPixelColor(2, R, G, B);
+                carrier.leds.show();
+
+            }
+            if (jsonObject.containsKey("led_3")) {
+                carrier.leds.setPixelColor(3, jsonObject["led_3"]["r"].as<int>(), jsonObject["led_3"]["g"].as<int>(), jsonObject["led_3"]["b"].as<int>());
+                carrier.leds.show();
+            }
+            // if (jsonObject.containsKey("led_4")) {
+            //     R = jsonObject["led_4"]["r"].as<int>();
+            //     G = jsonObject["led_4"]["g"].as<int>();
+            //     B = jsonObject["led_4"]["b"].as<int>();
+            //     Led4 = carrier.leds.Color(R, G, B);
+            //     Serial.print("led 4: ");
+            //     Serial.println(Led4);
+            // }
+            // if (jsonObject.containsKey("led_5")) {
+            //     R = jsonObject["led_5"]["r"].as<int>();
+            //     G = jsonObject["led_5"]["g"].as<int>();
+            //     B = jsonObject["led_5"]["b"].as<int>();
+            //     Led5 = carrier.leds.Color(R, G, B);
+            //     Serial.print("led 5: ");
+            //     Serial.println(Led5);
+            // }
+            //   if (jsonObject.containsKey("display")) {
+            //     if (jsonObject["display"]["sensor"] == "temp celcius") {
+            //       text = jsonObject["display"]["sensor"].as<String>();
+            //       text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
+            //       Serial.println(ScreenDisplay);
+            //     } else if (jsonObject["display"]["sensor"] == "temp fahrenheit") {
+            //       text = jsonObject["display"]["sensor"].as<String>();
+            //       text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
+            //       Serial.println(ScreenDisplay);
+            //     } else if (jsonObject["display"]["sensor"] == "humidity") {
+            //       text = jsonObject["display"]["sensor"].as<String>();
+            //       text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
+            //       Serial.println(ScreenDisplay);
+            //     }
+            //   }
+        }
+    }     
 }

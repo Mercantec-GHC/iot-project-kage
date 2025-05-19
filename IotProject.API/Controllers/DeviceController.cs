@@ -33,7 +33,7 @@ namespace IotProject.API.Controllers
             await context.AddAsync(device);
             await context.SaveChangesAsync();
 
-            return Ok(new DeviceRegisterResponse(device.Id, device.ApiKey, $"Device of type '{device.DeviceType}' successfully registered."));
+            return Ok(new DeviceRegisterResponse(device.Id, device.ApiKey));
         }
 
         [HttpDelete("RemoveDevice")]
