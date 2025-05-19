@@ -44,6 +44,7 @@ namespace IotProject.Mobile
             }
 
             builder.Services.AddJwtAuth(builder.Configuration);
+            builder.Services.AddIotServices(builder.Configuration);
 
             builder.Services.AddMauiBlazorWebView();
 

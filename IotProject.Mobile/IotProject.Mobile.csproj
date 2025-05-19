@@ -69,6 +69,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\IotProject.Auth\IotProject.Auth.csproj" />
+      <ProjectReference Include="..\IotProject.RazorShared\IotProject.RazorShared.csproj" />
       <ProjectReference Include="..\IotProject.Shared\IotProject.Shared.csproj" />
     </ItemGroup>
 

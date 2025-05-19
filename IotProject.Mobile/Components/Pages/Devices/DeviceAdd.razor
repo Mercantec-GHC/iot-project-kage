@@ -3,9 +3,11 @@
 @using Plugin.BLE.Abstractions
 @using Plugin.BLE.Abstractions.Contracts
 @using Plugin.BLE.Abstractions.EventArgs
+@using System.Text.Json
 @implements IAsyncDisposable
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ApiService ApiService;
 @attribute [Authorize]
 
 @if (step == 1)
@@ -132,7 +134,7 @@ else if (step == 2)
     // Eventhandler for device discovery.
     private void OnDeviceDiscovered(object sender, DeviceEventArgs args)
     {
-        if (!string.IsNullOrWhiteSpace(args.Device.Name)/*  && args.Device.Name.Contains("Arduino") */)
+        if (!string.IsNullOrWhiteSpace(args.Device.Name) && args.Device.Name.StartsWith("KageIot_"))
         {
             // Tjek for dubletter
             if (!devices.Any(d => d.Id == args.Device.Id))
@@ -150,6 +152,8 @@ else if (step == 2)
         selectedDevice = device;
         step = 2;
         test = await SendTestMessage(device);
+        // DeviceRegisterResponse response = JsonSerializer.Deserialize<DeviceRegisterResponse>(test, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        // NavigationManager.NavigateTo("/");
         await InvokeAsync(StateHasChanged);
     }
 
@@ -223,7 +227,12 @@ else if (step == 2)
         Console.WriteLine("Abonneret på TX-notifikationer og vent på svar.");
 
         // Forbered beskeden – her bruger vi fx "Test123". I din kode sendes bruger-id.
-        byte[] messageBytes = System.Text.Encoding.UTF8.GetBytes("Test123");
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = state.User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+        DeviceRegisterRequest request = new DeviceRegisterRequest { DeviceType = device.Name.Split("_")[1], OwnerId = userId! };
+        var response = await ApiService.RegisterDevice(request);
+
+        byte[] messageBytes = System.Text.Encoding.UTF8.GetBytes(response!);
 
         // Skriv beskeden til RX-karakteristikken.
         var writeResult = await rxCharacteristic.WriteAsync(messageBytes);
