@@ -76,7 +76,27 @@ namespace IotProject.API.Controllers
             }));
         }
 
-        [HttpGet("GetData"), Authorize]
+        [HttpGet("GetDevice"), Authorize]
+        public async Task<ActionResult<DeviceResponse>> GetDevice([FromQuery] string deviceId)
+        {
+            var user = await GetSignedInUser();
+			if (user == null) return StatusCode(500);
+
+            var device = user.Devices.FirstOrDefault(d  => d.Id == deviceId);
+			if (device == null) return NotFound($"Device with id: '{deviceId}', was not found.");
+			var latestData = device!.Data.OrderByDescending(d => d.Timestamp).FirstOrDefault();
+			
+            return new DeviceResponse(
+				   Id: device.Id,
+				   Name: device.Name ?? DeviceTypes.GetDeviceType(device.DeviceType)?.Name,
+				   Type: device.DeviceType,
+				   RoomId: device.RoomId!,
+				   Data: latestData?.Data,
+				   LastUpdate: latestData?.Timestamp
+			);
+		}
+
+		[HttpGet("GetData"), Authorize]
         public async Task<ActionResult<List<DeviceDataResponse>>> GetData([FromQuery] string deviceId)
         {
             var user = await GetSignedInUser();
