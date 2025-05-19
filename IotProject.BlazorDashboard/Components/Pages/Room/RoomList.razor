@@ -3,9 +3,9 @@
 @using IotProject.Auth.Services
 @using System.ComponentModel.DataAnnotations
 @inject RoomService roomService
+@inject NavigationManager navigationManager
 
-<div>
-    <Button class="btn btn-gradient mb-3" @onclick="() => addRoomModal.ShowAsync()">Add New Room</Button>
+<Button class="btn btn-gradient mb-3" @onclick="() => addRoomModal.ShowAsync()">Add New Room</Button>
     @if (isLoadingRooms)
     {
         <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
@@ -17,19 +17,25 @@
     else
     {
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
-            @foreach (var item in rooms)
-            {
-                <div class="col">
-                    <Card Class="card-gradient">
-                        <Card Class="h-100 overflow-hidden">
+        @foreach (var item in rooms)
+        {
+            <div class="col h-100">
+                <Card Class="card-gradient h-100 d-flex flex-column">
+                    <Card Class="h-100 d-flex flex-column">
+                        <Button @onclick="() => NavigateToDetails(item.Id)" Class="p-0 m-0">
                             <CardHeader Class="p-0">
                                 <div class="w-100">
                                     <div class="position-absolute top-0 end-0 z-1">
                                         <Dropdown>
-                                            <button class="btn border-0 pt-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <Icon Name="IconName.ThreeDots" Size="IconSize.x3"></Icon>
+                                            <button class="btn border-0 pt-0"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                            @onclick:stopPropagation>
+                                                <Icon Class="btn-dropdown" Name="IconName.ThreeDots" Size="IconSize.x3"></Icon>
                                             </button>
-                                            <DropdownMenu>
+
+                                            <DropdownMenu @onclick:stopPropagation>
                                                 <DropdownItem To="@($"/rooms/edit/{item.Id}")" Type="DropdownItemType.Link">Edit</DropdownItem>
                                                 <DropdownItem @onclick="() => ShowDeleteModal(item.Id)" Type="DropdownItemType.Link">Delete</DropdownItem>
                                             </DropdownMenu>
@@ -40,18 +46,17 @@
                                     <img src="/images/room.jpg" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
                                 </div>
                             </CardHeader>
-
-                            <CardBody>
+                            <CardBody Class="flex-grow-1 d-flex flex-column">
                                 <CardTitle>@item.Name</CardTitle>
-                                <CardText>@item.Description</CardText>
+                                <CardText class="mb-0 flex-grow-1 text-truncate description-clamp">@item.Description</CardText>
                             </CardBody>
-                        </Card>
+                        </Button>
                     </Card>
-                </div>
-            }
+               </Card>
         </div>
-    }
-</div>
+        }
+    </div>
+}
 
 <Modal @ref="addRoomModal" Title="Add Room" Size="ModalSize.Large">
     <HeaderTemplate>
@@ -89,7 +94,7 @@
     </BodyTemplate>
 </Modal>
 
-<Modal @ref="confirmRoomDeleteModal" Title="Delete Room" Size="ModalSize.Large">
+<Modal @ref="confirmRoomDeleteModal" Title="Delete Room" Size="ModalSize.Regular">
     <HeaderTemplate>
         <h5 class="modal-title" id="AddRoomModalLabel">Delete Room</h5>
         <Button @onclick="() => confirmRoomDeleteModal.HideAsync()" Class="btn-close" />
@@ -105,8 +110,8 @@
         else
         {
             <p>Are you sure you want to delete this room?</p>
-            <div class="d-flex justify-content-end">
-                <Button @onclick="() => confirmRoomDeleteModal.HideAsync()" Class="btn btn-secondary me-2">Cancel</Button>
+            <div class="d-flex justify-content-middle">
+                <Button @onclick="() => confirmRoomDeleteModal.HideAsync()" Class="btn btn-cancel me-2">Cancel</Button>
                 <Button Class="btn btn-danger" @onclick="HandleDeleteRoom">Delete</Button>
             </div>
         }
@@ -124,7 +129,6 @@
     private bool isDeletingRoom = false;
     private bool isLoadingRooms = true;
 
-
     private async Task ShowDeleteModal(string id)
     {
         roomIdToDelete = id;
@@ -141,7 +145,6 @@
                     Name = newRoom.Name,
                     Description = newRoom.Description
                 };
-
             var result = await roomService.AddRoom(request);
             if (result)
             {
@@ -193,5 +196,10 @@
             isLoadingRooms = false;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private void NavigateToDetails(string id)
+    {
+        navigationManager.NavigateTo($"/rooms/details/{id}");
     }
 }

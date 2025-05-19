@@ -4,10 +4,11 @@
 @using IotProject.RazorShared.Services
 @using BlazorBootstrap
 @using IotProject.Shared.Models.Responses
+@using System.Timers
+@implements IDisposable
 @inject IotDeviceService DeviceService
 @inject IJSRuntime JSRuntime
 @attribute [Authorize]
-
 
 <div class="row justify-content-center">
     <div class="col-12">
@@ -16,9 +17,7 @@
                 
                 <CardHeader class="text-center p-3">
                     <h2 class="mb-0">List Of Devices</h2>
-                </CardHeader>
-
-                
+                </CardHeader>   
                 <CardBody class="">
                     @if (isLoading)
                     {
@@ -39,9 +38,9 @@
                         <ul class="list-group">
                             @foreach (var device in FilteredPagedDevices)
                             {
-                                <li class="list-group-item shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                                <li class="list-group-item shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 hover-effect">
                                     <div class="w-100">
-                                        <span class="fw-bold fs-5 text-truncate">@device.Name</span>
+                                        <span class="fw-bold fs-5 d-inline-block" style="max-width: 300px;">@device.Name</span>
                                         <div class="d-flex flex-column">
                                             <small class="text-muted">Type: @device.Type</small>
                                             @if (!string.IsNullOrEmpty(device.RoomId))
@@ -89,6 +88,8 @@
     private const int PageSize = 5;
     private int DisplayPages = 1;
     private bool isLoading = true;
+    private Timer? refreshTimer;
+    private DotNetObjectReference<DeviceList>? objRef;
 
     // Initialize the page and load devices
     protected override async Task OnInitializedAsync()
@@ -101,9 +102,14 @@
             var breakpoint = await breakpointsModule.InvokeAsync<string>("getBootstrapBreakpoint");
             OnResize(breakpoint);
 
+            // Initialize refresh timer
+            refreshTimer = new Timer(3000); // 3 seconds
+            refreshTimer.Elapsed += OnTimerElapsed;
+            refreshTimer.AutoReset = true;
+            refreshTimer.Start();
+
             // Load all devices
-            devices = await DeviceService.GetAllDevices();
-            filteredDevices = devices;
+            await RefreshDevices();
         }
         catch (Exception ex)
         {
@@ -114,6 +120,54 @@
             isLoading = false;
             StateHasChanged();
         }
+    }
+
+    private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            await RefreshDevices();
+            StateHasChanged();
+        });
+    }
+
+    private async Task RefreshDevices()
+    {
+        try
+        {
+            var newDevices = await DeviceService.GetAllDevices();
+            
+            // Only update if there are actual changes
+            if (!AreDeviceListsEqual(devices, newDevices))
+            {
+                devices = newDevices;
+                OnSearch(new ChangeEventArgs { Value = searchTerm });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error refreshing devices: {ex}");
+        }
+    }
+
+    private bool AreDeviceListsEqual(List<DeviceResponse> list1, List<DeviceResponse> list2)
+    {
+        if (list1.Count != list2.Count) return false;
+        
+        return list1.All(device1 => 
+            list2.Any(device2 => 
+                device2.Id == device1.Id && 
+                device2.Name == device1.Name && 
+                device2.Type == device1.Type && 
+                device2.RoomId == device1.RoomId &&
+                device2.LastUpdate == device1.LastUpdate));
+    }
+
+    public void Dispose()
+    {
+        refreshTimer?.Stop();
+        refreshTimer?.Dispose();
+        objRef?.Dispose();
     }
 
     // Handle search input and filter devices (Searching while typing)

@@ -51,5 +51,32 @@ namespace IotProject.RazorShared.Services
             // Returns the deserialized DeviceResult.
             return deviceResult!;
         }
+
+        public async Task<DeviceResponse?> GetDevice()
+        {
+			// Tries to obtain the jwt token from Local Storage.
+			var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
+
+			if (string.IsNullOrWhiteSpace(jwtToken))
+			{
+				// If unsuccessfull, tries to obtain the jwt token from Session Storage.
+				jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
+				if (string.IsNullOrWhiteSpace(jwtToken))
+				{
+                    // Return an empty list if no token is found.
+                    return null;
+				}
+			}
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+            var response = await httpClient.GetAsync("device/getdevice");
+            if (!response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            var deviceResult = JsonSerializer.Deserialize<DeviceResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
+            return deviceResult;
+		}
     }
 }

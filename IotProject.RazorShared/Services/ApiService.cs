@@ -29,7 +29,6 @@ namespace IotProject.RazorShared.Services
             return result;
         }
 
-
         private async Task<bool> authorize()
         {
             var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");

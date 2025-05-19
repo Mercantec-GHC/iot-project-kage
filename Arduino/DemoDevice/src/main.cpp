@@ -8,9 +8,10 @@
 
 // Instatiate functions. 
 void Register();
+bool ReadConfig();
 void SaveConfig(String);
 void HttpDataRequest(String);
-bool ReadConfig();
+void HttpGetLedConfigRequest();
 String HttpRegisterRequest(String);
 
 // For Wifi connection.
@@ -23,8 +24,8 @@ String Id;
 String ApiKey;
 
 // For files on SD card.
-#define CONFIG_LOCATION "/config.txt"
 WiFiClient wifi;
+#define CONFIG_LOCATION "/config.txt"
 HttpClient client = HttpClient(wifi, "10.133.51.113", 6970);
 
 // For sensors.  
@@ -32,6 +33,10 @@ MKRIoTCarrier carrier;
 float lastTempC = NAN;
 unsigned long lastPrintTime = 0;
 const unsigned long printInterval = 300000;
+
+unsigned long lastGetRequest = 0;
+const unsigned long GetPrintInterval = 60000;
+int32_t UnixTimeStamp = NAN;
 
 void setup() {
     // Put your setup code here, to run once:
@@ -53,6 +58,7 @@ void setup() {
         // Registeres the device on the server and calls the HttpRequest() & SaveConfig() functions.
         Register();
     }
+    HttpGetLedConfigRequest();
 }
 
 void loop() {
@@ -65,8 +71,12 @@ void loop() {
     bool significantChange = !isnan(lastTempC) && abs(tempC - lastTempC) >= 5.0;
     bool timeElapsed = currenTime - lastPrintTime >= printInterval;
 
-    if (significantChange || timeElapsed) {
-        DynamicJsonDocument jsonDoc(300);
+    if () {
+        HttpGetLedConfigRequest();
+    }
+
+    if (significantChange || timeElapsed || isnan(lastTempC)) {
+        JsonDocument jsonDoc;
         JsonObject temp = jsonDoc.createNestedObject("temperature");
         temp["celsius"] = tempC;
         temp["fahrenheit"] = tempF;
@@ -91,7 +101,6 @@ void Register() {
     // Add Key values to JSON object.
     JsonObject["devicetype"] = "DemoDevice";
     JsonObject["ownerid"] = "fb00f216-cf0e-4ff5-8885-4448a36020cc";
-    JsonObject["config"] = "";
 
     // Serialize the JSON objewct to a string.
     String jsonBody;
@@ -137,17 +146,16 @@ String HttpRegisterRequest(String jsonBody) {
 // Makes a file and saves the device id, in the SD card, on the MKR IoT Carrier unit.
 void SaveConfig(String json) {
     // Checks if the file exists.
-    if (SD.exists(CONFIG_LOCATION)) {
-        if (SD.remove(CONFIG_LOCATION)) {
-            Serial.println("Existing file removed successfully.");
-        } else {
-            Serial.println("Failed to remove existing file.");
-        }
-    }
+    // if (SD.exists(CONFIG_LOCATION)) {
+    //     if (SD.remove(CONFIG_LOCATION)) {
+    //         Serial.println("Existing file removed successfully.");
+    //     } else {
+    //         Serial.println("Failed to remove existing file.");
+    //     }
+    // }
 
     // Creates the file with the CONFIG_LOCATION as the name of the file.
     File deviceFile = SD.open(CONFIG_LOCATION, FILE_WRITE);
-    Serial.println("Goes into function SaveConfig.");
     
     // Writes the json message in the file. 
     if (deviceFile) {
@@ -216,15 +224,6 @@ bool ReadConfig() {
         Serial.println("Key 'ApiKey' not found in JSON.");
         return false;
     }
-
-    // Reads the file, and prints the text on Serial monitor.
-    deviceFile = SD.open(CONFIG_LOCATION, FILE_READ);
-    while (deviceFile.available()) {
-        String line = deviceFile.readStringUntil('\n');
-        Serial.println("Goes into function ReadConfig :D");
-        Serial.println(line);
-    }
-    deviceFile.close();
     return true;
 }
 
@@ -248,4 +247,93 @@ void HttpDataRequest(String jsonBody) {
     Serial.println(statusCode);
     Serial.print("Response: ");
     Serial.println(response);
+}
+
+void HttpGetLedConfigRequest() {
+    Serial.println("Making get request");
+
+    Serial.println(Id);
+    Serial.println(ApiKey);
+    client.beginRequest();
+    client.get("/device/getconfiguration");
+    client.sendHeader("DeviceId", Id);
+    client.sendHeader("ApiKey", ApiKey);
+    client.endRequest();
+    int statusCode = client.responseStatusCode();
+    String response = client.responseBody();
+    Serial.print("Status code: ");
+    Serial.println(statusCode);
+    Serial.print("Response: ");
+    Serial.println(response);
+    
+    JsonDocument jsonObject;
+    DeserializationError error = deserializeJson(jsonObject, response);
+    if (error) {
+        Serial.print("Failed to parse JSON: ");
+        Serial.println(error.c_str());
+        return;
+    }
+
+    int r;
+    int g;
+    int b;
+    Serial.println("udenfor if statement.");
+    if (jsonObject.containsKey("timestamp")) {
+        int32_t timeStamp = jsonObject["timestamp"].as<int32_t>();
+        if (UnixTimeStamp < timeStamp || isnan(UnixTimeStamp)) {
+            UnixTimeStamp = timeStamp;
+            if (jsonObject["config"].containsKey("led_1")) {
+                Serial.println("indenfor if statement.");
+                r = jsonObject["config"]["led_1"]["r"].as<int>();
+                g = jsonObject["config"]["led_1"]["g"].as<int>();
+                b = jsonObject["config"]["led_1"]["b"].as<int>();
+                carrier.leds.setPixelColor(0, carrier.leds.Color(r, g, b));
+                carrier.leds.show();
+            }
+            if (jsonObject["config"].containsKey("led_2")) {
+                r = jsonObject["config"]["led_2"]["r"].as<int>();
+                g = jsonObject["config"]["led_2"]["g"].as<int>();
+                b = jsonObject["config"]["led_2"]["b"].as<int>();
+                carrier.leds.setPixelColor(1, carrier.leds.Color(r, g, b));
+                carrier.leds.show();
+            }
+            if (jsonObject["config"].containsKey("led_3")) {
+                r = jsonObject["config"]["led_3"]["r"].as<int>();
+                g = jsonObject["config"]["led_3"]["g"].as<int>();
+                b = jsonObject["config"]["led_3"]["b"].as<int>();
+                carrier.leds.setPixelColor(2, carrier.leds.Color(r, g, b));
+                carrier.leds.show();
+            }
+            if (jsonObject["config"].containsKey("led_4")) {
+                r = jsonObject["config"]["led_4"]["r"].as<int>();
+                g = jsonObject["config"]["led_4"]["g"].as<int>();
+                b = jsonObject["config"]["led_4"]["b"].as<int>();
+                carrier.leds.setPixelColor(3, carrier.leds.Color(r, g, b));
+                carrier.leds.show();
+            }
+            if (jsonObject["config"].containsKey("led_5")) {
+                r = jsonObject["config"]["led_5"]["r"].as<int>();
+                g = jsonObject["config"]["led_5"]["g"].as<int>();
+                b = jsonObject["config"]["led_5"]["b"].as<int>();
+                carrier.leds.setPixelColor(4, carrier.leds.Color(r, g, b));
+                carrier.leds.show();
+            }
+
+            //   if (jsonObject.containsKey("display")) {
+            //     if (jsonObject["display"]["sensor"] == "temp celcius") {
+            //       text = jsonObject["display"]["sensor"].as<String>();
+            //       text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
+            //       Serial.println(ScreenDisplay);
+            //     } else if (jsonObject["display"]["sensor"] == "temp fahrenheit") {
+            //       text = jsonObject["display"]["sensor"].as<String>();
+            //       text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
+            //       Serial.println(ScreenDisplay);
+            //     } else if (jsonObject["display"]["sensor"] == "humidity") {
+            //       text = jsonObject["display"]["sensor"].as<String>();
+            //       text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
+            //       Serial.println(ScreenDisplay);
+            //     }
+            //   }
+        }
+    }     
 }
