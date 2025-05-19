@@ -4,7 +4,6 @@
     {
         public string DeviceType { get; set; }
         public string OwnerId { get; set; }
-        public string Config { get; set; }
     }
     public class DeviceRemoveRequest
     {
