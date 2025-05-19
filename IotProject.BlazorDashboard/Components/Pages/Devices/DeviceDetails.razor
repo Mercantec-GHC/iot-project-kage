@@ -210,8 +210,9 @@
     {
         try
         {
-            var devices = await DeviceService.GetAllDevices();
-            var newDevice = devices.FirstOrDefault(d => d.Id == DeviceId);
+            var newDevice = await DeviceService.GetDevice(DeviceId);
+            // var devices = await DeviceService.GetAllDevices();
+            // var newDevice = devices.FirstOrDefault(d => d.Id == DeviceId);
             
             // Only update if there are actual changes
             if (newDevice != null && (device == null || !AreDevicesEqual(device, newDevice)))
