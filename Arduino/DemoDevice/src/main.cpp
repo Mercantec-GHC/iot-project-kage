@@ -34,6 +34,8 @@ float lastTempC = NAN;
 unsigned long lastPrintTime = 0;
 const unsigned long printInterval = 300000;
 
+unsigned long lastGetRequest = 0;
+const unsigned long GetPrintInterval = 60000;
 int32_t UnixTimeStamp = NAN;
 
 void setup() {
@@ -69,7 +71,7 @@ void loop() {
     bool significantChange = !isnan(lastTempC) && abs(tempC - lastTempC) >= 5.0;
     bool timeElapsed = currenTime - lastPrintTime >= printInterval;
 
-    if (lastPrintTime >= 60000) {
+    if () {
         HttpGetLedConfigRequest();
     }
 
@@ -272,47 +274,51 @@ void HttpGetLedConfigRequest() {
         return;
     }
 
-    uint32_t R;
-    uint32_t G;
-    uint32_t B;
+    int r;
+    int g;
+    int b;
+    Serial.println("udenfor if statement.");
     if (jsonObject.containsKey("timestamp")) {
         int32_t timeStamp = jsonObject["timestamp"].as<int32_t>();
-        if (UnixTimeStamp > timeStamp || isnan(UnixTimeStamp)) {
-            if (jsonObject.containsKey("led_1")) {
-                R = jsonObject["led_1"]["r"].as<int>();
-                G = jsonObject["led_1"]["g"].as<int>();
-                B = jsonObject["led_1"]["b"].as<int>();
-                carrier.leds.setPixelColor(1, carrier.leds.Color(R, G, B));
+        if (UnixTimeStamp < timeStamp || isnan(UnixTimeStamp)) {
+            UnixTimeStamp = timeStamp;
+            if (jsonObject["config"].containsKey("led_1")) {
+                Serial.println("indenfor if statement.");
+                r = jsonObject["config"]["led_1"]["r"].as<int>();
+                g = jsonObject["config"]["led_1"]["g"].as<int>();
+                b = jsonObject["config"]["led_1"]["b"].as<int>();
+                carrier.leds.setPixelColor(0, carrier.leds.Color(r, g, b));
                 carrier.leds.show();
             }
-            if (jsonObject.containsKey("led_2")) {
-                R = jsonObject["led_2"]["r"].as<int>();
-                G = jsonObject["led_2"]["g"].as<int>();
-                B = jsonObject["led_2"]["b"].as<int>();
-                carrier.leds.setPixelColor(2, R, G, B);
+            if (jsonObject["config"].containsKey("led_2")) {
+                r = jsonObject["config"]["led_2"]["r"].as<int>();
+                g = jsonObject["config"]["led_2"]["g"].as<int>();
+                b = jsonObject["config"]["led_2"]["b"].as<int>();
+                carrier.leds.setPixelColor(1, carrier.leds.Color(r, g, b));
                 carrier.leds.show();
+            }
+            if (jsonObject["config"].containsKey("led_3")) {
+                r = jsonObject["config"]["led_3"]["r"].as<int>();
+                g = jsonObject["config"]["led_3"]["g"].as<int>();
+                b = jsonObject["config"]["led_3"]["b"].as<int>();
+                carrier.leds.setPixelColor(2, carrier.leds.Color(r, g, b));
+                carrier.leds.show();
+            }
+            if (jsonObject["config"].containsKey("led_4")) {
+                r = jsonObject["config"]["led_4"]["r"].as<int>();
+                g = jsonObject["config"]["led_4"]["g"].as<int>();
+                b = jsonObject["config"]["led_4"]["b"].as<int>();
+                carrier.leds.setPixelColor(3, carrier.leds.Color(r, g, b));
+                carrier.leds.show();
+            }
+            if (jsonObject["config"].containsKey("led_5")) {
+                r = jsonObject["config"]["led_5"]["r"].as<int>();
+                g = jsonObject["config"]["led_5"]["g"].as<int>();
+                b = jsonObject["config"]["led_5"]["b"].as<int>();
+                carrier.leds.setPixelColor(4, carrier.leds.Color(r, g, b));
+                carrier.leds.show();
+            }
 
-            }
-            if (jsonObject.containsKey("led_3")) {
-                carrier.leds.setPixelColor(3, jsonObject["led_3"]["r"].as<int>(), jsonObject["led_3"]["g"].as<int>(), jsonObject["led_3"]["b"].as<int>());
-                carrier.leds.show();
-            }
-            // if (jsonObject.containsKey("led_4")) {
-            //     R = jsonObject["led_4"]["r"].as<int>();
-            //     G = jsonObject["led_4"]["g"].as<int>();
-            //     B = jsonObject["led_4"]["b"].as<int>();
-            //     Led4 = carrier.leds.Color(R, G, B);
-            //     Serial.print("led 4: ");
-            //     Serial.println(Led4);
-            // }
-            // if (jsonObject.containsKey("led_5")) {
-            //     R = jsonObject["led_5"]["r"].as<int>();
-            //     G = jsonObject["led_5"]["g"].as<int>();
-            //     B = jsonObject["led_5"]["b"].as<int>();
-            //     Led5 = carrier.leds.Color(R, G, B);
-            //     Serial.print("led 5: ");
-            //     Serial.println(Led5);
-            // }
             //   if (jsonObject.containsKey("display")) {
             //     if (jsonObject["display"]["sensor"] == "temp celcius") {
             //       text = jsonObject["display"]["sensor"].as<String>();
