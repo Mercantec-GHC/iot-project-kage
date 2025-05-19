@@ -4,6 +4,8 @@
 @using IotProject.RazorShared.Services
 @using BlazorBootstrap
 @using IotProject.Shared.Models.Responses
+@using System.Timers
+@implements IDisposable
 @inject IotDeviceService DeviceService
 @inject IJSRuntime JSRuntime
 @attribute [Authorize]
@@ -174,18 +176,78 @@
     // State variables
     private DeviceResponse? device;
     private bool isLoading = true;
+    private Timer? refreshTimer;
 
     // Initialize the page and load device data
     protected override async Task OnInitializedAsync()
     {
         try 
         {
-            var devices = await DeviceService.GetAllDevices();
-            device = devices.FirstOrDefault(d => d.Id == DeviceId);
+            // Initialize refresh timer
+            refreshTimer = new Timer(3000); // 3 seconds
+            refreshTimer.Elapsed += OnTimerElapsed;
+            refreshTimer.AutoReset = true;
+            refreshTimer.Start();
+
+            await RefreshDevice();
         }
         finally
         {
             isLoading = false;
         }
+    }
+
+    private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            await RefreshDevice();
+            StateHasChanged();
+        });
+    }
+
+    private async Task RefreshDevice()
+    {
+        try
+        {
+            var devices = await DeviceService.GetAllDevices();
+            var newDevice = devices.FirstOrDefault(d => d.Id == DeviceId);
+            
+            // Only update if there are actual changes
+            if (newDevice != null && (device == null || !AreDevicesEqual(device, newDevice)))
+            {
+                device = newDevice;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error refreshing device: {ex}");
+        }
+    }
+
+    private bool AreDevicesEqual(DeviceResponse device1, DeviceResponse device2)
+    {
+        return device1.Id == device2.Id &&
+               device1.Name == device2.Name &&
+               device1.Type == device2.Type &&
+               device1.RoomId == device2.RoomId &&
+               device1.LastUpdate == device2.LastUpdate &&
+               AreDataEqual(device1.Data, device2.Data);
+    }
+
+    private bool AreDataEqual(Dictionary<string, object>? data1, Dictionary<string, object>? data2)
+    {
+        if (data1 == null && data2 == null) return true;
+        if (data1 == null || data2 == null) return false;
+        if (data1.Count != data2.Count) return false;
+
+        return data1.All(kvp => data2.TryGetValue(kvp.Key, out var value) && 
+            (value == null && kvp.Value == null || value?.ToString() == kvp.Value?.ToString()));
+    }
+
+    public void Dispose()
+    {
+        refreshTimer?.Stop();
+        refreshTimer?.Dispose();
     }
 } 
