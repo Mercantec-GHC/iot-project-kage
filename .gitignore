@@ -10,11 +10,6 @@
 *.userosscache
 *.sln.docstates
 
-# Arduino
-.pio/
-.vscode/
-Arduino/*/src/arduino_secrets.h
-
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

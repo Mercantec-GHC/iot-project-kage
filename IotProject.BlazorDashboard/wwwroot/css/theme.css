@@ -1,6 +1,11 @@
 ﻿:root {
 }
 
+*:focus {
+    outline: none;
+    box-shadow: none !important;
+}
+
 .navbar-brand img, .logo-highlight {
     filter: drop-shadow(0px 0px 0.3px #fff);
 }
