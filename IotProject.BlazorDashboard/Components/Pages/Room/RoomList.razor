@@ -1,22 +1,19 @@
 ﻿@page "/rooms"
-@using IotProject.Shared.Models.Responses
-@using IotProject.Auth.Services
-@using System.ComponentModel.DataAnnotations
 @inject RoomService roomService
 @inject NavigationManager navigationManager
 
 <Button class="btn btn-gradient mb-3" @onclick="() => addRoomModal.ShowAsync()">Add New Room</Button>
-    @if (isLoadingRooms)
-    {
-        <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+@if (isLoadingRooms)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
         </div>
-    }
-    else
-    {
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
         @foreach (var item in rooms)
         {
             <div class="col h-100">
@@ -32,7 +29,7 @@
                                                     data-bs-toggle="dropdown"
                                                     aria-expanded="false"
                                             @onclick:stopPropagation>
-                                                <Icon Class="btn-dropdown" Name="IconName.ThreeDots" Size="IconSize.x3"></Icon>
+                                                <Icon Class="btn-dropdown" Name="IconName.ThreeDots" Size="IconSize.x2"></Icon>
                                             </button>
 
                                             <DropdownMenu @onclick:stopPropagation>
@@ -47,13 +44,13 @@
                                 </div>
                             </CardHeader>
                             <CardBody Class="flex-grow-1 d-flex flex-column">
-                                <CardTitle>@item.Name</CardTitle>
-                                <CardText class="mb-0 flex-grow-1 text-truncate description-clamp">@item.Description</CardText>
+                                <CardTitle Class="flex-grow-1 text-truncate title-clamp">@item.Name</CardTitle>
+                                <CardText Class="mb-0 flex-grow-1 text-truncate description-clamp">@item.Description</CardText>
                             </CardBody>
                         </Button>
                     </Card>
-               </Card>
-        </div>
+                </Card>
+            </div>
         }
     </div>
 }

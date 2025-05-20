@@ -1,6 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using Blazored.SessionStorage;
-using IotProject.Auth.Services;
+using IotProject.RazorShared.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
