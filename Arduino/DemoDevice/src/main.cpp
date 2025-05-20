@@ -34,7 +34,7 @@ float lastTempC = NAN;
 unsigned long lastPrintTime = 0;
 const unsigned long printInterval = 300000;
 
-unsigned long lastGetRequest = 0;
+unsigned long lastGetRequestTime = NAN;
 const unsigned long GetPrintInterval = 60000;
 int32_t UnixTimeStamp = NAN;
 
@@ -71,8 +71,11 @@ void loop() {
     bool significantChange = !isnan(lastTempC) && abs(tempC - lastTempC) >= 5.0;
     bool timeElapsed = currenTime - lastPrintTime >= printInterval;
 
-    if () {
+    bool getTimeElapsed = currenTime - lastGetRequestTime >= GetPrintInterval;
+
+    if (getTimeElapsed) {
         HttpGetLedConfigRequest();
+        lastGetRequestTime = currenTime;
     }
 
     if (significantChange || timeElapsed || isnan(lastTempC)) {
@@ -249,11 +252,9 @@ void HttpDataRequest(String jsonBody) {
     Serial.println(response);
 }
 
+// Send a get request to get configuration for leds/screen.
 void HttpGetLedConfigRequest() {
-    Serial.println("Making get request");
-
-    Serial.println(Id);
-    Serial.println(ApiKey);
+    // Build the get request
     client.beginRequest();
     client.get("/device/getconfiguration");
     client.sendHeader("DeviceId", Id);
@@ -266,6 +267,7 @@ void HttpGetLedConfigRequest() {
     Serial.print("Response: ");
     Serial.println(response);
     
+    // Deserialization of response.
     JsonDocument jsonObject;
     DeserializationError error = deserializeJson(jsonObject, response);
     if (error) {
@@ -277,13 +279,13 @@ void HttpGetLedConfigRequest() {
     int r;
     int g;
     int b;
-    Serial.println("udenfor if statement.");
+
+    // Gets and sets led configuration. 
     if (jsonObject.containsKey("timestamp")) {
         int32_t timeStamp = jsonObject["timestamp"].as<int32_t>();
         if (UnixTimeStamp < timeStamp || isnan(UnixTimeStamp)) {
             UnixTimeStamp = timeStamp;
             if (jsonObject["config"].containsKey("led_1")) {
-                Serial.println("indenfor if statement.");
                 r = jsonObject["config"]["led_1"]["r"].as<int>();
                 g = jsonObject["config"]["led_1"]["g"].as<int>();
                 b = jsonObject["config"]["led_1"]["b"].as<int>();
@@ -318,22 +320,6 @@ void HttpGetLedConfigRequest() {
                 carrier.leds.setPixelColor(4, carrier.leds.Color(r, g, b));
                 carrier.leds.show();
             }
-
-            //   if (jsonObject.containsKey("display")) {
-            //     if (jsonObject["display"]["sensor"] == "temp celcius") {
-            //       text = jsonObject["display"]["sensor"].as<String>();
-            //       text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
-            //       Serial.println(ScreenDisplay);
-            //     } else if (jsonObject["display"]["sensor"] == "temp fahrenheit") {
-            //       text = jsonObject["display"]["sensor"].as<String>();
-            //       text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
-            //       Serial.println(ScreenDisplay);
-            //     } else if (jsonObject["display"]["sensor"] == "humidity") {
-            //       text = jsonObject["display"]["sensor"].as<String>();
-            //       text.toCharArray(ScreenDisplay, sizeof(ScreenDisplay));
-            //       Serial.println(ScreenDisplay);
-            //     }
-            //   }
         }
     }     
 }
