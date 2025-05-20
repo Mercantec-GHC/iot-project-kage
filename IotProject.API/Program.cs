@@ -1,4 +1,5 @@
 using IotProject.API.Data;
+using IotProject.API.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace IotProject.API
@@ -20,6 +21,7 @@ namespace IotProject.API
                     Environment.GetEnvironmentVariable("DB_CONNECTIONSTRING") ?? builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddJwtAuthentication(builder.Configuration);
+            builder.Services.AddHostedService<CleanUpServices>();
 
             var app = builder.Build();
 
