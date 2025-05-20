@@ -1,6 +1,7 @@
 ﻿@page "/rooms"
 @using IotProject.Shared.Models.Responses
 @using IotProject.Auth.Services
+@using System.ComponentModel.DataAnnotations
 @inject RoomService roomService
 @inject NavigationManager navigationManager
 
@@ -115,6 +116,7 @@
             </div>
         }
     </BodyTemplate>
+
 </Modal>
 
 @code {
