@@ -1,326 +1,66 @@
 #include <Arduino.h>
-#include <WiFiNINA.h>
 #include <ArduinoJson.h>
-#include <Arduino_MKRIoTCarrier.h>
-#include "arduino_secrets.h"
-#include <SD.h>
-#include <ArduinoHttpClient.h>
 
-// Instatiate functions. 
-void Register();
-bool ReadConfig();
-void SaveConfig(String);
-void HttpDataRequest(String);
-void HttpGetLedConfigRequest();
-String HttpRegisterRequest(String);
+#include "program.h"
+#include "bluetooth.h"
+#include "configuration.h"
 
-// For Wifi connection.
-char ssid[] = SECRET_SSID;
-char pass[] = SECRET_PASS;
-int status = WL_IDLE_STATUS;
+bool isBluetoothEnabled = false;
 
-// To save the configuration.
-String Id;
-String ApiKey;
+bool shouldReset = false;
+unsigned long resetTime = 0;
 
-// For files on SD card.
-WiFiClient wifi;
-#define CONFIG_LOCATION "/config.txt"
-HttpClient client = HttpClient(wifi, "10.133.51.113", 6970);
+String bleConfigFunction(const String &message)
+{
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, message);
+    if (error)
+        return "false";
 
-// For sensors.  
-MKRIoTCarrier carrier;
-float lastTempC = NAN;
-unsigned long lastPrintTime = 0;
-const unsigned long printInterval = 300000;
+    String id = doc["id"];
+    String apiKey = doc["apiKey"];
+    configuration::set("device_id", id.c_str());
+    configuration::set("api_key", apiKey.c_str());
+    configuration::save();
 
+    shouldReset = true;
+    resetTime = millis();
 
-unsigned long lastGetRequestTime = NAN;
-const unsigned long GetPrintInterval = 60000;
-int32_t UnixTimeStamp = NAN;
+    return id;
+}
 
-void setup() {
-    // Put your setup code here, to run once:
+void setup()
+{
     Serial.begin(9600);
-    carrier.begin();
-    if (SD.begin(SD_CS)) {
-        Serial.println("SD card initialized :D");
-    }
+    // while (!Serial)
+    //     ;
 
-    // Attempting to connect to the network.
-    while (status != WL_CONNECTED) {
-        status = WiFi.begin(ssid, pass);
-    }
-    Serial.println("Connected to WiFi :D");
-    Serial.println(WiFi.localIP());
+    configuration::begin();
 
-    // Chekcs for config file and proper information.
-    if (!ReadConfig()) {
-        // Registeres the device on the server and calls the HttpRequest() & SaveConfig() functions.
-        Register();
-    }
-    HttpGetLedConfigRequest();
-}
-
-void loop() {
-    // put your main code here, to run repeatedly:
-    float tempC = carrier.Env.readTemperature();
-    float tempF = tempC * 9.0 / 5.0 + 32.2;
-    float humidity = carrier.Env.readHumidity();
-    unsigned long currenTime = millis();
-
-    bool significantChange = !isnan(lastTempC) && abs(tempC - lastTempC) >= 5.0;
-    bool timeElapsed = currenTime - lastPrintTime >= printInterval;
-
-    bool getTimeElapsed = currenTime - lastGetRequestTime >= GetPrintInterval;
-
-    if (getTimeElapsed) {
-        HttpGetLedConfigRequest();
-        lastGetRequestTime = currenTime;
-    }
-
-    if (significantChange || timeElapsed || isnan(lastTempC)) {
-        JsonDocument jsonDoc;
-        JsonObject temp = jsonDoc.createNestedObject("temperature");
-        temp["celsius"] = tempC;
-        temp["fahrenheit"] = tempF;
-        jsonDoc["humidity"] = humidity;
-
-        String jsonString;
-        serializeJson(jsonDoc, jsonString);
-
-        HttpDataRequest(jsonString);
-
-        Serial.println(jsonString);
-
-        lastTempC = tempC;
-        lastPrintTime = currenTime;
-    }
-}
-
-// Registeres the device on the server.
-void Register() {
-    DynamicJsonDocument JsonObject(512);
-
-    // Add Key values to JSON object.
-    JsonObject["devicetype"] = "DemoDevice";
-    JsonObject["ownerid"] = "fb00f216-cf0e-4ff5-8885-4448a36020cc";
-
-    // Serialize the JSON objewct to a string.
-    String jsonBody;
-    serializeJson(JsonObject, jsonBody);
-
-    // Sends the HTTP request.
-    String response = HttpRegisterRequest(jsonBody);
-
-    // Sets the separation points for the HTTP response.
-    int jsonStart = response.indexOf('{');
-    int jsonEnd = response.lastIndexOf('}');
-
-    // Deserialize the HTTP response and takes the id.
-    if (jsonStart != -1 && jsonEnd != -1) {
-        String jsonResponse = response.substring(jsonStart, jsonEnd + 1);
-        SaveConfig(jsonResponse);
-        ReadConfig();
-    }
-}
-
-// Sends HTTP message, and returns the response.
-String HttpRegisterRequest(String jsonBody) {
-    Serial.println("Connecting to server.");
-    
-    // Send the HTTP request 
-    client.beginRequest();
-    client.post("/device/register");
-    client.sendHeader("Content-Type", "application/json");
-    client.sendHeader("Content-Length", jsonBody.length());
-    client.beginBody();
-    client.print(jsonBody);
-    client.endRequest();
-
-    int statusCode = client.responseStatusCode();
-    String response = client.responseBody();
-    Serial.print("StatusCode: ");
-    Serial.println(statusCode);
-    Serial.print("Response: ");
-    Serial.println(response);
-    return response;
-}
-
-// Makes a file and saves the device id, in the SD card, on the MKR IoT Carrier unit.
-void SaveConfig(String json) {
-    // Checks if the file exists.
-    // if (SD.exists(CONFIG_LOCATION)) {
-    //     if (SD.remove(CONFIG_LOCATION)) {
-    //         Serial.println("Existing file removed successfully.");
-    //     } else {
-    //         Serial.println("Failed to remove existing file.");
-    //     }
-    // }
-
-    // Creates the file with the CONFIG_LOCATION as the name of the file.
-    File deviceFile = SD.open(CONFIG_LOCATION, FILE_WRITE);
-    
-    // Writes the json message in the file. 
-    if (deviceFile) {
-        deviceFile.println(json);
-        deviceFile.close();
-        Serial.println("File written successfully.");
-    } else {
-        Serial.println("Failed to write to file.");
-    }
-
-    // Checks if the file was created.
-    if (SD.exists(CONFIG_LOCATION)) {
-        Serial.println("File Exists :D");
-    }
-
-    // Reads the file, and prints the text on Serial monitor.
-    deviceFile = SD.open(CONFIG_LOCATION, FILE_READ);
-    while (deviceFile.available()) {
-        String line = deviceFile.readStringUntil('\n');
-        Serial.println(line);
-    }
-    deviceFile.close();
-}
-
-// Read the config file, returns true if successfull.
-bool ReadConfig() {
-    // Checks if the file exists.
-    if (!SD.exists(CONFIG_LOCATION)) {
-        return false;
-    }
-
-    // Reads the content in the file.
-    File deviceFile = SD.open(CONFIG_LOCATION, FILE_READ);
-    String jsonContent;
-    while (deviceFile.available())
+    if (configuration::read())
     {
-        jsonContent = deviceFile.readStringUntil('\n');
+        program::setup();
     }
-    deviceFile.close();
-
-    // Deserialization of text, and check for error.
-    DynamicJsonDocument jsonObject(512);
-    DeserializationError error = deserializeJson(jsonObject, jsonContent);
-    if (error) {
-        Serial.print("Failed to parse JSON: ");
-        Serial.println(error.c_str());
-        return false;
+    else
+    {
+        bluetooth::setup();
+        isBluetoothEnabled = true;
     }
-
-    // Checks for the key: "id", in the deserialized jsonObject.  
-    if (jsonObject.containsKey("id")) {
-        Id = jsonObject["id"].as<String>();
-        Serial.print("Extracted Id: ");
-        Serial.println(Id);
-    } else {
-        Serial.println("Key 'Id' not found in JSON.");
-        return false;
-    }
-
-    // Checks for the key: "apiKey", in the deserialized jsonObject.  
-    if (jsonObject.containsKey("apiKey")) {
-        ApiKey = jsonObject["apiKey"].as<String>();
-        Serial.print("Extracted ApiKey: ");
-        Serial.println(ApiKey);
-    } else {
-        Serial.println("Key 'ApiKey' not found in JSON.");
-        return false;
-    }
-    return true;
 }
 
-// Sends sensor data with HTTP request.
-void HttpDataRequest(String jsonBody) {
-    Serial.println("Sending data :D");
-
-    client.beginRequest();
-    client.post("/device/postdata");
-    client.sendHeader("Content-Type", "application/json");
-    client.sendHeader("Content-Length", jsonBody.length());
-    client.sendHeader("deviceId", Id);
-    client.sendHeader("apiKey", ApiKey);
-    client.beginBody();
-    client.print(jsonBody);
-    client.endRequest();
-
-    int statusCode = client.responseStatusCode();
-    String response = client.responseBody();
-    Serial.print("StatusCode: ");
-    Serial.println(statusCode);
-    Serial.print("Response: ");
-    Serial.println(response);
-}
-
-// Send a get request to get configuration for leds/screen.
-void HttpGetLedConfigRequest() {
-    // Build the get request
-    client.beginRequest();
-    client.get("/device/getconfiguration");
-    client.sendHeader("DeviceId", Id);
-    client.sendHeader("ApiKey", ApiKey);
-    client.endRequest();
-    int statusCode = client.responseStatusCode();
-    String response = client.responseBody();
-    Serial.print("Status code: ");
-    Serial.println(statusCode);
-    Serial.print("Response: ");
-    Serial.println(response);
-    
-    // Deserialization of response.
-    JsonDocument jsonObject;
-    DeserializationError error = deserializeJson(jsonObject, response);
-    if (error) {
-        Serial.print("Failed to parse JSON: ");
-        Serial.println(error.c_str());
-        return;
+void loop()
+{
+    if (shouldReset && (millis() - resetTime > 5000))
+    {
+        NVIC_SystemReset();
     }
 
-    int r;
-    int g;
-    int b;
-
-    // Gets and sets led configuration. 
-    if (jsonObject.containsKey("timestamp")) {
-        int32_t timeStamp = jsonObject["timestamp"].as<int32_t>();
-        if (UnixTimeStamp < timeStamp || isnan(UnixTimeStamp)) {
-            UnixTimeStamp = timeStamp;
-            if (jsonObject["config"].containsKey("led_1")) {
-                r = jsonObject["config"]["led_1"]["r"].as<int>();
-                g = jsonObject["config"]["led_1"]["g"].as<int>();
-                b = jsonObject["config"]["led_1"]["b"].as<int>();
-                carrier.leds.setPixelColor(0, carrier.leds.Color(r, g, b));
-                carrier.leds.show();
-            }
-            if (jsonObject["config"].containsKey("led_2")) {
-                r = jsonObject["config"]["led_2"]["r"].as<int>();
-                g = jsonObject["config"]["led_2"]["g"].as<int>();
-                b = jsonObject["config"]["led_2"]["b"].as<int>();
-                carrier.leds.setPixelColor(1, carrier.leds.Color(r, g, b));
-                carrier.leds.show();
-            }
-            if (jsonObject["config"].containsKey("led_3")) {
-                r = jsonObject["config"]["led_3"]["r"].as<int>();
-                g = jsonObject["config"]["led_3"]["g"].as<int>();
-                b = jsonObject["config"]["led_3"]["b"].as<int>();
-                carrier.leds.setPixelColor(2, carrier.leds.Color(r, g, b));
-                carrier.leds.show();
-            }
-            if (jsonObject["config"].containsKey("led_4")) {
-                r = jsonObject["config"]["led_4"]["r"].as<int>();
-                g = jsonObject["config"]["led_4"]["g"].as<int>();
-                b = jsonObject["config"]["led_4"]["b"].as<int>();
-                carrier.leds.setPixelColor(3, carrier.leds.Color(r, g, b));
-                carrier.leds.show();
-            }
-            if (jsonObject["config"].containsKey("led_5")) {
-                r = jsonObject["config"]["led_5"]["r"].as<int>();
-                g = jsonObject["config"]["led_5"]["g"].as<int>();
-                b = jsonObject["config"]["led_5"]["b"].as<int>();
-                carrier.leds.setPixelColor(4, carrier.leds.Color(r, g, b));
-                carrier.leds.show();
-            }
-        }
-    }     
+    if (isBluetoothEnabled)
+    {
+        bluetooth::process(bleConfigFunction);
+    }
+    else
+    {
+        program::loop();
+    }
 }
