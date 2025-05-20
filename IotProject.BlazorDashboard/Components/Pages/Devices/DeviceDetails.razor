@@ -1,9 +1,4 @@
 ﻿@page "/device/{DeviceId}"
-@using IotProject.RazorShared.Models.Devices
-@using IotProject.RazorShared.Models.Sensors
-@using IotProject.RazorShared.Services
-@using BlazorBootstrap
-@using IotProject.Shared.Models.Responses
 @using System.Timers
 @implements IDisposable
 @inject IotDeviceService DeviceService
@@ -66,7 +61,7 @@
                                                 {
                                                     <span class="text-success">
                                                         <i class="bi bi-clock-history me-1"></i>
-                                                        @device.LastUpdate.Value.ToString("g")
+                                                        @dateString
                                                     </span>
                                                 }
                                                 else
@@ -177,6 +172,7 @@
     private DeviceResponse? device;
     private bool isLoading = true;
     private Timer? refreshTimer;
+    private string dateString { get; set; }
 
     // Initialize the page and load device data
     protected override async Task OnInitializedAsync()
@@ -197,6 +193,15 @@
         }
     }
 
+    private async Task ConvertTime()
+    {
+        long milliseconds = new DateTimeOffset(device.LastUpdate.Value).ToUnixTimeMilliseconds();
+        Console.WriteLine(device.LastUpdate.Value.ToString());
+        var timeModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/time.js");
+        dateString = await timeModule.InvokeAsync<string>("convertUTCToLocal", milliseconds);
+        Console.WriteLine(dateString);
+    }
+
     private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
     {
         _ = InvokeAsync(async () =>
@@ -211,13 +216,11 @@
         try
         {
             var newDevice = await DeviceService.GetDevice(DeviceId);
-            // var devices = await DeviceService.GetAllDevices();
-            // var newDevice = devices.FirstOrDefault(d => d.Id == DeviceId);
-            
             // Only update if there are actual changes
             if (newDevice != null && (device == null || !AreDevicesEqual(device, newDevice)))
             {
                 device = newDevice;
+                await ConvertTime();
             }
         }
         catch (Exception ex)
