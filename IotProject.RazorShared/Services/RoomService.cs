@@ -6,7 +6,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace IotProject.Auth.Services
+namespace IotProject.RazorShared.Services
 {
     public class RoomService(HttpClient httpClient, ILocalStorageService localStorage, ISessionStorageService sessionStorage)
     {
@@ -88,5 +88,23 @@ namespace IotProject.Auth.Services
 
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<List<DeviceResponse>> GetDevices(string roomId)
+        {
+            // Try to get the JWT token from local or session storage
+            var jwtToken = await localStorage.GetItemAsync<string>("JwtToken") ?? await sessionStorage.GetItemAsync<string>("JwtToken");
+            if (string.IsNullOrWhiteSpace(jwtToken)) return new List<DeviceResponse>();
+
+            // Set the authorization header
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+
+            // Call the API endpoint
+            var response = await httpClient.GetAsync($"Room/GetDevices?id={roomId}");
+            if (!response.IsSuccessStatusCode) return new List<DeviceResponse>();
+
+            var devices = JsonSerializer.Deserialize<List<DeviceResponse>>(await response.Content.ReadAsStringAsync(), JsonOptions);
+            return devices ?? new List<DeviceResponse>();
+        }
+
     }
 }
