@@ -31,7 +31,7 @@
                                                     data-bs-toggle="dropdown"
                                                     aria-expanded="false"
                                             @onclick:stopPropagation>
-                                                <Icon Class="btn-dropdown" Name="IconName.ThreeDots" Size="IconSize.x3"></Icon>
+                                                <Icon Class="btn-dropdown" Name="IconName.ThreeDots" Size="IconSize.x2"></Icon>
                                             </button>
 
                                             <DropdownMenu @onclick:stopPropagation>
@@ -46,8 +46,8 @@
                                 </div>
                             </CardHeader>
                             <CardBody Class="flex-grow-1 d-flex flex-column">
-                                <CardTitle>@item.Name</CardTitle>
-                                <CardText class="mb-0 flex-grow-1 text-truncate description-clamp">@item.Description</CardText>
+                                <CardTitle Class="flex-grow-1 text-truncate title-clamp">@item.Name</CardTitle>
+                                <CardText Class="mb-0 flex-grow-1 text-truncate description-clamp">@item.Description</CardText>
                             </CardBody>
                         </Button>
                     </Card>
