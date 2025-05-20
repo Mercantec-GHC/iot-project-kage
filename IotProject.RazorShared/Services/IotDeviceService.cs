@@ -52,7 +52,7 @@ namespace IotProject.RazorShared.Services
             return deviceResult!;
         }
 
-        public async Task<DeviceResponse?> GetDevice()
+        public async Task<DeviceResponse?> GetDevice(string deviceId)
         {
 			// Tries to obtain the jwt token from Local Storage.
 			var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
@@ -69,7 +69,7 @@ namespace IotProject.RazorShared.Services
 			}
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
-            var response = await httpClient.GetAsync("device/getdevice");
+            var response = await httpClient.GetAsync($"device/getdevice?deviceId={deviceId}");
             if (!response.IsSuccessStatusCode)
             {
                 return null;
