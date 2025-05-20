@@ -34,6 +34,7 @@ float lastTempC = NAN;
 unsigned long lastPrintTime = 0;
 const unsigned long printInterval = 300000;
 
+
 unsigned long lastGetRequestTime = NAN;
 const unsigned long GetPrintInterval = 60000;
 int32_t UnixTimeStamp = NAN;

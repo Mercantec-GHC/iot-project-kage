@@ -1,77 +1,89 @@
 #include <Arduino.h>
 #include <Arduino_MKRIoTCarrier.h>
+#include <WiFiNINA.h>
+#include <ArduinoHttpClient.h>
+#include <ArduinoJson.h>
 
+#include "arduino_secrets.h"
 #include "configuration.h"
 #include "bluetooth.h"
+#include "program.h"
 
 MKRIoTCarrier carrier;
 
+char ssid[] = SECRET_SSID;
+char pass[] = SECRET_PASS;
+int status = WL_IDLE_STATUS;
+
+WiFiClient wifi;
+HttpClient client = HttpClient(wifi, "10.133.51.113", 6970);
+
 bool isBluetoothEnabled = false;
 
-String httpFunction(const String &message)
+bool shouldReset = false;
+unsigned long resetTime = 0;
+
+String bleConfigFunction(const String &message)
 {
-    // Indsæt her din HTTP-logik (fx med WiFiClient eller lignende).
-    // For eksemplets skyld simuleres et svar:
-    delay(100); // Simulerer netværksforsinkelse.
-    return "HTTP-svar for: " + message;
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, message);
+    if (error)
+        return "false";
+
+    String id = doc["id"];
+    String apiKey = doc["apiKey"];
+    configuration::set("device_id", id.c_str());
+    configuration::set("api_key", apiKey.c_str());
+    configuration::save();
+
+    shouldReset = true;
+    resetTime = millis();
+
+    return id;
 }
 
 void setup()
 {
     Serial.begin(9600);
-    while (!Serial)
-        ;
+    // while (!Serial)
+    //     ;
 
     carrier.noCase();
     carrier.begin();
     configuration::begin();
 
-    // carrier.Buttons.update();
-    // bool reset = carrier.Buttons.getTouch(TOUCH0);
-    // Serial.println(reset);
-
-    if (!configuration::read())
+    if (configuration::read())
     {
-        // configuration::set("device_id", "TestId");
-        // configuration::set("api_key", "TestKey");
-        // configuration::save();
+        while (status != WL_CONNECTED)
+        {
+            status = WiFi.begin(ssid, pass);
+        }
+        Serial.println("WiFi Connected.");
+        Serial.print("IP: ");
+        Serial.println(WiFi.localIP());
+
+        program::setup();
     }
-
-    bluetooth::setup();
-    isBluetoothEnabled = true;
-
-    // Kald vores opsætningsfunktion for BLE.
-    // bluetooth::setup();
+    else
+    {
+        bluetooth::setup();
+        isBluetoothEnabled = true;
+    }
 }
 
 void loop()
 {
-    // Processér BLE-hændelser og håndter beskeder.
-    // bluetooth::process();
+    if (shouldReset && (millis() - resetTime > 5000))
+    {
+        NVIC_SystemReset();
+    }
 
     if (isBluetoothEnabled)
     {
-        bluetooth::process(httpFunction);
-        // if (received.length() > 0)
-        // {
-        //     // Her kan du f.eks. behandle beskeden.
-        //     Serial.print("process() aflevere besked: ");
-        //     Serial.println(received);
-        //     configuration::set("owner_id", received.c_str());
-        //     configuration::save();
-        //     isBluetoothEnabled = false;
-        // }
+        bluetooth::process(bleConfigFunction);
     }
     else
     {
-        Serial.println();
-        Serial.print("Device Id: ");
-        Serial.println(configuration::get("device_id"));
-        Serial.print("API Key: ");
-        Serial.println(configuration::get("api_key"));
-        Serial.print("Owner Id: ");
-        Serial.println(configuration::get("owner_id"));
-
-        delay(1000);
+        program::loop();
     }
 }

@@ -1,0 +1,95 @@
+﻿@page "/rooms/details/{Id}"
+@using IotProject.RazorShared.Services
+@inject RoomService roomService
+@inject NavigationManager navigationManager
+@using IotProject.Shared.Models.Responses
+@inject IotDeviceService deviceService
+
+<Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
+    <Card Class="rounded-top-4 overflow-hidden">
+        <CardHeader>
+            <h5>Room Details</h5>
+        </CardHeader>
+        <CardBody>
+            @if (isLoading)
+            {
+                <div class="text-center my-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="row align-items-stretch">
+                    <!-- Left column: Room details -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="col-form-label fw-bold">Room Name:</label>
+                            <div class="form-control-plaintext">@room.Name</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="col-form-label fw-bold">Room Description:</label>
+                            <div class="form-control-plaintext">@room.Description</div>
+                        </div>
+                    </div>
+                    <!-- Divider: vertical on desktop, horizontal on mobile -->
+                    <div class="d-none d-md-flex col-md-1 justify-content-center align-items-center">
+                        <div style="width:2px; height:95%; background: linear-gradient(140deg, rgba(82,191,250,1) 40%, rgba(255,128,91,1) 60%);"></div>
+                    </div>
+                    <div class="d-md-none col-12">
+                        <hr class="my-4" />
+                    </div>
+                    <!-- Right column: Placeholder for additional info -->
+                    <div class="col-md-5">
+                        <div class="mb-3">
+                            <label class="col-form-label fw-bold">Right Side:</label>
+                        </div>
+                    </div>
+                </div>
+
+                <Button Class="btn btn-gradient text-white w-100 mt-4" @onclick="() => navigationManager.NavigateTo(RoomsPath)">
+                    Back to List
+                </Button>
+            }
+        </CardBody>
+
+
+    </Card>
+</Card>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private RoomEditModel room = new();
+    private bool isLoading = true;
+    private const string RoomsPath = "/rooms";
+
+    private class RoomEditModel
+    {
+        [Required(ErrorMessage = "Room name is required.")]
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+
+        var result = await roomService.GetRoom(Id);
+        if (result != null)
+        {
+            room = new RoomEditModel
+                {
+                    Name = result.Name,
+                    Description = result.Description
+                };
+        }
+        else
+        {
+            navigationManager.NavigateTo("/rooms");
+        }
+        isLoading = false;
+    }
+}

@@ -3,6 +3,7 @@
 @using IotProject.Auth.Services
 @using System.ComponentModel.DataAnnotations
 @inject RoomService roomService
+@inject NavigationManager navigationManager
 
 <Button class="btn btn-gradient mb-3" @onclick="() => addRoomModal.ShowAsync()">Add New Room</Button>
     @if (isLoadingRooms)
@@ -19,33 +20,40 @@
         @foreach (var item in rooms)
         {
             <div class="col h-100">
-                <Card Class="card-gradient h-100">
+                <Card Class="card-gradient h-100 d-flex flex-column">
                     <Card Class="h-100 d-flex flex-column">
-                        <CardHeader Class="p-0">
-                            <div class="w-100">
-                                <div class="position-absolute top-0 end-0 z-1">
-                                    <Dropdown>
-                                        <button class="btn border-0 pt-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <Icon Class="btn-dropdown" Name="IconName.ThreeDots" Size="IconSize.x3"></Icon>
-                                        </button>
-                                        <DropdownMenu>
-                                            <DropdownItem To="@($"/rooms/edit/{item.Id}")" Type="DropdownItemType.Link">Edit</DropdownItem>
-                                            <DropdownItem @onclick="() => ShowDeleteModal(item.Id)" Type="DropdownItemType.Link">Delete</DropdownItem>
-                                        </DropdownMenu>
-                                    </Dropdown>
+                        <Button @onclick="() => NavigateToDetails(item.Id)" Class="p-0 m-0">
+                            <CardHeader Class="p-0">
+                                <div class="w-100">
+                                    <div class="position-absolute top-0 end-0 z-1">
+                                        <Dropdown>
+                                            <button class="btn border-0 pt-0"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                            @onclick:stopPropagation>
+                                                <Icon Class="btn-dropdown" Name="IconName.ThreeDots" Size="IconSize.x3"></Icon>
+                                            </button>
+
+                                            <DropdownMenu @onclick:stopPropagation>
+                                                <DropdownItem To="@($"/rooms/edit/{item.Id}")" Type="DropdownItemType.Link">Edit</DropdownItem>
+                                                <DropdownItem @onclick="() => ShowDeleteModal(item.Id)" Type="DropdownItemType.Link">Delete</DropdownItem>
+                                            </DropdownMenu>
+                                        </Dropdown>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="ratio ratio-16x9">
-                                <img src="/images/room.jpg" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
-                            </div>
-                        </CardHeader>
-                        <CardBody Class="flex-grow-1 d-flex flex-column">
-                            <CardTitle>@item.Name</CardTitle>
-                            <CardText class="mb-0 flex-grow-1 text-truncate description-clamp">@item.Description</CardText>
-                        </CardBody>
+                                <div class="ratio ratio-16x9">
+                                    <img src="/images/room.jpg" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
+                                </div>
+                            </CardHeader>
+                            <CardBody Class="flex-grow-1 d-flex flex-column">
+                                <CardTitle>@item.Name</CardTitle>
+                                <CardText class="mb-0 flex-grow-1 text-truncate description-clamp">@item.Description</CardText>
+                            </CardBody>
+                        </Button>
                     </Card>
-                </Card>
-            </div>
+               </Card>
+        </div>
         }
     </div>
 }
@@ -108,6 +116,7 @@
             </div>
         }
     </BodyTemplate>
+
 </Modal>
 
 @code {
@@ -187,5 +196,10 @@
             isLoadingRooms = false;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private void NavigateToDetails(string id)
+    {
+        navigationManager.NavigateTo($"/rooms/details/{id}");
     }
 }

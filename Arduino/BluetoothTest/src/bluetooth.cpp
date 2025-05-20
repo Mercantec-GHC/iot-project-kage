@@ -3,8 +3,8 @@
 // Opret objektet for service samt karakteristik uden for namespace-blokken,
 // så de er tilgængelige i hele filen. Alternativt kan de placeres inde i namespace-blokken.
 BLEService customService("19B10000-E8F2-537E-4F6C-D104768A1214");
-BLECharacteristic rxCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214", BLEWrite, 40);
-BLECharacteristic txCharacteristic("7c2d4e17-fd29-47d4-8e2a-0d64c65e96b7", BLERead | BLENotify, 40);
+BLECharacteristic rxCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214", BLEWrite, 120);
+BLECharacteristic txCharacteristic("7c2d4e17-fd29-47d4-8e2a-0d64c65e96b7", BLERead | BLENotify, 120);
 
 namespace bluetooth
 {
@@ -19,7 +19,7 @@ namespace bluetooth
         }
 
         // Sæt lokalnavn og annoncer service.
-        BLE.setLocalName("MKRWiFi1010");
+        BLE.setLocalName("KageIot_DemoDevice");
         BLE.setAdvertisedService(customService);
 
         // Tilføj karakteristik og service.
@@ -65,8 +65,8 @@ namespace bluetooth
             
                         // Send HTTP-svaret tilbage via BLE.
                         txCharacteristic.writeValue(httpResponse.c_str());
-                      }
-                      break;
+                    }
+                    break;
                 }
                 delay(10); // Kort delay for at kunne fange skrivninger.
             }
