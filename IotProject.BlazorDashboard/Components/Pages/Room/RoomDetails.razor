@@ -48,28 +48,48 @@
                             }
                             else
                             {
-                                <div class="device-list-scroll-border ">
-                                    <div class="device-list-scroll">
-                                        <ul class="list-group">
-                                            @foreach (var device in devices)
-                                            {
-                                                <li class="list-group-item position-relative hover-effect">
-                                                    <div class="d-flex justify-content-between align-items-start">
-                                                        <div>
-                                                            <strong>@device.Name</strong>
-                                                            <div class="text-muted small">Type: @device.Type</div>
-                                                        </div>
-                                                        <span class="badge rounded-pill @(IsDeviceOnline(device) ? "bg-success" : "bg-danger") mt-1">
-                                                            @(IsDeviceOnline(device) ? "Online" : "Offline")
-                                                        </span>
-                                                    </div>
-                                                    <a href="@($"device/{device.Id}")" class="stretched-link"></a>
-                                                </li>
+                                if (!isLoading)
+                                {
+                                    <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
+                                        <Card class="rounded-top-4 overflow-hidden">
+                                            <CardBody>
+                                                <div class="device-list-scroll-border ">
+                                                    <div class="device-list-scroll">
+                                                        <ul class="list-group">
+                                                            @foreach (var device in devices)
+                                                            {
+                                                                <li class="list-group-item position-relative hover-effect">
+                                                                    <div class="d-flex justify-content-between align-items-start">
+                                                                        <div>
+                                                                            <strong>@device.Name</strong>
+                                                                            <div class="text-muted small">Type: @device.Type</div>
+                                                                        </div>
+                                                                        <span class="badge rounded-pill @(IsDeviceOnline(device) ? "bg-success" : "bg-danger") mt-1">
+                                                                            @(IsDeviceOnline(device) ? "Online" : "Offline")
+                                                                        </span>
+                                                                    </div>
+                                                                    <a href="@($"device/{device.Id}")" class="stretched-link"></a>
+                                                                </li>
 
-                                            }
-                                        </ul>
-                                    </div>
-                                </div>
+                                                            }
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </CardBody>
+
+                                            <CardFooter class="d-flex justify-content-end p-3">
+                                                <Pagination ActivePageNumber="currentPage"
+                                                            TotalPages="TotalPages"
+                                                            DisplayPages="DisplayPages"
+                                                            PageChanged="OnPageChanged"
+                                                            FirstLinkIcon="IconName.ChevronDoubleLeft"
+                                                            PreviousLinkIcon="IconName.ChevronLeft"
+                                                            NextLinkIcon="IconName.ChevronRight"
+                                                            LastLinkIcon="IconName.ChevronDoubleRight" />
+                                            </CardFooter>
+                                        </Card>
+                                    </Card>
+                                }
                             }
                         </div>
 
@@ -90,10 +110,18 @@
     [Parameter]
     public string Id { get; set; } = string.Empty;
 
-    private List<DeviceResponse> devices = new();
     private RoomEditModel room = new();
     private bool isLoading = true;
     private const string RoomsPath = "/rooms";
+
+    // Pagination config
+    private int currentPage = 1;
+    private const int PageSize = 5;
+    private int DisplayPages = 1;
+
+    private List<DeviceResponse> devices = new();
+    private List<DeviceResponse> filterDevices = new();
+    private string searchTerm = "";
 
     private class RoomEditModel
     {
