@@ -1,10 +1,4 @@
-using IotProject.Auth.Services;
 using IotProject.BlazorDashboard.Components;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Blazored.LocalStorage;
-using Blazored.SessionStorage;
-
 
 namespace IotProject.BlazorDashboard
 {
@@ -23,19 +17,6 @@ namespace IotProject.BlazorDashboard
             builder.Services.AddJwtAuth(builder.Configuration);
 
             builder.Services.AddIotServices(builder.Configuration);
-
-            // To be moved into seperate library
-            builder.Services.AddScoped<RoomService>();
-            builder.Services.AddHttpClient<RoomService>(options =>
-            {
-                options.BaseAddress = new Uri(Environment.GetEnvironmentVariable("API_URL")! ?? builder.Configuration.GetConnectionString("ApiUrl")!);
-            }).ConfigurePrimaryHttpMessageHandler(() =>
-            {
-                return new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                };
-            });
 
             var app = builder.Build();
 
