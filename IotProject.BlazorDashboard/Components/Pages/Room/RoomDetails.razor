@@ -43,36 +43,6 @@
                     <!-- Right column: Placeholder for additional info -->
                     <div class="col-md-5">
                         <div class="mb-3">
-                            <label class="col-form-label fw-bold">Devices:</label>
-                            @if (devices.Count == 0)
-                            {
-                                <div class="text-muted">No devices found.</div>
-                            }
-                            else
-                            {
-                                <div class="device-list-scroll-border ">
-                                    <div class="device-list-scroll">
-                                        <ul class="list-group">
-                                            @foreach (var device in devices)
-                                            {
-                                                <li class="list-group-item position-relative hover-effect">
-                                                    <div class="d-flex justify-content-between align-items-start">
-                                                        <div>
-                                                            <strong>@device.Name</strong>
-                                                            <div class="text-muted small">Type: @device.Type</div>
-                                                        </div>
-                                                        <span class="badge rounded-pill @(IsDeviceOnline(device) ? "bg-success" : "bg-danger") mt-1">
-                                                            @(IsDeviceOnline(device) ? "Online" : "Offline")
-                                                        </span>
-                                                    </div>
-                                                    <a href="@($"device/{device.Id}")" class="stretched-link"></a>
-                                                </li>
-
-                                            }
-                                        </ul>
-                                    </div>
-                            </div>
-                            }
                         </div>
 
                     </div>
@@ -104,26 +74,22 @@
         public string? Description { get; set; }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            var result = await roomService.GetRoom(Id);
-            devices = await roomService.GetDevices(Id);
 
-            if (result != null)
-            {
-                room = new RoomEditModel
-                    {
-                        Name = result.Name,
-                        Description = result.Description
-                    };
-            }
-            else
-            {
-                navigationManager.NavigateTo("/rooms");
-            }
-            isLoading = false;
+        var result = await roomService.GetRoom(Id);
+        if (result != null)
+        {
+            room = new RoomEditModel
+                {
+                    Name = result.Name,
+                    Description = result.Description
+                };
+        }
+        else
+        {
+            navigationManager.NavigateTo("/rooms");
+        }
+        isLoading = false;
             await InvokeAsync(StateHasChanged);
         }
     }

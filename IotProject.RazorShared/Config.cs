@@ -19,6 +19,30 @@ namespace Microsoft.Extensions.DependencyInjection
                 };
             });
 
+            services.AddScoped<ApiService>();
+            services.AddHttpClient<ApiService>(options =>
+            {
+                options.BaseAddress = new Uri(Environment.GetEnvironmentVariable("API_URL")! ?? configuration.GetConnectionString("ApiUrl")!);
+            }).ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                return new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                };
+            });
+
+            services.AddScoped<RoomService>();
+            services.AddHttpClient<RoomService>(options =>
+            {
+                options.BaseAddress = new Uri(Environment.GetEnvironmentVariable("API_URL")! ?? configuration.GetConnectionString("ApiUrl")!);
+            }).ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                return new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                };
+            });
+
             return services;
         }
     }
