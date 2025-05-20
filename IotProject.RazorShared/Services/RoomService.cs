@@ -105,6 +105,5 @@ namespace IotProject.RazorShared.Services
             var devices = JsonSerializer.Deserialize<List<DeviceResponse>>(await response.Content.ReadAsStringAsync(), JsonOptions);
             return devices ?? new List<DeviceResponse>();
         }
-
     }
 }
