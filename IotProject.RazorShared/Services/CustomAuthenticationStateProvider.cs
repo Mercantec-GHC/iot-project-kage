@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace IotProject.Auth.Services
+namespace IotProject.RazorShared.Services
 {
     public class CustomAuthenticationStateProvider(ILocalStorageService localStorage, ISessionStorageService sessionStorage) : AuthenticationStateProvider
     {

@@ -6,7 +6,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace IotProject.Auth.Services
+namespace IotProject.RazorShared.Services
 {
     public class RoomService(HttpClient httpClient, ILocalStorageService localStorage, ISessionStorageService sessionStorage)
     {

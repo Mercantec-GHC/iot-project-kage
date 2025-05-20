@@ -8,7 +8,7 @@ using IotProject.Shared.Models.Responses;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 
-namespace IotProject.Auth.Services
+namespace IotProject.RazorShared.Services
 {
     public class AuthService(HttpClient httpClient, ILocalStorageService localStorage, ISessionStorageService sessionStorage, AuthenticationStateProvider authenticationStateProvider)
     {
