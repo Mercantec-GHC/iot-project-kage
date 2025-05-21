@@ -41,7 +41,6 @@
                     <!-- Right column: Placeholder for additional info -->
                     <div class="col-md-5">
                         <div class="mb-3">
-                            <label class="col-form-label fw-bold">Devices:</label>
                             @if (devices.Count == 0)
                             {
                                 <div class="text-muted">No devices found.</div>
@@ -52,7 +51,14 @@
                                 {
                                     <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
                                         <Card class="rounded-top-4 overflow-hidden">
+                                            <CardHeader>
+                                                <CardTitle>Devices</CardTitle>
+                                                <CardSubTitle Class="text-secondary">Total devices: @(devices.Count)</CardSubTitle>
+                                            </CardHeader>
                                             <CardBody>
+                                                <div class="mb-3">
+                                                    <InputText @bind-Value="searchTerm" class="form-control" placeholder="Search devices..." @oninput="OnSearch" />
+                                                </div>
                                                 <ul class="list-group">
                                                     @foreach (var device in FilteredPagedDevices)
                                                     {
