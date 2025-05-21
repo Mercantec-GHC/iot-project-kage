@@ -29,8 +29,10 @@ namespace IotProject.API.Data
 
             modelBuilder.Entity<RoomImage>()
                 .HasOne(ri => ri.Room)
-                .WithOne()
-                .HasForeignKey<RoomImage>(ri => ri.RoomId);
+                .WithOne(r => r.Image)
+                .HasForeignKey<RoomImage>(ri => ri.RoomId)
+                .HasPrincipalKey<Room>(r => r.Id);
+
 
             modelBuilder.Entity<Device>()
                 .HasOne(d => d.Owner)
