@@ -1,0 +1,37 @@
+﻿@if (EditName)
+{
+	<Modal @ref="modal" Title="Edit device name">
+		<BodyTemplate>
+			<EditForm Model="requestNameModel" />
+
+		</BodyTemplate>
+		<FooterTemplate>
+
+		</FooterTemplate>
+	</Modal>
+}
+
+@code {
+	[Parameter] public string DeviceId { get; set; }
+	[Parameter] public bool EditName { get; set; } = false;
+	[Parameter] public bool EditRoom { get; set; } = false;
+
+	private DeviceResponse? device;
+	private DeviceNameRequest requestNameModel;
+	private Modal modal = default!;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		
+	}
+
+	public async Task OnShowModalClick()
+	{
+		await modal.ShowAsync();
+	}
+
+	public async Task OnHideModalClick()
+	{
+		await modal.HideAsync();
+	}
+}

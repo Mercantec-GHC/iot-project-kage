@@ -19,8 +19,8 @@
                         </a>
                     </div>
                 </CardHeader>
-                
-                
+
+
                 <CardBody class="p-4">
                     @if (isLoading)
                     {
@@ -41,6 +41,20 @@
                                         <h5 class="card-title mb-0">
                                             <i class="bi bi-info-circle me-2"></i>Device Information
                                         </h5>
+                                        <Dropdown Class="py-2 py-sm-0 d-none d-sm-block">
+                                            <DropdownToggleButton Class="p-0 border-0 logo-highlight">
+                                                <Icon Name="IconName.Gear" /> Edit
+                                            </DropdownToggleButton>
+                                            <DropdownMenu Position="DropdownMenuPosition.End">
+                                                <EditDeviceDetails @ref="editDeviceDetails" DeviceId="DeviceId" EditName="true"/>
+                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick())"><Icon Name="IconName.Pencil" /> Edit name</DropdownItem>
+                                                <DropdownDivider />
+                                                <EditDeviceDetails @ref="editDeviceDetails" DeviceId="DeviceId" EditRoom="true"/>
+                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick())"><Icon Name="IconName.BuildingFillGear" /> Edit room</DropdownItem>
+                                            </DropdownMenu>
+                                        </Dropdown>
+                                        @* <Button @onclick="@(() => editDeviceDetails.OnShowModalClick())">Edit</Button>
+                                        <EditDeviceDetails @ref="editDeviceDetails" DeviceId="DeviceId"/> *@
                                     </div>
                                     <div class="card-body">
                                         <dl class="row mb-0">
@@ -73,7 +87,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="card shadow-sm h-100">
                                     <div class="card-header">
@@ -173,6 +187,8 @@
     private bool isLoading = true;
     private Timer? refreshTimer;
     private string dateString { get; set; }
+
+    private EditDeviceDetails editDeviceDetails = default!;
 
     // Initialize the page and load device data
     protected override async Task OnInitializedAsync()
