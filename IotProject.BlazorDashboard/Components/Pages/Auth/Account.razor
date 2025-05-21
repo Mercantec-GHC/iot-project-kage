@@ -48,7 +48,7 @@
                     </EditForm>
                 </CardBody>
                 <CardFooter>
-                    <span class="text-secondary">Do you want to change password?</span><button type="button" class="text-white" style="background:none; border: none; text-decoration: underline;" data-bs-toggle="modal" data-bs-target="#ChangePasswordModal">Change Password</button>
+                    <span class="text-secondary">Do you want to change password?</span><Button Class="text-white" style="background:none; border: none; text-decoration: underline;" @onclick="ShowChangePasswordModal">Change Password</Button>
 
 
                 </CardFooter>
@@ -57,37 +57,31 @@
     </div>
 </div>
 
-<div class="modal fade" id="ChangePasswordModal" tabindex="-1" aria-labelledby="ChangePasswordModalLabel " aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="ChangePasswordModalLabel">Change Password</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <EditForm Model="editPasswordRequest" OnValidSubmit="HandlePasswordChange">
-                    <DataAnnotationsValidator />
-                    <div class="mb-3">
-                        <label for="new-password" class="col-form-label">New Password:</label>
-                        <PasswordInput Id="new-password" @bind-value="editPasswordRequest.Password" />
-                        <ValidationMessage For="@(() => editPasswordRequest.Password)" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirm-password" class="col-form-label">Confirm Password:</label>
-                        <PasswordInput Id="confirm-password" @bind-value="editPasswordRequest.ConfirmPassword" />
-                        <ValidationMessage For="@(() => editPasswordRequest.ConfirmPassword)" />
-                    </div>
-                    <div class="modal-footer">
-                        <Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4" Loading="loading" LoadingText="Saving changes" Disabled="loading">
-                            <span class="text-white">Save Changes</span>
-                        </Button>
-                    </div>
-                </EditForm>
-            </div>
-        </div>
-    </div>
-</div>
+<Modal @ref="ChangePasswordModal" Title="Change Password">
+    <HeaderTemplate>
+        <h5 class="modal-title" id="ChangePasswordModalLabel">Change Password</h5>
+        <Button Class="btn-close" @onclick="HideChangePasswordModal"></Button>
+    </HeaderTemplate>
 
+    <BodyTemplate>
+        <EditForm Model="editPasswordRequest" OnValidSubmit="HandlePasswordChange">
+            <DataAnnotationsValidator />
+            <div class="mb-3">
+                <label for="new-password" class="col-form-label">New Password:</label>
+                <PasswordInput Id="new-password" @bind-value="editPasswordRequest.Password" />
+                <ValidationMessage For="@(() => editPasswordRequest.Password)" />
+            </div>
+            <div class="mb-3">
+                <label for="confirm-password" class="col-form-label">Confirm Password:</label>
+                <PasswordInput Id="confirm-password" @bind-value="editPasswordRequest.ConfirmPassword" />
+                <ValidationMessage For="@(() => editPasswordRequest.ConfirmPassword)" />
+            </div>
+            <Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4" Loading="loading" LoadingText="Saving changes" Disabled="loading">
+                <span class="text-white">Save Changes</span>
+            </Button>
+        </EditForm>
+    </BodyTemplate>
+</Modal>
 
 @code {
     private UserEditInformationRequest userInfo = new();
@@ -97,16 +91,31 @@
     [CascadingParameter]
     private Task<AuthenticationState?> AuthenticationState { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    private Modal ChangePasswordModal = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var authState = await AuthenticationState;
-        var user = authState?.User;
-        if (AuthenticationState != null)
+        if (firstRender)
         {
-            userInfo.FirstName = user.FindFirst("FirstName")?.Value ?? "";
-            userInfo.LastName = user.FindFirst("LastName")?.Value ?? "";
-            userInfo.Email = user.FindFirst("Email")?.Value ?? "";
+            var authState = await AuthenticationState;
+            var user = authState?.User;
+            if (AuthenticationState != null)
+            {
+                userInfo.FirstName = user.FindFirst("FirstName")?.Value ?? "";
+                userInfo.LastName = user.FindFirst("LastName")?.Value ?? "";
+                userInfo.Email = user.FindFirst("Email")?.Value ?? "";
+            }
         }
+    }
+
+    private async Task ShowChangePasswordModal()
+    {
+        await ChangePasswordModal.ShowAsync();
+    }
+
+    private async Task HideChangePasswordModal()
+    {
+        await ChangePasswordModal.HideAsync();
     }
 
     private async Task HandleUserInfoChange()

@@ -10,6 +10,7 @@ namespace IotProject.API.Data
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Room> Rooms { get; set; }
+        public DbSet<RoomImage> RoomImages { get; set; }
         public DbSet<Device> Devices { get; set; }
         public DbSet<DeviceData> DeviceData { get; set; }
         public DbSet<DeviceConfig> DeviceConfigs { get; set; }
@@ -25,6 +26,11 @@ namespace IotProject.API.Data
                 .WithMany(u => u.Rooms)
                 .HasForeignKey(r => r.OwnerId)
                 .HasPrincipalKey(u => u.Id);
+
+            modelBuilder.Entity<RoomImage>()
+                .HasOne(ri => ri.Room)
+                .WithOne()
+                .HasForeignKey<RoomImage>(ri => ri.RoomId);
 
             modelBuilder.Entity<Device>()
                 .HasOne(d => d.Owner)
