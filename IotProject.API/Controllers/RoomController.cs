@@ -158,6 +158,40 @@ namespace IotProject.API.Controllers
             }));
         }
 
+        [HttpPost("SetRoomImage"), Authorize]
+        public async Task<ActionResult> SetRoomImage(IFormFile file, [FromQuery] string RoomId)
+        {
+            var user = await GetSignedInUser();
+            if (user == null ) return StatusCode(500);
+
+            var room = user.Rooms.FirstOrDefault(r => r.Id == RoomId);
+            if (room == null) return NotFound($"Room with id: '{RoomId}' was not found.");
+
+            if (file.Length == 0) return BadRequest("Invalid file.");
+
+            using (var memoryStream = new MemoryStream())
+            {
+                await file.CopyToAsync(memoryStream);
+                var fileBytes = memoryStream.ToArray();
+                var base64String = Convert.ToBase64String(fileBytes);
+
+                var image = new RoomImage
+                {
+                    Image = base64String,
+                    RoomId = room.Id,
+                    FileName = file.FileName
+                };
+
+                if (room.Image == null)
+                {
+                    await context.RoomImages.AddAsync(image);
+                }
+                await context.SaveChangesAsync();
+
+                return Ok("Image was successfully uploaded.");
+            }
+        }
+
         /// <summary>
         /// Finds the currently signed in user, using the <see cref="ClaimTypes"/> NameIdentifier from the JWT token.
         /// </summary>
@@ -170,6 +204,8 @@ namespace IotProject.API.Controllers
                 .Include(u => u.Rooms) // Include the users rooms.
                 .ThenInclude(r => r.Devices) // Include all devices in the room.
                 .ThenInclude(d => d.Data) // Include the data from the device.
+                .Include(u => u.Rooms)
+                .ThenInclude(r => r.Image)
                 .FirstOrDefaultAsync();
             if (user == null) return null;
 
