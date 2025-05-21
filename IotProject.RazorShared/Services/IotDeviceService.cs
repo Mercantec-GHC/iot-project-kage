@@ -78,5 +78,29 @@ namespace IotProject.RazorShared.Services
             var deviceResult = JsonSerializer.Deserialize<DeviceResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
             return deviceResult;
 		}
+
+        // Edits the device name. 
+        public async Task<bool> EditDeviceName(DeviceNameRequest requestModel)
+        {
+			// Tries to obtain the jwt token from Local Storage.
+			var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
+
+			if (string.IsNullOrWhiteSpace(jwtToken))
+			{
+				// If unsuccessfull, tries to obtain the jwt token from Session Storage.
+				jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
+				if (string.IsNullOrWhiteSpace(jwtToken))
+				{
+					// Return an empty list if no token is found.
+					return false;
+				}
+			}
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+            var requestAsJson = JsonSerializer.Serialize(requestModel);
+            var response = await httpClient.PutAsync("device/setname", new StringContent(requestAsJson, Encoding.UTF8, "application/json"));
+
+            return response.IsSuccessStatusCode ? true : false;
+		}
     }
 }

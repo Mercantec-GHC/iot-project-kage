@@ -1,9 +1,12 @@
-﻿@if (EditName)
+﻿@inject IotDeviceService DeviceService
+
+@if (EditName)
 {
 	<Modal @ref="modal" Title="Edit device name">
 		<BodyTemplate>
-			<EditForm Model="requestNameModel" />
-
+			<EditForm Model="requestNameModel" OnValidSubmit="HandleEditName">
+				<TextInput Id="EditedName" @bind-Value="requestNameModel.Name" Placeholder="Name" />
+			</EditForm>
 		</BodyTemplate>
 		<FooterTemplate>
 
@@ -20,9 +23,23 @@
 	private DeviceNameRequest requestNameModel;
 	private Modal modal = default!;
 
-	protected override async Task OnAfterRenderAsync(bool firstRender)
+	// protected override async Task OnAfterRenderAsync(bool firstRender)
+	// {
+	// 	device = await DeviceService.GetDevice(DeviceId);
+	// }
+
+	private async Task HandleEditName()
 	{
-		
+		requestNameModel.Id = DeviceId;
+		var response = await DeviceService.EditDeviceName(requestNameModel);
+		if (!response)
+		{
+			Console.WriteLine("Success!!!!");
+		}
+		else
+		{
+			Console.WriteLine("Fail");
+		}
 	}
 
 	public async Task OnShowModalClick()
