@@ -1,6 +1,7 @@
 ﻿@page "/rooms/edit/{Id}"
 @inject RoomService roomService
 @inject NavigationManager navigationManager
+@inject IJSRuntime jsRuntime
 
 
 <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
@@ -29,15 +30,36 @@
                 <EditForm Model="room" OnValidSubmit="HandleEditRoom">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
-                    <div class="mb-3">
-                        <label for="room-name" class="col-form-label">Room Name:</label>
-                        <InputText Id="room-name" Class="form-control" @bind-Value="room.Name" />
-                        <ValidationMessage For="@(() => room.Name)" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="room-description" class="col-form-label">Room Description:</label>
-                        <InputTextArea Id="room-description" Class="form-control"  @bind-Value="room.Description" />
-                        <ValidationMessage For="@(() => room.Description)" />
+                    <div class="row align-items-stretch">
+                        <!-- Left column: Input fields -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="room-name" class="col-form-label">Room Name:</label>
+                                <InputText Id="room-name" Class="form-control" @bind-Value="room.Name" />
+                                <ValidationMessage For="@(() => room.Name)" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="room-description" class="col-form-label">Room Description:</label>
+                                <InputTextArea Id="room-description" Class="form-control" @bind-Value="room.Description" />
+                                <ValidationMessage For="@(() => room.Description)" />
+                            </div>
+                        </div>
+                        <!-- Divider: vertical on desktop, horizontal on mobile -->
+                        <div class="d-none d-md-flex col-md-1 justify-content-center align-items-center">
+                            <div style="width:2px; height:95%; background: linear-gradient(140deg, rgba(82,191,250,1) 40%, rgba(255,128,91,1) 60%);"></div>
+                        </div>
+                        <div class="d-md-none col-12">
+                            <hr class="my-4" />
+                        </div>
+                        <!-- Right column: Image upload -->
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <label class="col-form-label fw-bold">Room Image:</label>
+                                <img src="@roomService.GetImageUrl(Id)"/>
+                                <InputFile id="room_image_input" class="form-control" />
+                                <Button @onclick="HandleImageSave" Class="btn btn-primary">Save Image</Button>
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-gradient text-white w-100 mt-4">Save Changes</button>
                 </EditForm>
@@ -60,24 +82,28 @@
         public string? Description { get; set; }
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        isLoading = true;
+        if (firstRender)
+        {
+            isLoading = true;
 
-        var result = await roomService.GetRoom(Id);
-        if (result != null)
-        {
-            room = new RoomEditModel
-                {
-                    Name = result.Name,
-                    Description = result.Description
-                };
+            var result = await roomService.GetRoom(Id);
+            if (result != null)
+            {
+                room = new RoomEditModel
+                    {
+                        Name = result.Name,
+                        Description = result.Description
+                    };
+            }
+            else
+            {
+                navigationManager.NavigateTo("/rooms");
+            }
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
         }
-        else
-        {
-            navigationManager.NavigateTo("/rooms");
-        }
-        isLoading = false;
     }
 
     private async Task HandleEditRoom()
@@ -94,5 +120,14 @@
         {
             navigationManager.NavigateTo("/rooms");
         }
+    }
+
+    public async Task HandleImageSave()
+    {
+        Console.WriteLine("Image has changed.");
+
+        var uploadUrl = roomService.GetImageUploadUrl(Id);
+        var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/room_image.js");
+        await fileModule.InvokeVoidAsync("UploadImage", uploadUrl);
     }
 }

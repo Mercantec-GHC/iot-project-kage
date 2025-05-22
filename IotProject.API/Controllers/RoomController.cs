@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using IotProject.Shared.Models.Requests;
 using IotProject.Shared.Utilities;
+using Microsoft.AspNetCore.Cors;
 
 namespace IotProject.API.Controllers
 {
@@ -159,6 +160,7 @@ namespace IotProject.API.Controllers
         }
 
         [HttpPost("SetRoomImage"), Authorize]
+        [EnableCors("AllowLocalhost5024")]
         public async Task<ActionResult> SetRoomImage(IFormFile file, [FromQuery] string RoomId)
         {
             var user = await GetSignedInUser();
@@ -189,6 +191,32 @@ namespace IotProject.API.Controllers
                 await context.SaveChangesAsync();
 
                 return Ok("Image was successfully uploaded.");
+            }
+        }
+
+        [HttpGet("GetRoomImage/{roomId}")]
+        public async Task<ActionResult> GetRoomImage(string roomId)
+        {
+            var roomImage = await context.RoomImages.FirstOrDefaultAsync(r => r.RoomId == roomId);
+            if (roomImage == null) return NotFound("Room image was not found.");
+            
+            try
+            {
+                var base64String = roomImage.Image;
+                if (base64String.Contains("base64,"))
+                {
+                    base64String = base64String.Substring(base64String.IndexOf("base64,") + 7);
+                }
+
+
+                byte[] imageBytes = Convert.FromBase64String(base64String);
+
+                // Return image as a file
+                return File(imageBytes, "image/jpeg");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Invalid Base64 string: " + ex.Message);
             }
         }
 
