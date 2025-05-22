@@ -10,6 +10,7 @@ namespace program
 {
     void HttpDataRequest(String);
     void HttpGetLedConfigRequest();
+    void displayCenteredText(String, int);
 
     MKRIoTCarrier carrier;
     WiFiClient wifi;
@@ -26,7 +27,7 @@ namespace program
 
     // For led configuration handeling.
     unsigned long lastGetRequestTime;
-    const unsigned long GetPrintInterval = 10000;
+    const unsigned long GetPrintInterval = 500;
     int32_t UnixTimeStamp;
 
     void setup()
@@ -54,12 +55,14 @@ namespace program
 
         bool getTimeElapsed = currenTime - lastGetRequestTime >= GetPrintInterval;
 
-        if (getTimeElapsed || lastGetRequestTime == 0) {
+        if (getTimeElapsed || lastGetRequestTime == 0)
+        {
             HttpGetLedConfigRequest();
             lastGetRequestTime = currenTime;
         }
 
-        if (significantChange || timeElapsed || lastPrintTime == 0) {
+        if (significantChange || timeElapsed || lastPrintTime == 0)
+        {
             JsonDocument jsonDoc;
             JsonObject temp = jsonDoc.createNestedObject("temperature");
             temp["celsius"] = tempC;
@@ -79,7 +82,8 @@ namespace program
     }
 
     // Sends sensor data with HTTP request.
-    void HttpDataRequest(String jsonBody) {
+    void HttpDataRequest(String jsonBody)
+    {
         Serial.println("Sending data :D");
 
         // Building the POST request.
@@ -93,7 +97,7 @@ namespace program
         client.print(jsonBody);
         client.endRequest();
 
-        // Status code and response handeling.
+        // Status code and response handling.
         int statusCode = client.responseStatusCode();
         String response = client.responseBody();
         Serial.print("StatusCode: ");
@@ -103,7 +107,8 @@ namespace program
     }
 
     // Send a get request to get configuration for leds.
-    void HttpGetLedConfigRequest() {
+    void HttpGetLedConfigRequest()
+    {
         // Build the get request
         client.beginRequest();
         client.get("/device/getconfiguration");
@@ -116,11 +121,12 @@ namespace program
         Serial.println(statusCode);
         Serial.print("Response: ");
         Serial.println(response);
-        
+
         // Deserialization of response.
         JsonDocument jsonObject;
         DeserializationError error = deserializeJson(jsonObject, response);
-        if (error) {
+        if (error)
+        {
             Serial.print("Failed to parse JSON: ");
             Serial.println(error.c_str());
             return;
@@ -130,47 +136,135 @@ namespace program
         int g;
         int b;
 
-        // Gets and sets led configuration. 
-        if (jsonObject.containsKey("timestamp")) {
+        // Gets and sets led configuration.
+        if (jsonObject.containsKey("timestamp"))
+        {
             int32_t timeStamp = jsonObject["timestamp"].as<int32_t>();
-            if (UnixTimeStamp < timeStamp || isnan(UnixTimeStamp)) {
+            if (UnixTimeStamp < timeStamp || isnan(UnixTimeStamp))
+            {
                 UnixTimeStamp = timeStamp;
-                if (jsonObject["config"].containsKey("led_1")) {
+                if (jsonObject["config"].containsKey("led_1"))
+                {
                     r = jsonObject["config"]["led_1"]["r"].as<int>();
                     g = jsonObject["config"]["led_1"]["g"].as<int>();
                     b = jsonObject["config"]["led_1"]["b"].as<int>();
                     carrier.leds.setPixelColor(0, carrier.leds.Color(r, g, b));
                     carrier.leds.show();
                 }
-                if (jsonObject["config"].containsKey("led_2")) {
+                if (jsonObject["config"].containsKey("led_2"))
+                {
                     r = jsonObject["config"]["led_2"]["r"].as<int>();
                     g = jsonObject["config"]["led_2"]["g"].as<int>();
                     b = jsonObject["config"]["led_2"]["b"].as<int>();
                     carrier.leds.setPixelColor(1, carrier.leds.Color(r, g, b));
                     carrier.leds.show();
                 }
-                if (jsonObject["config"].containsKey("led_3")) {
+                if (jsonObject["config"].containsKey("led_3"))
+                {
                     r = jsonObject["config"]["led_3"]["r"].as<int>();
                     g = jsonObject["config"]["led_3"]["g"].as<int>();
                     b = jsonObject["config"]["led_3"]["b"].as<int>();
                     carrier.leds.setPixelColor(2, carrier.leds.Color(r, g, b));
                     carrier.leds.show();
                 }
-                if (jsonObject["config"].containsKey("led_4")) {
+                if (jsonObject["config"].containsKey("led_4"))
+                {
                     r = jsonObject["config"]["led_4"]["r"].as<int>();
                     g = jsonObject["config"]["led_4"]["g"].as<int>();
                     b = jsonObject["config"]["led_4"]["b"].as<int>();
                     carrier.leds.setPixelColor(3, carrier.leds.Color(r, g, b));
                     carrier.leds.show();
                 }
-                if (jsonObject["config"].containsKey("led_5")) {
+                if (jsonObject["config"].containsKey("led_5"))
+                {
                     r = jsonObject["config"]["led_5"]["r"].as<int>();
                     g = jsonObject["config"]["led_5"]["g"].as<int>();
                     b = jsonObject["config"]["led_5"]["b"].as<int>();
                     carrier.leds.setPixelColor(4, carrier.leds.Color(r, g, b));
                     carrier.leds.show();
                 }
+                if (jsonObject["config"].containsKey("display"))
+                {
+                    String text = jsonObject["config"]["display"]["text"].as<String>();
+                    int weight = jsonObject["config"]["display"]["weight"].as<int>();
+                    displayCenteredText(text, weight);
+                }
             }
-        }     
+        }
+    }
+
+    void displayCenteredText(String text, int weight)
+    {
+        carrier.display.fillScreen(0x0000);  // Clear the screen
+        carrier.display.setTextSize(weight); // Set textsize
+
+        int maxCharsPerLine = 12;                             // Maximum characters per line
+        int lineHeight = weight * 10;                          // Estimated lineHeight
+        int maxLines = carrier.display.height() / lineHeight; // Maximum fitting lines
+        int lineCount = 0;
+
+        // Split text into lines
+        String lines[maxLines];
+        int numLines = 0;
+
+        int start = 0;
+        while (start < text.length() && numLines < maxLines)
+        {
+            int end = start + maxCharsPerLine;
+
+            int newlinePos = text.indexOf('\n', start); // Check for '\n' and split
+            if (newlinePos != -1 && newlinePos < end)
+            {
+                end = newlinePos;
+            }
+            else if (end < text.length())
+            {
+                while (end > start && text[end] != ' ') // Finds the last space
+                    end--;
+
+                if (end == start) // No space found, force split
+                    end = start + maxCharsPerLine;
+            }
+            else
+            {
+                end = text.length();
+            }
+
+            lines[numLines++] = text.substring(start, end); // Save the line
+            start = end;
+
+            // Skip ekstra spaces
+            while (start < text.length() && text[start] == ' ')
+                start++;
+
+            // If '\n' is present, move to the next line
+            if (start < text.length() && text[start] == '\n')
+            {
+                start++;
+            }
+        }
+
+        // Calculate correct vertical position
+        int totalTextHeight = (numLines * lineHeight) - (lineHeight / 3);
+        int centerY = (carrier.display.height() - totalTextHeight) / 2;
+
+        // If the text exceeds the screenHeight, align it to the top
+        if (totalTextHeight > carrier.display.height())
+        {
+            centerY = 0;
+        }
+
+        for (int i = 0; i < numLines; i++)
+        {
+            int16_t x1, y1;
+            uint16_t width, height;
+            carrier.display.getTextBounds(lines[i], 0, 0, &x1, &y1, &width, &height);
+            int centerX = (carrier.display.width() - width) / 2;
+
+            carrier.display.setCursor(centerX, centerY);
+            carrier.display.print(lines[i]);
+
+            centerY += lineHeight; // Move to next time
+        }
     }
 }
