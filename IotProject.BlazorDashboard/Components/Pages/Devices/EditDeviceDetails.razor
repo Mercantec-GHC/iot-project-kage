@@ -1,50 +1,80 @@
 ﻿@inject IotDeviceService DeviceService
+@inject RoomService RoomService
 
-@if (EditName)
-{
-	<Modal @ref="modal" Title="Edit device name">
-		<BodyTemplate>
-			<EditForm Model="requestNameModel" OnValidSubmit="HandleEditName">
+
+<Modal @ref="modal" Title="Edit device name">
+	<BodyTemplate>
+		@if (EditName)
+		{
+			<EditForm Model="@requestNameModel" OnValidSubmit="HandleEditName">
+				<label>Name:</label>
 				<TextInput Id="EditedName" @bind-Value="requestNameModel.Name" Placeholder="Name" />
+				<Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4">Submit</Button>
 			</EditForm>
-		</BodyTemplate>
-		<FooterTemplate>
+		} 
+		else if (EditRoom)
+		{
+			<EditForm Model="@requestRoomModel" OnValidSubmit="HandleEditRoom">
+				<label>Room:</label>
+				<Dropdown>
+					<DropdownToggleButton Class="p-0 border-0 logo-highlight"></DropdownToggleButton>
+					<DropdownMenu Position="DropdownMenuPosition.End">
+						@foreach (var room in rooms)
+						{
+							<DropdownItem @onclick="() => SelectedRoom(room.Id)">@room.Name</DropdownItem>
+							<DropdownDivider />
+						}
+						<DropdownItem @onclick="() => SelectedRoom(null!)">No room</DropdownItem>
+					</DropdownMenu>
+				</Dropdown>
+				<Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4">Submit</Button>
+			</EditForm>
+		}
+	</BodyTemplate>
+	<FooterTemplate>
 
-		</FooterTemplate>
-	</Modal>
-}
+	</FooterTemplate>
+</Modal>
 
 @code {
 	[Parameter] public string DeviceId { get; set; }
-	[Parameter] public bool EditName { get; set; } = false;
-	[Parameter] public bool EditRoom { get; set; } = false;
 
-	private DeviceResponse? device;
-	private DeviceNameRequest requestNameModel;
+	private bool EditName; 
+	private bool EditRoom;
+	private string SelectedRoomId;
 	private Modal modal = default!;
+	private DeviceResponse? device;
+	private List<RoomGetResponse> rooms = new();
+	private DeviceNameRequest requestNameModel = new();
+	private DeviceRoomRequest requestRoomModel = new();
 
-	// protected override async Task OnAfterRenderAsync(bool firstRender)
-	// {
-	// 	device = await DeviceService.GetDevice(DeviceId);
-	// }
+	private void SelectedRoom(string roomId)
+	{
+		requestRoomModel.Id = DeviceId;
+		requestRoomModel.RoomId = roomId;
+	}
+
+	private async Task HandleEditRoom()
+	{
+		var response = await DeviceService.EditDeviceRoom(requestRoomModel);
+	}
 
 	private async Task HandleEditName()
 	{
 		requestNameModel.Id = DeviceId;
 		var response = await DeviceService.EditDeviceName(requestNameModel);
-		if (!response)
-		{
-			Console.WriteLine("Success!!!!");
-		}
-		else
-		{
-			Console.WriteLine("Fail");
-		}
 	}
 
-	public async Task OnShowModalClick()
+	public async Task OnShowModalClick(bool editName)
 	{
+		EditName = editName;
+		EditRoom = !editName;
 		await modal.ShowAsync();
+		if (EditRoom)
+		{
+			rooms = await RoomService.GetAll();
+			await InvokeAsync(StateHasChanged);
+		}
 	}
 
 	public async Task OnHideModalClick()

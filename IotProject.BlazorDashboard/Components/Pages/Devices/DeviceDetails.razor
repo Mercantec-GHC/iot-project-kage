@@ -5,7 +5,6 @@
 @inject IJSRuntime JSRuntime
 @attribute [Authorize]
 
-
 <div class="row justify-content-center">
     <div class="col-12">
         <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
@@ -46,15 +45,12 @@
                                                 <Icon Name="IconName.Gear" /> Edit
                                             </DropdownToggleButton>
                                             <DropdownMenu Position="DropdownMenuPosition.End">
-                                                <EditDeviceDetails @ref="editDeviceDetails" DeviceId="DeviceId" EditName="true"/>
-                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick())"><Icon Name="IconName.Pencil" /> Edit name</DropdownItem>
+                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick(true))"><Icon Name="IconName.Pencil" /> Edit name</DropdownItem>
                                                 <DropdownDivider />
-                                                <EditDeviceDetails @ref="editDeviceDetails" DeviceId="DeviceId" EditRoom="true"/>
-                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick())"><Icon Name="IconName.BuildingFillGear" /> Edit room</DropdownItem>
+                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick(false))"><Icon Name="IconName.BuildingFillGear" /> Edit room</DropdownItem>
                                             </DropdownMenu>
                                         </Dropdown>
-                                        @* <Button @onclick="@(() => editDeviceDetails.OnShowModalClick())">Edit</Button>
-                                        <EditDeviceDetails @ref="editDeviceDetails" DeviceId="DeviceId"/> *@
+                                        <EditDeviceDetails @ref="editDeviceDetails" DeviceId="@DeviceId" />
                                     </div>
                                     <div class="card-body">
                                         <dl class="row mb-0">

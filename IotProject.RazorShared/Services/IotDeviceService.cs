@@ -102,5 +102,29 @@ namespace IotProject.RazorShared.Services
 
             return response.IsSuccessStatusCode ? true : false;
 		}
+
+        // Edits device room.
+        public async Task<bool> EditDeviceRoom(DeviceRoomRequest requestModel)
+        {
+			// Tries to obtain the jwt token from Local Storage.
+			var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
+
+			if (string.IsNullOrWhiteSpace(jwtToken))
+			{
+				// If unsuccessfull, tries to obtain the jwt token from Session Storage.
+				jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
+				if (string.IsNullOrWhiteSpace(jwtToken))
+				{
+					// Return an empty list if no token is found.
+					return false;
+				}
+			}
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+            var requestAsJson = JsonSerializer.Serialize(requestModel);
+            var response = await httpClient.PutAsync("device/setroom", new StringContent(requestAsJson, Encoding.UTF8, "application/json"));
+
+            return response.IsSuccessStatusCode ? true : false;
+		}
     }
 }
