@@ -41,35 +41,57 @@
                     <!-- Right column: Placeholder for additional info -->
                     <div class="col-md-5">
                         <div class="mb-3">
-                            <label class="col-form-label fw-bold">Devices:</label>
                             @if (devices.Count == 0)
                             {
                                 <div class="text-muted">No devices found.</div>
                             }
                             else
                             {
-                                <div class="device-list-scroll-border ">
-                                    <div class="device-list-scroll">
-                                        <ul class="list-group">
-                                            @foreach (var device in devices)
-                                            {
-                                                <li class="list-group-item position-relative hover-effect">
-                                                    <div class="d-flex justify-content-between align-items-start">
-                                                        <div>
-                                                            <strong>@device.Name</strong>
-                                                            <div class="text-muted small">Type: @device.Type</div>
-                                                        </div>
-                                                        <span class="badge rounded-pill @(IsDeviceOnline(device) ? "bg-success" : "bg-danger") mt-1">
-                                                            @(IsDeviceOnline(device) ? "Online" : "Offline")
-                                                        </span>
-                                                    </div>
-                                                    <a href="@($"device/{device.Id}")" class="stretched-link"></a>
-                                                </li>
+                                if (!isLoading)
+                                {
+                                    <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
+                                        <Card class="rounded-top-4 overflow-hidden">
+                                            <CardHeader>
+                                                <CardTitle>Devices</CardTitle>
+                                                <CardSubTitle Class="text-secondary">Total devices: @(devices.Count)</CardSubTitle>
+                                            </CardHeader>
+                                            <CardBody>
+                                                <div class="mb-3">
+                                                    <InputText @bind-Value="searchTerm" class="form-control" placeholder="Search devices..." @oninput="OnSearch" />
+                                                </div>
+                                                <ul class="list-group">
+                                                    @foreach (var device in FilteredPagedDevices)
+                                                    {
+                                                        <li class="list-group-item position-relative hover-effect">
+                                                            <div class="d-flex justify-content-between align-items-start">
+                                                                <div>
+                                                                    <strong>@device.Name</strong>
+                                                                    <div class="text-muted small">Type: @device.Type</div>
+                                                                </div>
+                                                                <span class="badge rounded-pill @(IsDeviceOnline(device) ? "bg-success" : "bg-danger") mt-1">
+                                                                    @(IsDeviceOnline(device) ? "Online" : "Offline")
+                                                                </span>
+                                                            </div>
+                                                            <a href="@($"device/{device.Id}")" class="stretched-link"></a>
+                                                        </li>
 
-                                            }
-                                        </ul>
-                                    </div>
-                                </div>
+                                                    }
+                                                </ul>
+                                            </CardBody>
+
+                                            <CardFooter class="d-flex justify-content-end p-3">
+                                                <Pagination ActivePageNumber="currentPage"
+                                                TotalPages="TotalPages"
+                                                DisplayPages="DisplayPages"
+                                                PageChanged="OnPageChanged"
+                                                FirstLinkIcon="IconName.ChevronDoubleLeft"
+                                                PreviousLinkIcon="IconName.ChevronLeft"
+                                                NextLinkIcon="IconName.ChevronRight"
+                                                LastLinkIcon="IconName.ChevronDoubleRight" />
+                                            </CardFooter>
+                                        </Card>
+                                    </Card>
+                                }
                             }
                         </div>
 
@@ -90,10 +112,62 @@
     [Parameter]
     public string Id { get; set; } = string.Empty;
 
-    private List<DeviceResponse> devices = new();
     private RoomEditModel room = new();
     private bool isLoading = true;
     private const string RoomsPath = "/rooms";
+
+    @code {
+        // Pagination configuration
+        private int currentPage = 1;
+        private const int PageSize = 5;
+        private int DisplayPages = 5;
+
+        // Full and filtered device lists
+        private List<DeviceResponse> devices = new();
+        private List<DeviceResponse> filteredDevices = new();
+        private string searchTerm = "";
+
+        // Calculate total number of pages
+        private int TotalPages => (int)Math.Ceiling((double)filteredDevices.Count / PageSize);
+
+        // Paginated and filtered device list
+        private IEnumerable<DeviceResponse> FilteredPagedDevices =>
+            filteredDevices.Skip((currentPage - 1) * PageSize).Take(PageSize);
+
+        // Event handler when user changes page
+        private async Task OnPageChanged(int newPage)
+        {
+            currentPage = newPage;
+            await InvokeAsync(StateHasChanged);
+        }
+
+        // Event handler for responsive screen resizing (affects number of visible pagination links)
+        [JSInvokable]
+        public void OnResize(string breakpoint)
+        {
+            DisplayPages = breakpoint switch
+            {
+                "xs" => 1,
+                "sm" => 3,
+                _ => 5
+            };
+            StateHasChanged();
+        }
+
+        // Search handler with automatic pagination reset
+        private void OnSearch(ChangeEventArgs e)
+        {
+            searchTerm = e.Value?.ToString() ?? "";
+            filteredDevices = devices.Where(d =>
+                d.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                d.Type.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                d.RoomId?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true
+            ).ToList();
+            currentPage = 1;
+            StateHasChanged();
+        }
+    }
+
 
     private class RoomEditModel
     {
@@ -108,6 +182,7 @@
         {
             var result = await roomService.GetRoom(Id);
             devices = await roomService.GetDevices(Id);
+            filteredDevices = devices.ToList();
 
             if (result != null)
             {

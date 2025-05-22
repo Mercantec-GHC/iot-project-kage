@@ -191,13 +191,4 @@
     z-index: 100 !important;
 }
 
-.device-list-scroll {
-    max-height: 25rem;
-    overflow-y: auto;
-}
 
-.device-list-scroll-border {
-    border: 1px solid gray;
-    border-radius: 6px;
-    padding: 2px 0 2px 0;
-}
