@@ -75,8 +75,10 @@ namespace IotProject.API.Migrations
                     b.Property<string>("DeviceId")
                         .IsRequired()
                         .HasColumnType("text");
+
                     b.Property<long>("Timestamp")
                         .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DeviceId")
@@ -160,6 +162,34 @@ namespace IotProject.API.Migrations
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Rooms");
+                });
+
+            modelBuilder.Entity("IotProject.Shared.Models.Database.RoomImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoomId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId")
+                        .IsUnique();
+
+                    b.ToTable("RoomImages");
                 });
 
             modelBuilder.Entity("IotProject.Shared.Models.Database.User", b =>
@@ -270,18 +300,29 @@ namespace IotProject.API.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("IotProject.Shared.Models.Database.RoomImage", b =>
+                {
+                    b.HasOne("IotProject.Shared.Models.Database.Room", "Room")
+                        .WithOne("Image")
+                        .HasForeignKey("IotProject.Shared.Models.Database.RoomImage", "RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+                });
+
             modelBuilder.Entity("IotProject.Shared.Models.Database.Device", b =>
                 {
                     b.Navigation("Config");
 
                     b.Navigation("Data");
-
-                    b.Navigation("DeviceConfig");
                 });
 
             modelBuilder.Entity("IotProject.Shared.Models.Database.Room", b =>
                 {
                     b.Navigation("Devices");
+
+                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("IotProject.Shared.Models.Database.User", b =>

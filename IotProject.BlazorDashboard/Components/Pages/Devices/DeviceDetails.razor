@@ -23,7 +23,7 @@
                 <CardBody class="p-4">
                     @if (isLoading)
                     {
-                        // Loading spinner shown while fetching device data
+                        @* Loading spinner shown while fetching device data *@
                         <div class="d-flex justify-content-center align-items-center py-5">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
@@ -32,9 +32,9 @@
                     }
                     else if (device != null)
                     {
-                        // Device information section with two cards
+                        @* Device information section with two cards *@
                         <div class="row mb-4 g-4">
-                            <div class="col-md-6">
+                            <div class="col col-md-6">
                                 <div class="card shadow-sm h-100">
                                     <div class="card-header">
                                         <h5 class="card-title mb-0">
@@ -83,8 +83,8 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="col-md-6">
+                            
+                            <div class="col col-md-6">
                                 <div class="card shadow-sm h-100">
                                     <div class="card-header">
                                         <h5 class="card-title mb-0">
@@ -114,19 +114,28 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        // Widgets section for future device-specific widgets
-                        <div class="row">
+                            @* Widgets section for future device-specific widgets *@
                             <div class="col-12">
-                                <div class="card shadow-sm">
+                                <div class="card shadow-sm overflow-hidden">
                                     <div class="card-header">
                                         <h5 class="card-title mb-0">
                                             <i class="bi bi-grid-3x3-gap me-2"></i>Widgets
                                         </h5>
                                     </div>
-                                    <div class="card-body">
-                                        <div class="row g-4">
+                                    <div class="card-body bg-secondary-subtle">
+
+                                        <WidgetProvider Device="device">
+                                            <ProviderTemplate Class="row row-cols-2 g-3">
+                                                <div class="col">
+                                                    <ProviderContent Class="card"
+                                                        HeaderClass="card-header"
+                                                        BodyClass="" />
+                                                </div>
+                                            </ProviderTemplate>
+                                        </WidgetProvider>
+
+                                        @* <div class="row g-4">
                                             <div class="col-12 col-md-6">
                                                 <div class="card h-100 border-0">
                                                     <div class="card-body">
@@ -153,7 +162,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> *@
                                     </div>
                                 </div>
                             </div>
@@ -161,7 +170,7 @@
                     }
                     else
                     {
-                        // Error message when device is not found
+                        @* Error message when device is not found *@
                         <div class="alert alert-warning d-flex align-items-center" role="alert">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             <div>Device not found</div>
