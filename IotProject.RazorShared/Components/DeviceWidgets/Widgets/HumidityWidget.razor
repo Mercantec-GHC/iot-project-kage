@@ -1,0 +1,11 @@
+@if (Device != null && Device.Data != null && Device.Data.TryGetValue(DataEntry, out var data))
+{
+	<p>@data</p>
+}
+
+@code {
+	[Parameter] public string DataEntry { get; set; }
+
+	[CascadingParameter]
+	public DeviceResponse Device { get; set; }
+}

@@ -1,0 +1,40 @@
+@using IotProject.RazorShared.Components.DeviceWidgets.Widgets
+
+<div class="@Class">
+    @if (Device != null && _componentDictionary.TryGetValue(Device.Type, out var renderFragments))
+    {
+        foreach (var Fragment in renderFragments)
+        {
+            <CascadingValue Value="Fragment">
+                @ChildContent
+            </CascadingValue>
+        }
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    public DeviceResponse Device { get; set; }
+
+    [Parameter] public string Class { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    private readonly IReadOnlyDictionary<string, IReadOnlyList<RenderFragment>> _componentDictionary = new Dictionary<string, IReadOnlyList<RenderFragment>>
+    {
+        ["DemoDevice"] = new List<RenderFragment>
+        {
+            builder =>
+            {
+                builder.OpenComponent(0, typeof(TemperatureWidget));
+                builder.AddAttribute(1, "DataEntry", "temperature");
+                builder.CloseComponent();
+            },
+            builder =>
+            {
+                builder.OpenComponent(0, typeof(HumidityWidget));
+                builder.AddAttribute(1, "DataEntry", "humidity");
+                builder.CloseComponent();
+            }
+        }
+    };
+}

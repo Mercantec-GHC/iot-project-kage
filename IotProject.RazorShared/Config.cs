@@ -1,4 +1,5 @@
-﻿using IotProject.RazorShared.Services;
+﻿using ApexCharts;
+using IotProject.RazorShared.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -42,6 +43,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
                 };
             });
+
+            services.AddApexCharts();
 
             return services;
         }

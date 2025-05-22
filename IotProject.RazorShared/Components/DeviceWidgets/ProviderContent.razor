@@ -1,0 +1,16 @@
+<div class="@Class">
+    <CascadingValue Name="HeaderClassValue" Value="HeaderClass">
+        <CascadingValue Name="BodyClassValue" Value="BodyClass">
+            @Fragment
+        </CascadingValue>
+    </CascadingValue>
+</div>
+
+@code {
+    [CascadingParameter]
+    public RenderFragment Fragment { get; set; }
+
+    [Parameter] public string Class { get; set; }
+    [Parameter] public string HeaderClass { get; set; }
+    [Parameter] public string BodyClass { get; set; }
+}

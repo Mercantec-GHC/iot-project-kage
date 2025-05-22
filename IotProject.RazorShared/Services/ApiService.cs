@@ -29,6 +29,17 @@ namespace IotProject.RazorShared.Services
             return result;
         }
 
+        public async Task<List<DeviceDataResponse>> GetDeviceData(string id)
+        {
+            if (!await authorize()) return new List<DeviceDataResponse>();
+
+            var response = await httpClient.GetAsync($"device/getdata?deviceid={id}");
+            if (!response.IsSuccessStatusCode) return new List<DeviceDataResponse>();
+
+            var result = JsonSerializer.Deserialize<List<DeviceDataResponse>>(await response.Content.ReadAsStringAsync(), JsonOptions);
+            return result ?? new List<DeviceDataResponse>();
+        }
+
         private async Task<bool> authorize()
         {
             var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
