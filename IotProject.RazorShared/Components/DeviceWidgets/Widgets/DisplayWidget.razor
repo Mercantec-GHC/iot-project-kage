@@ -1,0 +1,15 @@
+<h4 class="@HeaderClass">Hej</h4>
+
+<div class="@BodyClass">
+	Hej
+</div>
+
+@code {
+	[CascadingParameter(Name = "HeaderClassValue")]
+	public string HeaderClass { get; set; }
+
+	[CascadingParameter(Name = "BodyClassValue")]
+	public string BodyClass { get; set; }
+
+	[CascadingParameter] public DeviceResponse Device { get; set; }
+}
