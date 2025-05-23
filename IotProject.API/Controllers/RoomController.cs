@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using IotProject.Shared.Models.Requests;
 using IotProject.Shared.Utilities;
 using Microsoft.AspNetCore.Cors;
+using System.Net.Mime;
 
 namespace IotProject.API.Controllers
 {
@@ -160,7 +161,6 @@ namespace IotProject.API.Controllers
         }
 
         [HttpPost("SetRoomImage"), Authorize]
-        [EnableCors("AllowLocalhost5024")]
         public async Task<ActionResult> SetRoomImage(IFormFile file, [FromQuery] string RoomId)
         {
             var user = await GetSignedInUser();
@@ -188,6 +188,13 @@ namespace IotProject.API.Controllers
                 {
                     await context.RoomImages.AddAsync(image);
                 }
+                else
+                {
+                    // Update the existing image
+                    room.Image.Image = base64String;
+                    room.Image.FileName = file.FileName;
+                }
+                
                 await context.SaveChangesAsync();
 
                 return Ok("Image was successfully uploaded.");
@@ -208,11 +215,22 @@ namespace IotProject.API.Controllers
                     base64String = base64String.Substring(base64String.IndexOf("base64,") + 7);
                 }
 
-
                 byte[] imageBytes = Convert.FromBase64String(base64String);
+                var extension = Path.GetExtension(roomImage.FileName);
+
+                string contentType = extension.ToLowerInvariant() switch
+                {
+                    ".jpg" or ".jpeg" => "image/jpeg",
+                    ".png" => "image/png",
+                    ".gif" => "image/gif",
+                    ".bmp" => "image/bmp",
+                    ".webp" => "image/webp",
+                    _ => "application/octet-stream"
+                };
 
                 // Return image as a file
-                return File(imageBytes, "image/jpeg");
+                return File(imageBytes, contentType);
+
             }
             catch (Exception ex)
             {

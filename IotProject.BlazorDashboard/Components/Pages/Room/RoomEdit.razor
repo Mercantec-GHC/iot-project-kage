@@ -55,11 +55,26 @@
                         <div class="col-md-5">
                             <div class="mb-3">
                                 <label class="col-form-label fw-bold">Room Image:</label>
-                                <img src="@roomService.GetImageUrl(Id)"/>
-                                <InputFile id="room_image_input" class="form-control" />
-                                <Button @onclick="HandleImageSave" Class="btn btn-primary">Save Image</Button>
+                                <div class="d-flex flex-column align-items-start">
+                                    <div class="mb-2 overflow-hidden rounded-4 border shadow-sm">
+                                        <img src="@imageUrl"
+                                             class="img-fluid rounded-4 border"
+                                             style="max-width: 280px; max-height: 250px; object-fit: cover; background: #f8f9fa;" />
+                                    </div>
+                                    <div class="input-group mb-2">
+                                        <InputFile id="room_image_input" class="form-control form-control-sm" style="height: 32px;" />
+                                    </div>
+                                    <Button @onclick="HandleImageSave"
+                                            Class="btn btn-gradient py-1 px-3 d-flex align-items-center"
+                                            style="min-width: 120px; height: 32px;">
+                                        <i class="bi bi-upload me-1"></i>
+                                        <span class="fw-semibold" style="font-size: 0.98rem;">Upload Image</span>
+                                    </Button>
+
+                                </div>
                             </div>
                         </div>
+
                     </div>
                     <button type="submit" class="btn btn-gradient text-white w-100 mt-4">Save Changes</button>
                 </EditForm>
@@ -74,6 +89,11 @@
 
     private RoomEditModel room = new();
     private bool isLoading = true;
+
+    private string imageUrl => $"{roomService.GetImageUrl(Id)}?t={imageCacheBuster}";
+    private string imageCacheBuster = Guid.NewGuid().ToString();
+
+
 
     private class RoomEditModel
     {
@@ -128,6 +148,16 @@
 
         var uploadUrl = roomService.GetImageUploadUrl(Id);
         var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/room_image.js");
-        await fileModule.InvokeVoidAsync("UploadImage", uploadUrl);
+        var success = await fileModule.InvokeAsync<bool>("UploadImage", uploadUrl);
+        Console.WriteLine(success);
+
+        if (success)
+        {
+            imageCacheBuster = Guid.NewGuid().ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+
+        await InvokeAsync(StateHasChanged);
     }
 }
