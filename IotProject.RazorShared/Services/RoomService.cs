@@ -19,7 +19,7 @@ namespace IotProject.RazorShared.Services
             var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
             if (string.IsNullOrEmpty(jwtToken))
             {
-                jwtToken = await sessionStorage.GetItemAsync<string>("jwtToken");
+                jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
                 if (string.IsNullOrEmpty(jwtToken)) return new List<RoomGetResponse>();
             }
 
@@ -28,7 +28,7 @@ namespace IotProject.RazorShared.Services
             if (!response.IsSuccessStatusCode) return new List<RoomGetResponse>();
 
             var roomResult = JsonSerializer.Deserialize<List<RoomGetResponse>>(await response.Content.ReadAsStringAsync(), JsonOptions);
-            
+
             return roomResult!;
         }
 
@@ -104,6 +104,35 @@ namespace IotProject.RazorShared.Services
 
             var devices = JsonSerializer.Deserialize<List<DeviceResponse>>(await response.Content.ReadAsStringAsync(), JsonOptions);
             return devices ?? new List<DeviceResponse>();
+        }
+
+        public async Task<bool> SetRoomImage(string roomId, string imageBase64)
+        {
+            var jwtToken = await localStorage.GetItemAsync<string>("JwtToken") ?? await sessionStorage.GetItemAsync<string>("JwtToken");
+            if (string.IsNullOrWhiteSpace(jwtToken)) return false;
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+
+            var request = new
+            {
+                RoomId = roomId,
+                ImageBase64 = imageBase64
+            };
+
+            var json = JsonSerializer.Serialize(request);
+            var response = await httpClient.PostAsync("Room/SetRoomImage", new StringContent(json, Encoding.UTF8, "application/json"));
+
+            return response.IsSuccessStatusCode;
+        }
+
+        public string GetImageUrl(string roomId)
+        {
+            return $"{httpClient.BaseAddress}room/getroomimage/{roomId}";
+        }
+
+        public string GetImageUploadUrl(string roomId)
+        {
+            return $"{httpClient.BaseAddress}room/setroomimage?roomid={roomId}";
         }
     }
 }
