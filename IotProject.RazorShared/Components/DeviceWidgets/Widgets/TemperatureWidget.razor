@@ -1,0 +1,125 @@
+@inject ApiService ApiService
+
+<div class="@HeaderClass">
+	Temperature
+</div>
+
+<div class="@BodyClass">
+	@* <p>Celsius: @_celsius</p>
+	<p>Fahrenheit: @_fahrenheit</p> *@
+
+	@if (Data != null)
+	{
+		<ApexChart Height="chartHeight" TItem="MyData"
+				   Options=options>
+
+			<ApexPointSeries TItem="MyData"
+							 Items="Data"
+							 Name="Celcius"
+							 SeriesType="SeriesType.Bar"
+							 XValue="e => e.Category"
+							 YValue="e=> e.Celcius" />
+
+			<ApexPointSeries TItem="MyData"
+							 Items="Data"
+							 Name="Fahrenheit"
+							 SeriesType="SeriesType.Bar"
+							 XValue="e => e.Category"
+							 YValue="e=> e.Fahrenheit" />
+		</ApexChart>
+	}
+
+</div>
+
+@code {
+	[CascadingParameter(Name = "HeaderClassValue")]
+	public string HeaderClass { get; set; }
+
+	[CascadingParameter(Name = "BodyClassValue")]
+	public string BodyClass { get; set; }
+
+	[CascadingParameter] public DeviceResponse Device { get; set; }
+
+	[Parameter] public string DataEntry { get; set; }
+
+	private double _celsius { get; set; }
+	private double _fahrenheit { get; set; }
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if (Device != null && Device.Data != null && Device.Data.TryGetValue(DataEntry, out var data))
+		{
+			if (((JsonElement)data).TryGetProperty("celsius", out JsonElement celsiusElement))
+			{
+				_celsius = celsiusElement.GetDouble();
+			}
+			if (((JsonElement)data).TryGetProperty("fahrenheit", out JsonElement fahrenheitElement))
+			{
+				_fahrenheit = fahrenheitElement.GetDouble();
+			}
+		}
+	}
+
+	private List<MyData> Data { get; set; }
+	private string chartHeight = "400px";
+	private ApexChartOptions<MyData> options;
+
+	protected override async Task OnInitializedAsync()
+	{
+		options = new ApexChartOptions<MyData>
+		{
+			Theme = new Theme
+			{
+				Mode = Mode.Dark,
+				Palette = PaletteType.Palette1
+			}
+		};
+
+		// Data.Add(new MyData { Category = "Jan", Celcius = 12, Fahrenheit = 33 });
+		// Data.Add(new MyData { Category = "Feb", Celcius = 43, Fahrenheit = 42 });
+		// Data.Add(new MyData { Category = "Mar", Celcius = 112, Fahrenheit = 23 });
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			Data = new();
+
+			List<DeviceDataResponse> deviceData = await ApiService.GetDeviceData(Device.Id);
+
+			foreach (var dataset in deviceData)
+			{
+				if (dataset.Data!.TryGetValue(DataEntry, out var data))
+				{
+					decimal c = 10;
+					decimal f = 10;
+
+					if (((JsonElement)data).TryGetProperty("celsius", out JsonElement celsiusElement))
+					{
+						c = celsiusElement.GetDecimal();
+					}
+					if (((JsonElement)data).TryGetProperty("fahrenheit", out JsonElement fahrenheitElement))
+					{
+						f = fahrenheitElement.GetDecimal();
+					}
+
+					Console.WriteLine($"Celsius: {c}");
+					Console.WriteLine($"Fahrenheit: {f}");
+					var test = new MyData { Category = dataset.Timestamp!.Value.ToShortDateString(), Celcius = c, Fahrenheit = f };
+					Data.Add(test);
+
+					Console.WriteLine(test);
+					await InvokeAsync(StateHasChanged);
+				}
+			}
+		}
+	}
+
+	public class MyData
+	{
+		public string Category { get; set; }
+		public decimal Celcius { get; set; }
+		public decimal Fahrenheit { get; set; }
+	}
+}

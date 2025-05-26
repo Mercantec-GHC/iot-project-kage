@@ -30,4 +30,8 @@
     <ProjectReference Include="..\IotProject.Shared\IotProject.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

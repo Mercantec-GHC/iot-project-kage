@@ -1,0 +1,14 @@
+@if (Device != null)
+{
+    <CascadingValue Value="Device">
+        @ChildContent
+    </CascadingValue>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public DeviceResponse Device { get; set; }
+}

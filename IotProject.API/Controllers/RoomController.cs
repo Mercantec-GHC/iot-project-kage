@@ -28,29 +28,6 @@ namespace IotProject.API.Controllers
 			if (rooms == null) return new List<RoomGetResponse>();
 
             return Ok(rooms.Select(r => new RoomGetResponse(r.Id, r.Name, r.Description)).ToList());
-
-            //// Fetches data and checks for null or empty strings/references.
-            //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //if (string.IsNullOrEmpty(userId)) return StatusCode(500);
-            //var rooms = await context.Rooms
-            //	.Where(r => r.OwnerId == userId)
-            //	.ToListAsync();
-            //if (rooms.IsNullOrEmpty()) return NotFound("No rooms where registered.");
-
-            //// Maps the rooms to the required response class.
-            //List<RoomGetResponse> mappedRooms = new();
-            //foreach (var room in rooms)
-            //{
-            //	var mappedRoom = new RoomGetResponse
-            //	(
-            //		room.Id,
-            //		room.Name,
-            //		room.Description
-            //	);
-            //	mappedRooms.Add(mappedRoom);
-            //}
-
-            //return Ok(new RoomGetAllResponse(mappedRooms));
         }
 
 		// Get room by room id endpoint.
