@@ -32,8 +32,9 @@ namespace IotProject.API
                 app.UseSwaggerUI();
             }
 
-            app.UseAuthorization();
+            app.UseCors(x => x.AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed(origin => true).AllowCredentials());
 
+            app.UseAuthorization();
 
             app.MapControllers();
 
