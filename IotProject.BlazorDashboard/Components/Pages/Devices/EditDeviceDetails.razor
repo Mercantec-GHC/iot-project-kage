@@ -2,13 +2,13 @@
 @inject RoomService RoomService
 
 
-<Modal @ref="modal" Title="Edit device name">
+<Modal @ref="modal" Title="Edit Device">
 	<BodyTemplate>
 		@if (EditName)
 		{
 			<EditForm Model="@requestNameModel" OnValidSubmit="HandleEditName">
 				<label>Name:</label>
-				<TextInput Id="EditedName" @bind-Value="requestNameModel.Name" Placeholder="Name" />
+				<TextInput Id="EditedName" @bind-Value="requestNameModel.Name" Placeholder="@DeviceTypes.GetDeviceType(Device.Type)?.Name" />
 				<Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4">Submit</Button>
 			</EditForm>
 		} 
@@ -16,53 +16,52 @@
 		{
 			<EditForm Model="@requestRoomModel" OnValidSubmit="HandleEditRoom">
 				<label>Room:</label>
-				<Dropdown>
-					<DropdownToggleButton Class="p-0 border-0 logo-highlight"></DropdownToggleButton>
-					<DropdownMenu Position="DropdownMenuPosition.End">
+				<Dropdown Class="py-2 py-sm-0 d-none d-sm-block">
+					<DropdownToggleButton Class="p-0 border-0 logo-highlight">@SelectedRoomName</DropdownToggleButton>
+					<DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
 						@foreach (var room in rooms)
 						{
-							<DropdownItem @onclick="() => SelectedRoom(room.Id)">@room.Name</DropdownItem>
+							<DropdownItem @onclick="() => SelectedRoom(room.Id, room.Name)">@room.Name</DropdownItem>
 							<DropdownDivider />
 						}
-						<DropdownItem @onclick="() => SelectedRoom(null!)">No room</DropdownItem>
+						<DropdownItem @onclick="() => SelectedRoom(null!, null!)">No room</DropdownItem>
 					</DropdownMenu>
 				</Dropdown>
 				<Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4">Submit</Button>
 			</EditForm>
 		}
 	</BodyTemplate>
-	<FooterTemplate>
-
-	</FooterTemplate>
 </Modal>
 
 @code {
-	[Parameter] public string DeviceId { get; set; }
+	[Parameter] public DeviceResponse Device { get; set; }
 
 	private bool EditName; 
 	private bool EditRoom;
-	private string SelectedRoomId;
 	private Modal modal = default!;
-	private DeviceResponse? device;
+	private string SelectedRoomName = "No room";
 	private List<RoomGetResponse> rooms = new();
 	private DeviceNameRequest requestNameModel = new();
 	private DeviceRoomRequest requestRoomModel = new();
 
-	private void SelectedRoom(string roomId)
+	private void SelectedRoom(string roomId, string roomName)
 	{
-		requestRoomModel.Id = DeviceId;
+		requestRoomModel.Id = Device.Id;
 		requestRoomModel.RoomId = roomId;
+		SelectedRoomName = roomName;
 	}
 
 	private async Task HandleEditRoom()
 	{
 		var response = await DeviceService.EditDeviceRoom(requestRoomModel);
+		if (response) await modal.HideAsync();
 	}
 
 	private async Task HandleEditName()
 	{
-		requestNameModel.Id = DeviceId;
+		requestNameModel.Id = Device.Id;
 		var response = await DeviceService.EditDeviceName(requestNameModel);
+		if (response) await modal.HideAsync();
 	}
 
 	public async Task OnShowModalClick(bool editName)
@@ -70,7 +69,11 @@
 		EditName = editName;
 		EditRoom = !editName;
 		await modal.ShowAsync();
-		if (EditRoom)
+		if (EditName)
+		{
+			requestNameModel.Name = Device.Name;
+		}
+		else if (EditRoom)
 		{
 			rooms = await RoomService.GetAll();
 			await InvokeAsync(StateHasChanged);

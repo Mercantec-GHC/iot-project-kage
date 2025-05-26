@@ -36,21 +36,21 @@
                         <div class="row mb-4 g-4">
                             <div class="col col-md-6">
                                 <div class="card shadow-sm h-100">
-                                    <div class="card-header">
+                                    <div class="card-header d-flex">
                                         <h5 class="card-title mb-0">
                                             <i class="bi bi-info-circle me-2"></i>Device Information
                                         </h5>
-                                        <Dropdown Class="py-2 py-sm-0 d-none d-sm-block">
+                                        <Dropdown Class="ms-auto py-2 py-sm-0 d-none d-sm-block">
                                             <DropdownToggleButton Class="p-0 border-0 logo-highlight">
                                                 <Icon Name="IconName.Gear" /> Edit
                                             </DropdownToggleButton>
-                                            <DropdownMenu Position="DropdownMenuPosition.End">
+                                            <DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
                                                 <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick(true))"><Icon Name="IconName.Pencil" /> Edit name</DropdownItem>
                                                 <DropdownDivider />
-                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick(false))"><Icon Name="IconName.BuildingFillGear" /> Edit room</DropdownItem>
+                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick(false))"><Icon Name="IconName.HouseGear" /> Edit room</DropdownItem>
                                             </DropdownMenu>
                                         </Dropdown>
-                                        <EditDeviceDetails @ref="editDeviceDetails" DeviceId="@DeviceId" />
+                                        <EditDeviceDetails @ref="editDeviceDetails" Device="device"/>
                                     </div>
                                     <div class="card-body">
                                         <dl class="row mb-0">
@@ -130,7 +130,7 @@
                                                 <div class="col">
                                                     <ProviderContent Class="card"
                                                         HeaderClass="card-header"
-                                                        BodyClass="" />
+                                                        BodyClass="card-body" />
                                                 </div>
                                             </ProviderTemplate>
                                         </WidgetProvider>
