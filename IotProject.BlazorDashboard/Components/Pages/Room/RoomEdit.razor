@@ -1,6 +1,7 @@
 ﻿@page "/rooms/edit/{Id}"
 @inject RoomService roomService
 @inject NavigationManager navigationManager
+@inject IJSRuntime jsRuntime
 
 
 <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
@@ -29,15 +30,51 @@
                 <EditForm Model="room" OnValidSubmit="HandleEditRoom">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
-                    <div class="mb-3">
-                        <label for="room-name" class="col-form-label">Room Name:</label>
-                        <InputText Id="room-name" Class="form-control" @bind-Value="room.Name" />
-                        <ValidationMessage For="@(() => room.Name)" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="room-description" class="col-form-label">Room Description:</label>
-                        <InputTextArea Id="room-description" Class="form-control"  @bind-Value="room.Description" />
-                        <ValidationMessage For="@(() => room.Description)" />
+                    <div class="row align-items-stretch">
+                        <!-- Left column: Input fields -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="room-name" class="col-form-label">Room Name:</label>
+                                <InputText Id="room-name" Class="form-control" @bind-Value="room.Name" />
+                                <ValidationMessage For="@(() => room.Name)" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="room-description" class="col-form-label">Room Description:</label>
+                                <InputTextArea Id="room-description" Class="form-control" @bind-Value="room.Description" />
+                                <ValidationMessage For="@(() => room.Description)" />
+                            </div>
+                        </div>
+                        <!-- Divider: vertical on desktop, horizontal on mobile -->
+                        <div class="d-none d-md-flex col-md-1 justify-content-center align-items-center">
+                            <div style="width:2px; height:95%; background: linear-gradient(140deg, rgba(82,191,250,1) 40%, rgba(255,128,91,1) 60%);"></div>
+                        </div>
+                        <div class="d-md-none col-12">
+                            <hr class="my-4" />
+                        </div>
+                        <!-- Right column: Image upload -->
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <label class="col-form-label fw-bold">Room Image:</label>
+                                <div class="d-flex flex-column align-items-start">
+                                    <div class="mb-2 overflow-hidden rounded-4 border shadow-sm">
+                                        <img src="@imageUrl"
+                                             class="img-fluid rounded-4 border"
+                                             style="max-width: 280px; max-height: 250px; object-fit: cover; background: #f8f9fa;" />
+                                    </div>
+                                    <div class="input-group mb-2">
+                                        <InputFile id="room_image_input" class="form-control form-control-sm" style="height: 32px;" />
+                                    </div>
+                                    <Button @onclick="HandleImageSave"
+                                            Class="btn btn-gradient py-1 px-3 d-flex align-items-center"
+                                            style="min-width: 120px; height: 32px;">
+                                        <i class="bi bi-upload me-1"></i>
+                                        <span class="fw-semibold" style="font-size: 0.98rem;">Upload Image</span>
+                                    </Button>
+
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                     <button type="submit" class="btn btn-gradient text-white w-100 mt-4">Save Changes</button>
                 </EditForm>
@@ -53,6 +90,11 @@
     private RoomEditModel room = new();
     private bool isLoading = true;
 
+    private string imageUrl => $"{roomService.GetImageUrl(Id)}?t={imageCacheBuster}";
+    private string imageCacheBuster = Guid.NewGuid().ToString();
+
+
+
     private class RoomEditModel
     {
         [Required(ErrorMessage = "Room name is required.")]
@@ -60,24 +102,28 @@
         public string? Description { get; set; }
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        isLoading = true;
+        if (firstRender)
+        {
+            isLoading = true;
 
-        var result = await roomService.GetRoom(Id);
-        if (result != null)
-        {
-            room = new RoomEditModel
-                {
-                    Name = result.Name,
-                    Description = result.Description
-                };
+            var result = await roomService.GetRoom(Id);
+            if (result != null)
+            {
+                room = new RoomEditModel
+                    {
+                        Name = result.Name,
+                        Description = result.Description
+                    };
+            }
+            else
+            {
+                navigationManager.NavigateTo("/rooms");
+            }
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
         }
-        else
-        {
-            navigationManager.NavigateTo("/rooms");
-        }
-        isLoading = false;
     }
 
     private async Task HandleEditRoom()
@@ -94,5 +140,23 @@
         {
             navigationManager.NavigateTo("/rooms");
         }
+    }
+
+    public async Task HandleImageSave()
+    {
+        Console.WriteLine("Image has changed.");
+
+        var uploadUrl = roomService.GetImageUploadUrl(Id);
+        var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/room_image.js");
+        var success = await fileModule.InvokeAsync<bool>("UploadImage", uploadUrl);
+        Console.WriteLine(success);
+
+        if (success)
+        {
+            imageCacheBuster = Guid.NewGuid().ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        await InvokeAsync(StateHasChanged);
     }
 }
