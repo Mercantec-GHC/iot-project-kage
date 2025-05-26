@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using IotProject.Shared.Models.Requests;
 using IotProject.Shared.Utilities;
+using Microsoft.AspNetCore.Cors;
+using System.Net.Mime;
 
 namespace IotProject.API.Controllers
 {
@@ -26,29 +28,6 @@ namespace IotProject.API.Controllers
 			if (rooms == null) return new List<RoomGetResponse>();
 
             return Ok(rooms.Select(r => new RoomGetResponse(r.Id, r.Name, r.Description)).ToList());
-
-            //// Fetches data and checks for null or empty strings/references.
-            //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //if (string.IsNullOrEmpty(userId)) return StatusCode(500);
-            //var rooms = await context.Rooms
-            //	.Where(r => r.OwnerId == userId)
-            //	.ToListAsync();
-            //if (rooms.IsNullOrEmpty()) return NotFound("No rooms where registered.");
-
-            //// Maps the rooms to the required response class.
-            //List<RoomGetResponse> mappedRooms = new();
-            //foreach (var room in rooms)
-            //{
-            //	var mappedRoom = new RoomGetResponse
-            //	(
-            //		room.Id,
-            //		room.Name,
-            //		room.Description
-            //	);
-            //	mappedRooms.Add(mappedRoom);
-            //}
-
-            //return Ok(new RoomGetAllResponse(mappedRooms));
         }
 
 		// Get room by room id endpoint.
@@ -186,9 +165,53 @@ namespace IotProject.API.Controllers
                 {
                     await context.RoomImages.AddAsync(image);
                 }
+                else
+                {
+                    // Update the existing image
+                    room.Image.Image = base64String;
+                    room.Image.FileName = file.FileName;
+                }
+                
                 await context.SaveChangesAsync();
 
                 return Ok("Image was successfully uploaded.");
+            }
+        }
+
+        [HttpGet("GetRoomImage/{roomId}")]
+        public async Task<ActionResult> GetRoomImage(string roomId)
+        {
+            var roomImage = await context.RoomImages.FirstOrDefaultAsync(r => r.RoomId == roomId);
+            if (roomImage == null) return NotFound("Room image was not found.");
+            
+            try
+            {
+                var base64String = roomImage.Image;
+                if (base64String.Contains("base64,"))
+                {
+                    base64String = base64String.Substring(base64String.IndexOf("base64,") + 7);
+                }
+
+                byte[] imageBytes = Convert.FromBase64String(base64String);
+                var extension = Path.GetExtension(roomImage.FileName);
+
+                string contentType = extension.ToLowerInvariant() switch
+                {
+                    ".jpg" or ".jpeg" => "image/jpeg",
+                    ".png" => "image/png",
+                    ".gif" => "image/gif",
+                    ".bmp" => "image/bmp",
+                    ".webp" => "image/webp",
+                    _ => "application/octet-stream"
+                };
+
+                // Return image as a file
+                return File(imageBytes, contentType);
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Invalid Base64 string: " + ex.Message);
             }
         }
 

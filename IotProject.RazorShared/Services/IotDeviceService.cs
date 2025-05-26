@@ -54,6 +54,34 @@ namespace IotProject.RazorShared.Services
 
         public async Task<DeviceResponse?> GetDevice(string deviceId)
         {
+        // Tries to obtain the jwt token from Local Storage.
+          var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
+
+          if (string.IsNullOrWhiteSpace(jwtToken))
+          {
+            // If unsuccessfull, tries to obtain the jwt token from Session Storage.
+            jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                        // Return an empty list if no token is found.
+                        return null;
+            }
+          }
+
+          httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+          var response = await httpClient.GetAsync($"device/getdevice?deviceId={deviceId}");
+          if (!response.IsSuccessStatusCode)
+          {
+              return null;
+          }
+
+          var deviceResult = JsonSerializer.Deserialize<DeviceResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
+          return deviceResult;
+  }
+
+    // Edits the device name. 
+    public async Task<bool> EditDeviceName(DeviceNameRequest requestModel)
+    {
 			// Tries to obtain the jwt token from Local Storage.
 			var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
 
@@ -63,20 +91,40 @@ namespace IotProject.RazorShared.Services
 				jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
 				if (string.IsNullOrWhiteSpace(jwtToken))
 				{
-                    // Return an empty list if no token is found.
-                    return null;
+					// Return an empty list if no token is found.
+					return false;
 				}
 			}
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
-            var response = await httpClient.GetAsync($"device/getdevice?deviceId={deviceId}");
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
+            var requestAsJson = JsonSerializer.Serialize(requestModel);
+            var response = await httpClient.PutAsync("device/setname", new StringContent(requestAsJson, Encoding.UTF8, "application/json"));
 
-            var deviceResult = JsonSerializer.Deserialize<DeviceResponse>(await response.Content.ReadAsStringAsync(), JsonOptions);
-            return deviceResult;
+            return response.IsSuccessStatusCode ? true : false;
+		}
+
+    // Edits device room.
+    public async Task<bool> EditDeviceRoom(DeviceRoomRequest requestModel)
+    {
+			// Tries to obtain the jwt token from Local Storage.
+			var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
+
+			if (string.IsNullOrWhiteSpace(jwtToken))
+			{
+				// If unsuccessfull, tries to obtain the jwt token from Session Storage.
+				jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
+				if (string.IsNullOrWhiteSpace(jwtToken))
+				{
+					// Return an empty list if no token is found.
+					return false;
+				}
+			}
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+            var requestAsJson = JsonSerializer.Serialize(requestModel);
+            var response = await httpClient.PutAsync("device/setroom", new StringContent(requestAsJson, Encoding.UTF8, "application/json"));
+
+            return response.IsSuccessStatusCode ? true : false;
 		}
 
         public async Task<bool> UpdateDeviceConfiguration(string deviceId, Dictionary<string, object> config)
