@@ -1,0 +1,30 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3 mb-n1" />
+            Edit Device Information
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton Disabled="loading" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private bool loading = false;
+
+    private void Submit()
+    {
+        loading = true;
+        MudDialog.Close(DialogResult.Ok(true));
+        loading = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

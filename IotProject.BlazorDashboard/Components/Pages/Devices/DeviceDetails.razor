@@ -58,7 +58,7 @@
                                             <dd class="col-sm-8 fw-bold">@device.Name</dd>
 
                                             <dt class="col-sm-4 text-muted">Type</dt>
-                                            <dd class="col-sm-8">@device.Type</dd>
+                                            <dd class="col-sm-8">@DeviceTypes.GetDeviceType(device.Type)?.TypeName</dd>
 
                                             <dt class="col-sm-4 text-muted">Room</dt>
                                             <dd class="col-sm-8">
