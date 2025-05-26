@@ -19,7 +19,7 @@ namespace IotProject.RazorShared.Services
             var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
             if (string.IsNullOrEmpty(jwtToken))
             {
-                jwtToken = await sessionStorage.GetItemAsync<string>("jwtToken");
+                jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
                 if (string.IsNullOrEmpty(jwtToken)) return new List<RoomGetResponse>();
             }
 

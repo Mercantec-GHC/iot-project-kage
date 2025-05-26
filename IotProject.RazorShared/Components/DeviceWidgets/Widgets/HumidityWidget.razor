@@ -1,11 +1,92 @@
-@if (Device != null && Device.Data != null && Device.Data.TryGetValue(DataEntry, out var data))
-{
-	<p>@data</p>
-}
+@inject ApiService ApiService
+
+<h4 class="@HeaderClass">Humidity</h4>
+
+<div class="@BodyClass">
+	@if (Data != null)
+	{
+		<ApexChart Height="chartHeight" TItem="MyData" 
+				   Options="options">
+			<ApexPointSeries TItem="MyData"
+							 Items="Data"
+							 Name="Humidity"
+							 SeriesType="SeriesType.Bar"
+							 XValue="e => e.Category"
+							 YValue="e => e.Humidity" />
+		</ApexChart>
+	}
+</div>
 
 @code {
-	[Parameter] public string DataEntry { get; set; }
+
+	[CascadingParameter(Name = "HeaderClassValue")]
+	public string HeaderClass { get; set; }
+
+	[CascadingParameter(Name = "BodyClassValue")]
+	public string BodyClass { get; set; }
 
 	[CascadingParameter]
 	public DeviceResponse Device { get; set; }
+
+	[Parameter] public string DataEntry { get; set; }
+
+	private double _humidity { get; set; }
+
+	private List<MyData> Data { get; set; }
+	private string chartHeight = "400px";
+	private ApexChartOptions<MyData> options;
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if (Device != null && Device.Data != null && Device.Data.TryGetValue(DataEntry, out var data))
+		{
+			if (((JsonElement)data).TryGetDouble(out double humidityElement))
+			{
+				_humidity = humidityElement;
+			}
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		options = new ApexChartOptions<MyData>
+		{
+			Theme = new Theme
+			{
+				Mode = Mode.Dark,
+				Palette = PaletteType.Palette1
+			}
+		};
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			Data = new();
+			List<DeviceDataResponse> deviceData = await ApiService.GetDeviceData(Device.Id);
+
+			foreach (var dataSet in deviceData)
+			{
+				if (dataSet.Data!.TryGetValue(DataEntry, out var data))
+				{
+					decimal h = 10;
+					if (((JsonElement)data).TryGetDecimal(out decimal humidityElement))
+					{
+						h = humidityElement;
+					}
+
+					var test = new MyData { Category = dataSet.Timestamp!.Value.ToShortDateString(), Humidity = h };
+					Data.Add(test);
+					await InvokeAsync(StateHasChanged);
+				}
+			}
+		}
+	}
+
+	public class MyData
+	{
+		public string Category { get; set; }
+		public decimal Humidity { get; set; }
+	}
 }
