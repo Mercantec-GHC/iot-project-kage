@@ -1,7 +1,12 @@
-<h4 class="@HeaderClass">Hej</h4>
+@inject IotDeviceService DeviceService
+
+<h4 class="@HeaderClass">Arduino Display Text</h4>
 
 <div class="@BodyClass">
-	Hej
+	<div class="mb-3">
+		<textarea @bind="displayText" class="form-control" rows="3" placeholder="Enter text to display..."></textarea>
+	</div>
+	<button class="btn btn-primary" @onclick="SendTextToDisplay">Send to Display</button>
 </div>
 
 @code {
@@ -12,4 +17,25 @@
 	public string BodyClass { get; set; }
 
 	[CascadingParameter] public DeviceResponse Device { get; set; }
+
+	private string displayText = "";
+
+	private async Task SendTextToDisplay()
+	{
+		if (string.IsNullOrWhiteSpace(displayText)) return;
+
+		// Replaces line breaks with \n
+		string formattedText = displayText.Replace("\r\n", "\n").Replace("\n", "\\n");
+
+		var config = new Dictionary<string, object>
+		{
+			["display"] = new Dictionary<string, object>
+			{
+				["text"] = formattedText,
+				["weight"] = 3
+			}
+		};
+
+		await DeviceService.UpdateDeviceConfiguration(Device.Id, config);
+	}
 }
