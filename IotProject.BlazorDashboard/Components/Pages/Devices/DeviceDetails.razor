@@ -57,8 +57,8 @@
                                             <div class="col-sm-4 text-muted">Name</div>
                                             <div class="col-sm-8 fw-bold">@device.Name</div>
 
-                                            <div class="col-sm-4 text-muted">Type</div>
-                                            <div class="col-sm-8">@device.Type</div>
+                                            <dt class="col-sm-4 text-muted">Type</dt>
+                                            <dd class="col-sm-8">@DeviceTypes.GetDeviceType(device.Type)?.TypeName</dd>
 
                                             <div class="col-sm-4 text-muted">Room</div>
                                             <div class="col-sm-8">
