@@ -1,4 +1,6 @@
 @page "/devices"
+@inject IotDeviceService DeviceService
+@inject NavigationManager NavigationManager
 @attribute [Authorize]
 
 <MudFab Class="fab-be" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Href="/devices/add" Label="Add new" />
@@ -10,7 +12,64 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudDivider />
-    <MudCardContent>
-        <p>Device list W.I.P.</p>
-    </MudCardContent>
+    @if (loading)
+    {
+        <MudProgressLinear Color="Color.Info" Indeterminate="true" />
+    }
+    else if (devices.Any())
+    {
+        <MudDataGrid T="DeviceResponse" Hover="true" Breakpoint="Breakpoint.Xs" Items="@devices" RowsPerPage="5" Bordered="true" RowClick="@((e) => {OnRowClicked(e.Item);})">
+            <Columns>
+                <PropertyColumn Property="d => d.Name" Title="Name" />
+                <PropertyColumn Property="d => d.Type" Title="Type" />
+                <TemplateColumn T="DeviceResponse" Title="Status" >
+                    <CellTemplate >
+                        @{
+                            var text = IsDeviceOnline(context.Item) ? "Online" : "Offline";
+                            var color = IsDeviceOnline(context.Item) ? Color.Success : Color.Error;
+
+                            <MudChip Color="@color" Size="Size.Small">@text</MudChip>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="DeviceResponse" PageSizeOptions=@(new int[] {5, 10, 20}) />
+            </PagerContent>
+        </MudDataGrid>
+    }
+    else
+    {
+        <MudCardContent>
+            <p>No devices were found.</p>
+        </MudCardContent>
+    }
+
 </MudCard>
+
+@code {
+    private List<DeviceResponse> devices = new();
+    private bool loading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            devices = await DeviceService.GetAllDevices();
+            loading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void OnRowClicked(DeviceResponse device)
+    {
+        NavigationManager.NavigateTo($"device/{device.Id}");
+    }
+
+    // Check if a device is online based on last update time
+    private bool IsDeviceOnline(DeviceResponse device)
+    {
+        if (device.LastUpdate == null) return false;
+        return (DateTime.UtcNow - device.LastUpdate.Value).TotalHours <= 24;
+    }
+}
