@@ -45,11 +45,18 @@ namespace program
 
     void loop()
     {
+        int r, g, b;
+
         float tempC = carrier.Env.readTemperature();
         float tempF = tempC * 9.0 / 5.0 + 32.2;
         float humidity = carrier.Env.readHumidity();
+        
+        if(carrier.Light.colorAvailable()) {
+            carrier.Light.readColor(r,g,b);
+        }
+        uint32_t readColor = carrier.leds.Color(r, g, b);
+        
         unsigned long currenTime = millis();
-
         bool significantChange = abs(tempC - lastTempC) >= 5.0;
         bool timeElapsed = currenTime - lastPrintTime >= printInterval;
 
@@ -68,6 +75,10 @@ namespace program
             temp["celsius"] = tempC;
             temp["fahrenheit"] = tempF;
             jsonDoc["humidity"] = humidity;
+            JsonObject readColor = jsonDoc.createNestedObject("read_color");
+            readColor["r"] = r;
+            readColor["g"] = g;
+            readColor["b"] = b;
 
             String jsonString;
             serializeJson(jsonDoc, jsonString);
