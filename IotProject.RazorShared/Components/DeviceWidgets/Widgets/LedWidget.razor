@@ -1,0 +1,81 @@
+@inject IotDeviceService DeviceService
+
+<h4 class="@HeaderClass">LED Controls</h4>
+
+<div class="@BodyClass">
+    @if (Device != null)
+    {
+        <div class="row g-3">
+            @for (int i = 1; i <= 5; i++)
+            {
+                var ledIndex = i - 1;
+                <div class="col-md-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">LED @i</h5>
+                        </div>
+                        <div class="card-body">
+                            <input type="color" class="form-control form-control-color w-100" 
+                                   @bind="ledValues[ledIndex].color" 
+                                   @bind:after="UpdateLedConfiguration" />
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter(Name = "HeaderClassValue")]
+    public string HeaderClass { get; set; }
+
+    [CascadingParameter(Name = "BodyClassValue")]
+    public string BodyClass { get; set; }
+
+    [CascadingParameter] 
+    public DeviceResponse Device { get; set; }
+
+    private class LedColor
+    {
+        public string color { get; set; } = "#000000";
+    }
+
+    // Class to hold LED color as hex string
+    private LedColor[] ledValues = new LedColor[5];
+
+    protected override void OnInitialized()
+    {
+        // Initialize LED values
+        for (int i = 0; i < 5; i++)
+        {
+            ledValues[i] = new LedColor();
+        }
+    }
+
+    // Called after color input changes to update config
+    private async Task UpdateLedConfiguration()
+    {
+        var config = new Dictionary<string, object>();
+        
+        for (int i = 0; i < 5; i++)
+        {
+            // Convert hex color to RGB 
+            var color = ledValues[i].color.TrimStart('#');
+            var r = Convert.ToInt32(color.Substring(0, 2), 16);
+            var g = Convert.ToInt32(color.Substring(2, 2), 16);
+            var b = Convert.ToInt32(color.Substring(4, 2), 16);
+
+            var ledConfig = new Dictionary<string, object>
+            {
+                { "r", r },
+                { "g", g },
+                { "b", b }
+            };
+            
+            config[$"led_{i + 1}"] = ledConfig;
+        }
+
+        await DeviceService.UpdateDeviceConfiguration(Device.Id, config);
+    }
+}
