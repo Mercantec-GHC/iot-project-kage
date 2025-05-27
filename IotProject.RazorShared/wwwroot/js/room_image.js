@@ -1,5 +1,5 @@
-﻿export async function UploadImage(uploadUrl) {
-    const input = document.getElementById("room_image_input");
+﻿export async function UploadImage(uploadUrl, elementId) {
+    const input = document.getElementById(elementId);
     let jwt = localStorage.getItem("JwtToken");
 
     if (!jwt) {

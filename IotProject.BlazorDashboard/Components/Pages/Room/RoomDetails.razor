@@ -5,9 +5,21 @@
 
 <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
     <Card Class="rounded-top-4 overflow-hidden">
-        <CardHeader>
-            <h5>Room Details</h5>
+        <CardHeader Class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Room Details</h5>
+            <Dropdown Class="ms-auto py-2 py-sm-0 d-none d-sm-block">
+                <DropdownToggleButton Class="p-0 border-0 logo-highlight">
+                    <Icon Name="IconName.Gear" /> Edit
+                </DropdownToggleButton>
+                <DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
+                    <DropdownItem To="@($"/rooms/edit/{Id}")" Type="DropdownItemType.Link">Edit</DropdownItem>
+                    <DropdownDivider />
+                    <DropdownItem @onclick="@(() => deleteRoomModal.OnShowModalClick())" Type="DropdownItemType.Button">Delete</DropdownItem>
+                </DropdownMenu>
+            </Dropdown>
+            <DeleteRoomModal @ref="deleteRoomModal" room="room"></DeleteRoomModal>
         </CardHeader>
+
         <CardBody>
             @if (isLoading)
             {
@@ -103,99 +115,78 @@
                 </Button>
             }
         </CardBody>
-
-
     </Card>
 </Card>
+
 
 @code {
     [Parameter]
     public string Id { get; set; } = string.Empty;
 
-    private RoomEditModel room = new();
+    private DeleteRoomModal deleteRoomModal = default!;
+
+    private RoomGetResponse? room;
     private bool isLoading = true;
     private const string RoomsPath = "/rooms";
 
-    @code {
-        // Pagination configuration
-        private int currentPage = 1;
-        private const int PageSize = 5;
-        private int DisplayPages = 5;
+    // Pagination configuration
+    private int currentPage = 1;
+    private const int PageSize = 5;
+    private int DisplayPages = 5;
 
-        // Full and filtered device lists
-        private List<DeviceResponse> devices = new();
-        private List<DeviceResponse> filteredDevices = new();
-        private string searchTerm = "";
+    // Full and filtered device lists
+    private List<DeviceResponse> devices = new();
+    private List<DeviceResponse> filteredDevices = new();
+    private string searchTerm = "";
 
-        // Calculate total number of pages
-        private int TotalPages => (int)Math.Ceiling((double)filteredDevices.Count / PageSize);
+    // Calculate total number of pages
+    private int TotalPages => (int)Math.Ceiling((double)filteredDevices.Count / PageSize);
 
-        // Paginated and filtered device list
-        private IEnumerable<DeviceResponse> FilteredPagedDevices =>
-            filteredDevices.Skip((currentPage - 1) * PageSize).Take(PageSize);
+    // Paginated and filtered device list
+    private IEnumerable<DeviceResponse> FilteredPagedDevices =>
+        filteredDevices.Skip((currentPage - 1) * PageSize).Take(PageSize);
 
-        // Event handler when user changes page
-        private async Task OnPageChanged(int newPage)
-        {
-            currentPage = newPage;
-            await InvokeAsync(StateHasChanged);
-        }
-
-        // Event handler for responsive screen resizing (affects number of visible pagination links)
-        [JSInvokable]
-        public void OnResize(string breakpoint)
-        {
-            DisplayPages = breakpoint switch
-            {
-                "xs" => 1,
-                "sm" => 3,
-                _ => 5
-            };
-            StateHasChanged();
-        }
-
-        // Search handler with automatic pagination reset
-        private void OnSearch(ChangeEventArgs e)
-        {
-            searchTerm = e.Value?.ToString() ?? "";
-            filteredDevices = devices.Where(d =>
-                d.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
-                d.Type.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                d.RoomId?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true
-            ).ToList();
-            currentPage = 1;
-            StateHasChanged();
-        }
+    // Event handler when user changes page
+    private async Task OnPageChanged(int newPage)
+    {
+        currentPage = newPage;
+        await InvokeAsync(StateHasChanged);
     }
 
-
-    private class RoomEditModel
+    // Event handler for responsive screen resizing (affects number of visible pagination links)
+    [JSInvokable]
+    public void OnResize(string breakpoint)
     {
-        [Required(ErrorMessage = "Room name is required.")]
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
+        DisplayPages = breakpoint switch
+        {
+            "xs" => 1,
+            "sm" => 3,
+            _ => 5
+        };
+        StateHasChanged();
+    }
+
+    // Search handler with automatic pagination reset
+    private void OnSearch(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        filteredDevices = devices.Where(d =>
+            d.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+            d.Type.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            d.RoomId?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true
+        ).ToList();
+        currentPage = 1;
+        StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            var result = await roomService.GetRoom(Id);
+            room = await roomService.GetRoom(Id);
             devices = await roomService.GetDevices(Id);
             filteredDevices = devices.ToList();
 
-            if (result != null)
-            {
-                room = new RoomEditModel
-                    {
-                        Name = result.Name,
-                        Description = result.Description
-                    };
-            }
-            else
-            {
-                navigationManager.NavigateTo("/rooms");
-            }
             isLoading = false;
             await InvokeAsync(StateHasChanged);
         }

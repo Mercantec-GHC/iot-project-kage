@@ -1,7 +1,6 @@
 ﻿@page "/rooms/edit/{Id}"
 @inject RoomService roomService
 @inject NavigationManager navigationManager
-@inject IJSRuntime jsRuntime
 
 
 <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
@@ -144,19 +143,10 @@
 
     public async Task HandleImageSave()
     {
-        Console.WriteLine("Image has changed.");
-
-        var uploadUrl = roomService.GetImageUploadUrl(Id);
-        var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/room_image.js");
-        var success = await fileModule.InvokeAsync<bool>("UploadImage", uploadUrl);
-        Console.WriteLine(success);
-
-        if (success)
+        if (await roomService.SetRoomImage(Id, "room_image_input"))
         {
             imageCacheBuster = Guid.NewGuid().ToString();
             await InvokeAsync(StateHasChanged);
         }
-
-        await InvokeAsync(StateHasChanged);
     }
 }
