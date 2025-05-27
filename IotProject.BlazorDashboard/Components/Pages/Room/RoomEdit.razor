@@ -8,10 +8,12 @@
         <CardHeader>
             <h5>Edit Room</h5>
             <div class="w-100">
-                <a href="/rooms" class="position-absolute text-secondary top-0 end-0 m-2" style="text-decoration: none;">
-                    <Icon Name="IconName.ArrowLeft" />
-                    <span>Back</span>
-                </a>
+                @* <a href="#" class="position-absolute text-secondary top-0 end-0 m-2" style="text-decoration: none;"> *@
+                    <Button @onclick="GoBack" Class="position-absolute text-secondary top-0 end-0 m-2 p-0 border-0">
+                        <Icon Name="IconName.ArrowLeft" />
+                        <span>Back</span>
+                    </Button>
+                @* </a> *@
             </div>
 
         </CardHeader>
@@ -57,15 +59,15 @@
                                 <div class="d-flex flex-column align-items-start">
                                     <div class="mb-2 overflow-hidden rounded-4 border shadow-sm ratio ratio-16x9">
                                         <img src="@imageUrl"
-                                             class="img-fluid rounded-4 border"
-                                             style="object-fit: cover;" />
+                                        class="img-fluid rounded-4 border"
+                                        style="object-fit: cover;" />
                                     </div>
                                     <div class="input-group mb-2">
                                         <InputFile id="room_image_input" class="form-control form-control-sm" style="height: 32px;" />
                                     </div>
                                     <Button @onclick="HandleImageSave"
-                                            Class="btn btn-gradient py-1 px-3 d-flex align-items-center"
-                                            style="min-width: 120px; height: 32px;">
+                                    Class="btn btn-gradient py-1 px-3 d-flex align-items-center"
+                                    style="min-width: 120px; height: 32px;">
                                         <i class="bi bi-upload me-1"></i>
                                         <span class="fw-semibold" style="font-size: 0.98rem;">Upload Image</span>
                                     </Button>
@@ -148,5 +150,10 @@
             imageCacheBuster = Guid.NewGuid().ToString();
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    public void GoBack()
+    {
+        navigationManager.NavigateTo($"/rooms/details/{Id}");
     }
 }

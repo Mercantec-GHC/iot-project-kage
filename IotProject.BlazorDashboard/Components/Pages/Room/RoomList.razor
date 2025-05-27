@@ -2,7 +2,9 @@
 @inject RoomService roomService
 @inject NavigationManager navigationManager
 
-<Button class="btn btn-gradient mb-3" @onclick="@(() => OnShowAddNewRoomModalClick())">Add New Room</Button>
+<Button class="btn btn-gradient mb-2" @onclick="@(() => OnShowAddNewRoomModalClick())">Add New Room</Button>
+<p class="text-secondary mb-3">Total rooms: @rooms.Count()</p>
+
 @if (isLoadingRooms)
 {
     <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
@@ -29,8 +31,9 @@ else
                                 </div>
                             </CardHeader>
                             <CardBody Class="flex-grow-1 d-flex flex-column">
-                                <CardTitle Class="flex-grow-1 text-truncate title-clamp">@room.Name</CardTitle>
-                                <CardText Class="mb-0 flex-grow-1 text-truncate description-clamp">@room.Description</CardText>
+                                <CardTitle Class="flex-grow-1 text-truncate title-clamp p-0">@room.Name</CardTitle>
+                                <hr class="m-0" />
+                                <CardText Class="my-1 flex-grow-1 text-truncate description-clamp">@room.Description</CardText>
                             </CardBody>
                         </Button>
                     </Card>

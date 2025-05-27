@@ -9,11 +9,11 @@
             <h5 class="mb-0">Room Details</h5>
             <Dropdown Class="ms-auto py-2 py-sm-0 d-none d-sm-block">
                 <DropdownToggleButton Class="p-0 border-0 logo-highlight">
-                    <Icon Name="IconName.Gear" /> Edit
+                    <Icon Name="IconName.Gear" /> Settings
                 </DropdownToggleButton>
-                <DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
+                <DropdownMenu Position="DropdownMenuPosition.End" Class="text-center p-0">
                     <DropdownItem To="@($"/rooms/edit/{Id}")" Type="DropdownItemType.Link">Edit</DropdownItem>
-                    <DropdownDivider />
+                    <DropdownDivider Class="m-0"/>
                     <DropdownItem @onclick="@(() => deleteRoomModal.OnShowModalClick())" Type="DropdownItemType.Button">Delete</DropdownItem>
                 </DropdownMenu>
             </Dropdown>
@@ -35,11 +35,11 @@
                     <!-- Left column: Room details -->
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="col-form-label fw-bold mb-0">Room Name:</label>
+                            <label class="col-form-label fw-bold mb-0 pb-0">Room Name:</label>
                             <div class="form-control-plaintext">@room.Name</div>
                         </div>
                         <div class="mb-3">
-                            <label class="col-form-label fw-bold">Room Description:</label>
+                            <label class="col-form-label fw-bold pb-0">Room Description:</label>
                             <div class="form-control-plaintext">@room.Description</div>
                         </div>
                     </div>
