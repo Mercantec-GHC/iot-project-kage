@@ -20,6 +20,22 @@
 
 	private string displayText = "";
 
+	protected override void OnInitialized()
+	{
+		// Read current text from device config
+		if (Device?.Configuration != null)
+		{
+			if (Device.Configuration.TryGetValue("display", out var displayObj) && displayObj is JsonElement displayElem)
+			{
+				if (displayElem.TryGetProperty("text", out var textElem))
+				{
+					// Convert escaped newlines back to actual newlines
+					displayText = textElem.GetString()?.Replace("\\n", "\n") ?? "";
+				}
+			}
+		}
+	}
+
 	private async Task SendTextToDisplay()
 	{
 		if (string.IsNullOrWhiteSpace(displayText)) return;
