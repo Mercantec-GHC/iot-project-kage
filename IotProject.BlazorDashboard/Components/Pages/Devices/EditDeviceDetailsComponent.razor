@@ -9,7 +9,7 @@
 			<EditForm Model="@requestNameModel" OnValidSubmit="HandleEditName">
 				<label>Name:</label>
 				<TextInput Id="EditedName" @bind-Value="requestNameModel.Name" Placeholder="@DeviceTypes.GetDeviceType(Device.Type)?.Name" />
-				<Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4">Submit</Button>
+				<Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4" Loading="loading" LoadingText="Saving changes" Disabled="loading">Submit</Button>
 			</EditForm>
 		} 
 		else if (EditRoom)
@@ -27,7 +27,7 @@
 						<DropdownItem @onclick="() => SelectedRoom(null!, null!)">No room</DropdownItem>
 					</DropdownMenu>
 				</Dropdown>
-				<Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4">Submit</Button>
+				<Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4" Loading="loading" LoadingText="Saving changes" Disabled="loading">Submit</Button>
 			</EditForm>
 		}
 	</BodyTemplate>
@@ -38,6 +38,7 @@
 
 	private bool EditName; 
 	private bool EditRoom;
+	private bool loading = false;
 	private Modal modal = default!;
 	private string SelectedRoomName = "No room";
 	private List<RoomGetResponse> rooms = new();
@@ -53,15 +54,19 @@
 
 	private async Task HandleEditRoom()
 	{
+		loading = true;
 		var response = await DeviceService.EditDeviceRoom(requestRoomModel);
 		if (response) await modal.HideAsync();
+		loading = false;
 	}
 
 	private async Task HandleEditName()
 	{
 		requestNameModel.Id = Device.Id;
+		loading = true;
 		var response = await DeviceService.EditDeviceName(requestNameModel);
 		if (response) await modal.HideAsync();
+		loading = false;
 	}
 
 	public async Task OnShowModalClick(bool editName)

@@ -1,143 +1,67 @@
 ﻿@page "/account"
-@inject AuthService AuthService
-@inject NavigationManager NavigationManager
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthProvider
 
-<PageTitle>Account Settings</PageTitle>
+<PageTitle>Account</PageTitle>
 
 <div class="row justify-content-center">
-    <div class="col-12 col-md-8 col-lg-6">
-        <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
-            <Card class="rounded-top-4 overflow-hidden">
-                <CardHeader class="p-0">
-                    <div class="text-center text-white p-3">
-                        <div class="auth-logo">
-                            <Icon Name="IconName.PersonCircle" Style="font-size: 2rem;" Class="icon-gradient" />
-                        </div>
-                        <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem;">Account Settings</h1>
-                        <p class="mb-0" style="font-size: 0.875rem; opacity: 0.9;">Manage your account information</p>
-                    </div>
-                </CardHeader>
-
-                <CardBody>
-                    <EditForm Model="userInfo" OnValidSubmit="HandleUserInfoChange" Context="editFormContext">
-                        <DataAnnotationsValidator />
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">First name</label>
-                                <TextInput Id="InputFirstName" @bind-Value="userInfo.FirstName" placeholder="First name" />
-                                <ValidationMessage For="@(() => userInfo.FirstName)" />
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Last name</label>
-                                <TextInput Id="InputLastName" @bind-Value="userInfo.LastName" placeholder="Last name" />
-                                <ValidationMessage For="@(() => userInfo.LastName)" />
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <TextInput Id="InputEmail" @bind-Value="userInfo.Email" placeholder="Email" />
-                            <ValidationMessage For="@(() => userInfo.Email)" />
-                        </div>
-
-                        <Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4" Loading="loading" LoadingText="Saving changes" Disabled="loading">
-                            <span class="text-white">Save Changes</span>
-                        </Button>
-                    </EditForm>
-                </CardBody>
-                <CardFooter>
-                    <span class="text-secondary">Do you want to change password?</span><Button Class="text-white" style="background:none; border: none; text-decoration: underline;" @onclick="ShowChangePasswordModal">Change Password</Button>
-
-
-                </CardFooter>
-            </Card>
-        </Card>
-    </div>
+	<div class="col-12 col-md-8 col-lg-6">
+		<Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
+			<Card Class="rounded-top-4 overflow-hidden">
+				<CardHeader Class="p-0">
+					<div class="text-center text-white p-3">
+						<div class="auth-logo">
+							<Icon Name="IconName.PersonCircle" Style="font-size: 2rem;" Class="icon-gradient" />
+						</div>
+						<h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: .25rem;">Account</h1>
+					</div>
+				</CardHeader>
+				<CardBody>
+					@{
+						var authState = AuthenticationState.Result;
+						var user = authState?.User;
+						if (user != null)
+						{
+							<div class="row g-3 m-0">
+								<div class="col-12 col-md-6">
+									<label class="form-label"><b>First name:</b></label>
+									<p class="m-0">@user.FindFirst("FirstName")?.Value</p>
+								</div>
+								<div class="col-12 col-md-6">
+									<label class="form-label"><b>Last name:</b></label>
+									<p class="m-0">@user.FindFirst("LastName")?.Value</p>
+								</div>
+								<hr class="solid my-3"/>
+								<div class="col-12">
+									<label class="form-label"><b>Email:</b></label>
+									<p class="m-0">@user.FindFirst("Email")?.Value</p>
+								</div>
+								<hr class="solid my-3" />
+								<div class="col-12 col-md-6">
+									<Button Class="btn-gradient w-100" @onclick="@(() => editAccount.OnShowModalClick())">Edit account</Button>
+									<EditAccountComponent @ref="editAccount"/>
+								</div>
+								<div class="col-12 col-md-6">
+									<Button Class="btn-gradient w-100" @onclick="@(() => editPassword.OnShowModalClick())">Edit password</Button>
+									<EditPasswordComponent @ref="editPassword"/>
+								</div>
+								<div class="col-12">
+									<Button Class="btn-gradient w-100">Delete Account</Button>
+								</div>
+							</div>
+						}
+					}
+				</CardBody>
+			</Card>
+		</Card>
+	</div>
 </div>
 
-<Modal @ref="ChangePasswordModal" Title="Change Password">
-    <HeaderTemplate>
-        <h5 class="modal-title" id="ChangePasswordModalLabel">Change Password</h5>
-        <Button Class="btn-close" @onclick="HideChangePasswordModal"></Button>
-    </HeaderTemplate>
-
-    <BodyTemplate>
-        <EditForm Model="editPasswordRequest" OnValidSubmit="HandlePasswordChange">
-            <DataAnnotationsValidator />
-            <div class="mb-3">
-                <label for="new-password" class="col-form-label">New Password:</label>
-                <PasswordInput Id="new-password" @bind-value="editPasswordRequest.Password" />
-                <ValidationMessage For="@(() => editPasswordRequest.Password)" />
-            </div>
-            <div class="mb-3">
-                <label for="confirm-password" class="col-form-label">Confirm Password:</label>
-                <PasswordInput Id="confirm-password" @bind-value="editPasswordRequest.ConfirmPassword" />
-                <ValidationMessage For="@(() => editPasswordRequest.ConfirmPassword)" />
-            </div>
-            <Button Type="ButtonType.Submit" Class="btn-gradient text-white w-100 mt-4" Loading="loading" LoadingText="Saving changes" Disabled="loading">
-                <span class="text-white">Save Changes</span>
-            </Button>
-        </EditForm>
-    </BodyTemplate>
-</Modal>
 
 @code {
-    private UserEditInformationRequest userInfo = new();
-    private bool loading = false;
-    private UserEditPasswordRequest editPasswordRequest = new();
+	[CascadingParameter]
+	private Task<AuthenticationState?> AuthenticationState { get; set; }
 
-    [CascadingParameter]
-    private Task<AuthenticationState?> AuthenticationState { get; set; }
-
-    private Modal ChangePasswordModal = default!;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            var authState = await AuthenticationState;
-            var user = authState?.User;
-            if (AuthenticationState != null)
-            {
-                userInfo.FirstName = user.FindFirst("FirstName")?.Value ?? "";
-                userInfo.LastName = user.FindFirst("LastName")?.Value ?? "";
-                userInfo.Email = user.FindFirst("Email")?.Value ?? "";
-            }
-        }
-    }
-
-    private async Task ShowChangePasswordModal()
-    {
-        await ChangePasswordModal.ShowAsync();
-    }
-
-    private async Task HideChangePasswordModal()
-    {
-        await ChangePasswordModal.HideAsync();
-    }
-
-    private async Task HandleUserInfoChange()
-    {
-        loading = true;
-        var success = await AuthService.EditInfo(userInfo);
-        if (success)
-        {
-            NavigationManager.NavigateTo(NavigationManager.Uri, true);
-        }
-        loading = false;
-    }
-
-    private async Task HandlePasswordChange()
-    {
-        loading = true;
-        var response = await AuthService.EditPassword(editPasswordRequest);
-        if (response)
-        {
-            NavigationManager.NavigateTo(NavigationManager.Uri, true);
-        }
-
-        loading = false;
-    }
+	private EditAccountComponent editAccount = default!;
+	private EditPasswordComponent editPassword = default!;
 }

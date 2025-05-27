@@ -42,7 +42,7 @@
                                         </h5>
                                         <Dropdown Class="ms-auto py-2 py-sm-0 d-none d-sm-block">
                                             <DropdownToggleButton Class="p-0 border-0 logo-highlight">
-                                                <Icon Name="IconName.Gear" /> Edit
+                                                <Icon Name="IconName.Gear" /> Settings
                                             </DropdownToggleButton>
                                             <DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
                                                 <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick(true))"><Icon Name="IconName.Pencil" /> Edit name</DropdownItem>
@@ -50,7 +50,7 @@
                                                 <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick(false))"><Icon Name="IconName.HouseGear" /> Edit room</DropdownItem>
                                             </DropdownMenu>
                                         </Dropdown>
-                                        <EditDeviceDetails @ref="editDeviceDetails" Device="device"/>
+                                        <EditDeviceDetailsComponent @ref="editDeviceDetails" Device="device"/>
                                     </div>
                                     <div class="card-body">
                                         <dl class="row mb-0">
@@ -126,7 +126,7 @@
                                     <div class="card-body bg-secondary-subtle">
 
                                         <WidgetProvider Device="device">
-                                            <ProviderTemplate Class="row row-cols-2 g-3">
+                                            <ProviderTemplate Class="row row-cols-1 row-cols-lg-2 g-3">
                                                 <div class="col">
                                                     <ProviderContent Class="card"
                                                         HeaderClass="card-header"
@@ -193,7 +193,7 @@
     private Timer? refreshTimer;
     private string dateString { get; set; }
 
-    private EditDeviceDetails editDeviceDetails = default!;
+    private EditDeviceDetailsComponent editDeviceDetails = default!;
 
     // Initialize the page and load device data
     protected override async Task OnInitializedAsync()
