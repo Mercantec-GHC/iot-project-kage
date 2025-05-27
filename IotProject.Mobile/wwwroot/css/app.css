@@ -97,3 +97,7 @@ h1:focus {
     border-color: var(--mud-palette-divider);
     border-bottom-width: 1px !important;
 }
+
+.mud-table-hover .mud-table-body .mud-table-row {
+    cursor: pointer;
+}
