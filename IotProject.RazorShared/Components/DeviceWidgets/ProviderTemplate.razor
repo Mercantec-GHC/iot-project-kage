@@ -39,6 +39,11 @@
             {
                 builder.OpenComponent(0, typeof(DisplayWidget));
                 builder.CloseComponent();
+            },
+            builder =>
+            {
+                builder.OpenComponent(0, typeof(LedWidget));
+                builder.CloseComponent();
             }
         }
     };

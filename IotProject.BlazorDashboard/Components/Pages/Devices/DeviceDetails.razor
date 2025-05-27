@@ -53,20 +53,20 @@
                                         <EditDeviceDetails @ref="editDeviceDetails" Device="device"/>
                                     </div>
                                     <div class="card-body">
-                                        <dl class="row mb-0">
-                                            <dt class="col-sm-4 text-muted">Name</dt>
-                                            <dd class="col-sm-8 fw-bold">@device.Name</dd>
+                                        <div class="row mb-0">
+                                            <div class="col-sm-4 text-muted">Name</div>
+                                            <div class="col-sm-8 fw-bold">@device.Name</div>
 
                                             <dt class="col-sm-4 text-muted">Type</dt>
                                             <dd class="col-sm-8">@DeviceTypes.GetDeviceType(device.Type)?.TypeName</dd>
 
-                                            <dt class="col-sm-4 text-muted">Room</dt>
-                                            <dd class="col-sm-8">
+                                            <div class="col-sm-4 text-muted">Room</div>
+                                            <div class="col-sm-8">
                                                 <span class="badge bg-primary">@(device.RoomId ?? "Not assigned")</span>
-                                            </dd>
+                                            </div>
 
-                                            <dt class="col-sm-4 text-muted">Last Update</dt>
-                                            <dd class="col-sm-8">
+                                            <div class="col-sm-4 text-muted">Last Update</div>
+                                            <div class="col-sm-8">
                                                 @if (device.LastUpdate.HasValue)
                                                 {
                                                     <span class="text-success">
@@ -78,8 +78,8 @@
                                                 {
                                                     <span class="text-muted">Never</span>
                                                 }
-                                            </dd>
-                                        </dl>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -94,15 +94,15 @@
                                     <div class="card-body">
                                         @if (device.Data != null && device.Data.Any())
                                         {
-                                            <dl class="row mb-0">
+                                            <div class="row mb-0">
                                                 @foreach (var item in device.Data)
                                                 {
-                                                    <dt class="col-sm-4 text-muted">@item.Key</dt>
-                                                    <dd class="col-sm-8">
+                                                    <div class="col-sm-4 text-muted">@item.Key</div>
+                                                    <div class="col-sm-8">
                                                         <span class="badge bg-info text-dark">@item.Value</span>
-                                                    </dd>
+                                                    </div>
                                                 }
-                                            </dl>
+                                            </div>
                                         }
                                         else
                                         {
@@ -134,35 +134,6 @@
                                                 </div>
                                             </ProviderTemplate>
                                         </WidgetProvider>
-
-                                        @* <div class="row g-4">
-                                            <div class="col-12 col-md-6">
-                                                <div class="card h-100 border-0">
-                                                    <div class="card-body">
-                                                        <h6 class="card-subtitle mb-3 text-muted">
-                                                            <i class="bi bi-box me-2"></i>Widget 1
-                                                        </h6>
-                                                        <div class="text-center py-4">
-                                                            <i class="bi bi-plus-circle text-muted" style="font-size: 2rem;"></i>
-                                                            <p class="text-muted mt-2 mb-0">Widget content will be added here</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-12 col-md-6">
-                                                <div class="card h-100 border-0">
-                                                    <div class="card-body">
-                                                        <h6 class="card-subtitle mb-3 text-muted">
-                                                            <i class="bi bi-box me-2"></i>Widget 2
-                                                        </h6>
-                                                        <div class="text-center py-4">
-                                                            <i class="bi bi-plus-circle text-muted" style="font-size: 2rem;"></i>
-                                                            <p class="text-muted mt-2 mb-0">Widget content will be added here</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div> *@
                                     </div>
                                 </div>
                             </div>
