@@ -25,8 +25,9 @@
                 <TemplateColumn T="DeviceResponse" Title="Status" >
                     <CellTemplate >
                         @{
-                            var text = IsDeviceOnline(context.Item) ? "Online" : "Offline";
-                            var color = IsDeviceOnline(context.Item) ? Color.Success : Color.Error;
+                            var online = IsDeviceOnline(context.Item);
+                            var text = online ? "Online" : "Offline";
+                            var color = online ? Color.Success : Color.Error;
 
                             <MudChip Color="@color" Size="Size.Small">@text</MudChip>
                         }

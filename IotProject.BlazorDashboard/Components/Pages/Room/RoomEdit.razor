@@ -89,8 +89,8 @@
     private RoomEditModel room = new();
     private bool isLoading = true;
 
-    private string imageUrl => $"{roomService.GetImageUrl(Id)}?t={imageCacheBuster}";
-    private string imageCacheBuster = Guid.NewGuid().ToString();
+    private string imageUrl => $"{roomService.GetImageUrl(Id)}?no-cache={imageCacheBuster}";
+    private long imageCacheBuster = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
 
 
@@ -145,7 +145,7 @@
     {
         if (await roomService.SetRoomImage(Id, "room_image_input"))
         {
-            imageCacheBuster = Guid.NewGuid().ToString();
+            imageCacheBuster = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             await InvokeAsync(StateHasChanged);
         }
     }

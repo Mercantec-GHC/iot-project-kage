@@ -1,0 +1,51 @@
+@inject RoomService roomService
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mr-3 mb-n1" />
+            Remove Room
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Class="mb-3" Typo="Typo.body1" Color="Color.Error">Are you sure? This can not be undone!</MudText>
+        <MudText Typo="Typo.body2">Removing the room, does not remove your devices.</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Disabled="loading" Color="Color.Error" OnClick="Submit">
+            @if (loading)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <p Class="ms-2">Removing</p>
+            }
+            else
+            {
+                <p>Remove</p>
+            }
+            </MudButton>
+        <MudButton Disabled="loading" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string RoomId { get; set; }
+
+    private bool loading = false;
+
+    private async Task Submit()
+    {
+        loading = true;
+
+        if (await roomService.DeleteRoom(RoomId))
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        loading = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

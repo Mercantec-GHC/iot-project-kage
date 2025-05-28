@@ -23,7 +23,7 @@ else
                             <CardHeader Class="p-0">
                                 <div class="w-100">
                                     <div class="ratio ratio-16x9">
-                                        <img src="@($"{roomService.GetImageUrl(room.Id)}?no-cache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")" onerror="this.onerror=null; this.src='images/room.jpg'" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
+                                        <img src="@($"{roomService.GetImageUrl(room.Id)}?no-cache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
                                     </div>
                                     
                                 </div>
