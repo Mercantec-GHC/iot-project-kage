@@ -1,28 +1,28 @@
-@inject AuthService AuthService
+@inject IotDeviceService DeviceService
 
-<EditForm Model="passwordModel" OnValidSubmit="Submit">
+<EditForm Model="Device" OnValidSubmit="Submit
+"><DataAnnotationsValidator />
     <DataAnnotationsValidator />
     <MudDialog>
         <TitleContent>
             <MudText Typo="Typo.h6">
-                <MudIcon Icon="@Icons.Material.Filled.Key" Class="mr-3 mb-n1" />
-                Change Password
+                <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3 mb-n1" />
+                Edit Device Information
             </MudText>
         </TitleContent>
         <DialogContent>
-            <MudTextField Class="mt-1" Label="New Password" @bind-Value="passwordModel.Password" For="@(() => passwordModel.Password)" InputType="InputType.Password" />
-            <MudTextField Class="mt-1" Label="Confirm Password" @bind-Value="passwordModel.ConfirmPassword" For="@(() => passwordModel.ConfirmPassword)" InputType="InputType.Password" />
+            <MudTextField Class="mt-1" Label="Name" @bind-Value="Device.Name" />
         </DialogContent>
         <DialogActions>
             <MudButton Disabled="loading" Color="Color.Primary" ButtonType="ButtonType.Submit">
                 @if (loading)
                 {
                     <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                    <p Class="ms-2">Confirming</p>
+                    <p Class="ms-2">Saving</p>
                 }
                 else
                 {
-                    <p>Confirm</p>
+                    <p>Save</p>
                 }
             </MudButton>
             <MudButton Disabled="loading" OnClick="Cancel">Cancel</MudButton>
@@ -34,13 +34,16 @@
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }
 
-    private UserEditPasswordRequest passwordModel = new();
+    [Parameter]
+    public DeviceNameRequest Device { get; set; }
+
     private bool loading = false;
 
-    private async Task Submit()
+    private async void Submit()
     {
         loading = true;
-        if (await AuthService.EditPassword(passwordModel))
+        var result = await DeviceService.EditDeviceName(Device);
+        if (result)
         {
             MudDialog.Close(DialogResult.Ok(true));
         }

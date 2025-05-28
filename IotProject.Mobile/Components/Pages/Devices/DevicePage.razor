@@ -1,5 +1,6 @@
 @page "/device/{DeviceId}"
 @inject IotDeviceService DeviceService
+@inject NavigationManager navigationManager
 @inject IDialogService DialogService
 
 @if (device != null)
@@ -20,7 +21,14 @@
                                 <MudText Typo="Typo.h6">Device Information</MudText>
                             </CardHeaderContent>
                             <CardHeaderActions>
-                                <MudIconButton Class="pa-2" Icon="@Icons.Material.Filled.Settings" Color="Color.Default" @onclick="OpenEditDialogAsync" />
+                                @* <MudIconButton Class="pa-2" Icon="@Icons.Material.Filled.Settings" Color="Color.Default" @onclick="OpenEditDialogAsync" /> *@
+                                <MudMenu Icon="@Icons.Material.Filled.Settings"
+                                    Color="Color.Default"
+                                    AriaLabel="Open settings menu">
+                                        <MudMenuItem Label="Rename Device" OnClick="OpenRenameDialogAsync" />
+                                        <MudMenuItem Label="Change Room" OnClick="OpenRenameDialogAsync" />
+                                        <MudMenuItem Label="Remove Device" OnClick="OpenRemoveDialogAsync" />
+                                </MudMenu>
                             </CardHeaderActions>
                         </MudCardHeader>
 
@@ -150,9 +158,40 @@
         }
     }
 
-    private async Task OpenEditDialogAsync()
+    private async Task OpenRenameDialogAsync()
     {
-        var dialogReference = await DialogService.ShowAsync<EditDialog>("Edit Device Information", dialogOptions);
+        var parameters = new DialogParameters
+        {
+            { "Device", new DeviceNameRequest
+                {
+                    Id = device.Id,
+                    Name = device.Name
+                }
+            }
+        };
+
+        var dialogReference = await DialogService.ShowAsync<RenameDialog>("Rename Device", parameters, dialogOptions);
+        var dialogResult = await dialogReference.Result;
+        if (!dialogResult!.Canceled)
+        {
+            device = await DeviceService.GetDevice(DeviceId);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OpenRemoveDialogAsync()
+    {
+        var parameters = new DialogParameters
+        {
+            { "DeviceId", DeviceId }
+        };
+
+        var dialogReference = await DialogService.ShowAsync<RemoveDialog>("Remove Device", parameters, dialogOptions);
+        var dialogResult = await dialogReference.Result;
+        if (!dialogResult!.Canceled)
+        {
+            navigationManager.NavigateTo("devices");
+        }
     }
     
     // Check if a device is online based on last update time

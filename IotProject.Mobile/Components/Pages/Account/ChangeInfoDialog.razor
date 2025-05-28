@@ -1,4 +1,5 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject AuthService AuthService
 
 <EditForm Model="infoModel" OnValidSubmit="Submit">
     <DataAnnotationsValidator />
@@ -46,10 +47,13 @@
         infoModel.Email = state.User.Claims.FirstOrDefault(c => c.Type == "Email")?.Value;
     }
 
-    private void Submit()
+    private async Task Submit()
     {
         loading = true;
-        MudDialog.Close(DialogResult.Ok(true));
+        if (await AuthService.EditInfo(infoModel))
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
         loading = false;
     }
 
