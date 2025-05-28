@@ -194,7 +194,7 @@ namespace IotProject.API.Controllers
             return Ok("User password has been changed."); 
         }
 
-        [HttpDelete("Delete"), Authorize]
+        [HttpPost("Delete"), Authorize]
         public async Task<ActionResult> Delete(UserDeleteRequest userDelete)
         {
             var user = await GetSignedInUser();

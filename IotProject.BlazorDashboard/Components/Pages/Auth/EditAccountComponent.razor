@@ -1,0 +1,94 @@
+﻿@inject AuthService AuthService
+
+<Modal @ref="modal" HeaderCssClass="d-none" BodyCssClass="p-0">
+	<BodyTemplate>
+		<div class="modal-header">
+			<div class="text-center w-100">
+				<div class="auth-logo">
+					<Icon Name="IconName.PersonCircle" Style="font-size: 2rem;" Class="icon-gradient"/>
+				</div>
+				<h1 style="font-size: 1.5rem; margin-bottom: .25rem;"><b>Account Settings</b></h1>
+				<p class="mb-0" style="font-size: .875rem; opacity: .9;">Manage your account information</p>
+			</div>
+		</div>
+		<EditForm Model="@userInfo" OnValidSubmit="HandleEdit">
+			<DataAnnotationsValidator />
+			<div class="modal-body">
+				<div class="row g-3">
+					<div class="col-12 col-md-6">
+						<label class="form-label">First name</label>
+						<TextInput Id="FirstName" @bind-Value="userInfo.FirstName" Placeholder="First name"/>
+					</div>
+					<div class="col-12 col-md-6">
+						<label class="form-label">Last name</label>
+						<TextInput Id="LastName" @bind-Value="userInfo.LastName" Placeholder="Last name"/>
+					</div>
+					<div class="col-12">
+						<label class="form-label">Email</label>
+						<TextInput Id="Email" @bind-Value="userInfo.Email" Placeholder="Email"/>
+						<ValidationMessage For="@(() => userInfo.Email)" />						
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer d-block p-3">
+				<div class="row g-3 m-0">
+					<div class="col-12 col-md-6">
+						<Button Type="ButtonType.Submit" Class="btn-gradient w-100" Loading="loading" LoadingText="Saving changes" Disabled="loading">Save changes</Button>
+					</div>
+					<div class="col-12 col-md-6">
+						<Button Class="btn-gradient w-100" @onclick="@(() => modal.HideAsync())">Cancel</Button>
+					</div>
+				</div>
+			</div>
+		</EditForm>
+	</BodyTemplate>
+</Modal>
+
+@code {
+	[CascadingParameter]
+	private Task<AuthenticationState?> AuthenticationState { get; set; }
+
+	private UserEditInformationRequest userInfo = new();
+
+	private Modal modal = default!;
+	private bool loading = false;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			var authState = await AuthenticationState;
+			var user = authState?.User;
+			if (user != null)
+			{
+				userInfo.FirstName = user.FindFirst("FirstName")?.Value ?? "";
+				userInfo.LastName = user.FindFirst("LastName")?.Value ?? "";
+				userInfo.Email = user.FindFirst("Email")?.Value ?? "";
+			}
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	public async Task OnShowModalClick()
+	{
+		await modal.ShowAsync();
+		
+	}
+
+	public async Task OnHideModalClick()
+	{
+		await modal.HideAsync();
+	}
+
+	private async Task HandleEdit()
+	{
+		loading = true;
+		var response = await AuthService.EditInfo(userInfo);
+		if (response)
+		{
+			await modal.HideAsync();
+			await InvokeAsync(StateHasChanged);
+		}
+		loading = false;
+	}
+}

@@ -32,7 +32,7 @@ namespace IotProject.RazorShared.Services
 
             var roomResult = JsonSerializer.Deserialize<List<RoomGetResponse>>(await response.Content.ReadAsStringAsync(), JsonOptions);
 
-            return roomResult!;
+            return roomResult?.OrderBy(r => r.Name).ToList()!;
         }
 
         public async Task<RoomGetResponse?> GetRoom(string id)
