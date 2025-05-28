@@ -101,3 +101,66 @@ h1:focus {
 .mud-table-hover .mud-table-body .mud-table-row {
     cursor: pointer;
 }
+
+.ratio {
+    position: relative;
+    width: 100%;
+}
+
+    .ratio::before {
+        display: block;
+        padding-top: var(--aspect-ratio);
+        content: "";
+    }
+
+    .ratio > * {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+.ratio-1x1 {
+    --aspect-ratio: 100%;
+}
+
+.ratio-4x3 {
+    --aspect-ratio: calc(3 / 4 * 100%);
+}
+
+.ratio-16x9 {
+    --aspect-ratio: calc(9 / 16 * 100%);
+}
+
+.ratio-21x9 {
+    --aspect-ratio: calc(9 / 21 * 100%);
+}
+
+.overflow-hidden {
+    overflow: hidden !important;
+}
+
+.title-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    height: 1.4em;
+}
+
+.description-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    height: 3.0em;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}

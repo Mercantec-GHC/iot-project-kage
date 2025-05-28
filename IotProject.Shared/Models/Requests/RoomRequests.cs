@@ -17,7 +17,9 @@ namespace IotProject.Shared.Models.Requests
 	public class RoomUpdateRequest
 	{
 		public string Id { get; set; }
-		public string Name { get; set; }
+
+        [Required(ErrorMessage = "Name is required.")]
+        public string Name { get; set; }
 		public string? Description { get; set; }
 	}
 }

@@ -1,0 +1,55 @@
+@inject RoomService RoomService
+
+<EditForm Model="room" OnValidSubmit="Submit"><DataAnnotationsValidator />
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Home" Class="mr-3 mb-n1" />
+                Add Room
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudTextField Class="mt-1" Label="Name" @bind-Value="room.Name" For="@(() => room.Name)" />
+            <MudTextField T="string" Label="Description" @bind-Value="room.Description" Lines="3" />
+        </DialogContent>
+        <DialogActions>
+            <MudButton Disabled="loading" Color="Color.Primary" ButtonType="ButtonType.Submit">
+                @if (loading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <p Class="ms-2">Processing</p>
+                }
+                else
+                {
+                    <p>Add</p>
+                }
+            </MudButton>
+            <MudButton Disabled="loading" OnClick="Cancel">Cancel</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private RoomCreateRequest room = new();
+
+    private bool loading = false;
+
+    private async Task Submit()
+    {
+        loading = true;
+
+        var result = await RoomService.AddRoom(room);
+        if (result)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+
+        loading = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
