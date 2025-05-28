@@ -11,7 +11,7 @@ namespace program
     void HttpDataRequest(String);
     void HttpGetLedConfigRequest();
     void displayCenteredText(String, int);
-
+    
     MKRIoTCarrier carrier;
     WiFiClient wifi;
     HttpClient client = HttpClient(wifi, "10.133.51.113", 6970);
@@ -54,7 +54,6 @@ namespace program
         if(carrier.Light.colorAvailable()) {
             carrier.Light.readColor(r,g,b);
         }
-        uint32_t readColor = carrier.leds.Color(r, g, b);
         
         unsigned long currenTime = millis();
         bool significantChange = abs(tempC - lastTempC) >= 5.0;
@@ -278,4 +277,6 @@ namespace program
             centerY += lineHeight; // Move to next time
         }
     }
+
+    
 }

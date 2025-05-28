@@ -50,7 +50,10 @@ namespace IotProject.Shared.Models.Requests
 
     public class UserEditPasswordRequest
     {
-        [Required(ErrorMessage = "Password is required.")]
+        [Required(ErrorMessage = "Current password is required.")]
+        public string CurrentPassword { get; set; }
+
+        [Required(ErrorMessage = "A new password is required.")]
         [StringLength(64, ErrorMessage = "Password must be at least 8 characters.",  MinimumLength = 8)]
         [RegularExpression(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_])[^\s]{8,}$", ErrorMessage = "Password is not secure.")]
         public string Password { get; set; }

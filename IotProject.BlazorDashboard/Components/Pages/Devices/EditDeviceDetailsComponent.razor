@@ -1,8 +1,7 @@
-﻿@inject IotDeviceService DeviceService
-@inject RoomService RoomService
+﻿@inject ApiService ApiService
 
 
-<Modal @ref="modal" Title="Edit Device" BodyCssClass="p-0">
+<Modal @ref="modal" Title="@(EditName ? "Edit device" : "Change room")" BodyCssClass="p-0">
 	<BodyTemplate>
 		@if (EditName)
 		{
@@ -37,7 +36,7 @@
 							<Dropdown Class="py-2 py-sm-0 d-none d-sm-block">
 								<DropdownToggleButton Class="p-0 border-0 logo-highlight">@SelectedRoomName</DropdownToggleButton>
 								<DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
-									@foreach (var room in rooms)
+									@foreach (var room in Rooms)
 									{
 										<DropdownItem @onclick="() => SelectedRoom(room.Id, room.Name)">@room.Name</DropdownItem>
 										<DropdownDivider />
@@ -54,7 +53,7 @@
 							<Button Type="ButtonType.Submit" Class="btn-gradient w-100" Loading="loading" LoadingText="Saving changes" Disabled="loading">Submit</Button>
 						</div>
 						<div class="col-12 col-md-6">
-							<Button Class="btn-gradient w-100" @onclick="@(() => modal.HideAsync())">Canacel</Button>
+							<Button Class="btn-gradient w-100" @onclick="@(() => modal.HideAsync())">Cancel</Button>
 						</div>
 					</div>
 				</div>
@@ -66,13 +65,14 @@
 @code {
 	[Parameter]
 	public DeviceResponse Device { get; set; }
+	[Parameter]
+	public List<RoomGetResponse> Rooms { get; set; }
 
 	private bool EditName; 
 	private bool EditRoom;
 	private bool loading = false;
 	private Modal modal = default!;
 	private string SelectedRoomName = "No room";
-	private List<RoomGetResponse> rooms = new();
 	private DeviceNameRequest requestNameModel = new();
 	private DeviceRoomRequest requestRoomModel = new();
 
@@ -86,7 +86,7 @@
 	private async Task HandleEditRoom()
 	{
 		loading = true;
-		var response = await DeviceService.EditDeviceRoom(requestRoomModel);
+		var response = await ApiService.EditDeviceRoom(requestRoomModel);
 		if (response) await modal.HideAsync();
 		loading = false;
 	}
@@ -95,7 +95,7 @@
 	{
 		requestNameModel.Id = Device.Id;
 		loading = true;
-		var response = await DeviceService.EditDeviceName(requestNameModel);
+		var response = await ApiService.EditDeviceName(requestNameModel);
 		if (response) await modal.HideAsync();
 		loading = false;
 	}
@@ -111,7 +111,14 @@
 		}
 		else if (EditRoom)
 		{
-			rooms = await RoomService.GetAll();
+			foreach (var room in Rooms)
+			{
+				if (room.Id == Device.RoomId)
+				{
+					SelectedRoomName = room.Name;
+				}
+			}
+
 			await InvokeAsync(StateHasChanged);
 		}
 	}

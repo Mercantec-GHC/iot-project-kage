@@ -1,4 +1,4 @@
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
 
 <h4 class="@HeaderClass">Arduino Display Text</h4>
 
@@ -68,6 +68,6 @@
 			}
 		};
 
-		await DeviceService.UpdateDeviceConfiguration(Device.Id, config);
+		await ApiService.UpdateDeviceConfiguration(Device.Id, config);
 	}
 }

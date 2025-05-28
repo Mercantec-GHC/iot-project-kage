@@ -183,7 +183,8 @@ namespace IotProject.API.Controllers
         {
             var user = await GetSignedInUser();
             if (user == null) return StatusCode(500);
-            if (string.IsNullOrEmpty(userEditPassword.Password) || string.IsNullOrEmpty(userEditPassword.ConfirmPassword)) return BadRequest("Password can't be empty.");
+            if (string.IsNullOrEmpty(userEditPassword.CurrentPassword) || string.IsNullOrEmpty(userEditPassword.Password) || string.IsNullOrEmpty(userEditPassword.ConfirmPassword)) return BadRequest("Password can't be empty.");
+            if (!BCrypt.Net.BCrypt.Verify(userEditPassword.CurrentPassword, user.Password)) return BadRequest("Current password does not match.");
             if (userEditPassword.Password != userEditPassword.ConfirmPassword) return BadRequest("Passwords do not match.");
             if (!IsPasswordSecure(userEditPassword.Password)) return BadRequest("Password not secure.");
             if (BCrypt.Net.BCrypt.Verify(userEditPassword.Password, user.Password)) return BadRequest("Password is already used.");
