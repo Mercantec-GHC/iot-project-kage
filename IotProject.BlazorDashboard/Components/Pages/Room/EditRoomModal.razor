@@ -1,0 +1,79 @@
+﻿@inject RoomService roomService
+@inject NavigationManager navigationManager
+
+<Modal @ref="editRoomModal" Title="Edit Room" Size="ModalSize.Regular">
+    <HeaderTemplate>
+        <h5 class="modal-title" id="EditRoomModadlLabel">Edit Room</h5>
+    </HeaderTemplate>
+
+    <BodyTemplate>
+        @if (isLoading)
+        {
+            <div class="text-center my-3">
+                <div class="spinner-border text-danger" role="status"></div>
+                <div>Loading room details...</div>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="editModel" OnValidSubmit="HandleEditRoom">
+                <div class="mb-3">
+                    <label for="room-name" class="col-form-label">Room name: </label>
+                    <InputText Id="room-name" Class="form-control" @bind-Value="editModel.Name" />
+                </div>
+                <div class="mb-3">
+                    <label for="room-description" class="col-form-label">Room description: </label>
+                    <InputTextArea Id="room-description" Class="form-control" @bind-Value="editModel.Description" />
+                </div>
+                <button type="submit" class="btn btn-gradient text-white w-100 mt-4">Save changes</button>
+            </EditForm>
+        }
+    </BodyTemplate>
+</Modal>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    [Parameter] public RoomGetResponse room { get; set; }
+    public RoomUpdateRequest editModel { get; set; } = new();
+    public Modal editRoomModal = default!;
+    public string? roomIdToEdit;
+    public bool isLoading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isLoading = true;
+
+            room = await roomService.GetRoom(Id);
+
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public async Task OnShowEditRoomModalClick()
+    {
+        isLoading = true;
+        roomIdToEdit = room.Id;
+        await editRoomModal.ShowAsync();
+        await InvokeAsync(StateHasChanged);
+        isLoading = false;
+    }
+
+    public async Task HandleEditRoom()
+    {
+        editModel.Id = room.Id;
+        var success = await roomService.UpdateRoom(editModel);
+        await InvokeAsync(StateHasChanged);
+
+        if (!string.IsNullOrEmpty(roomIdToEdit))
+        {
+            await editRoomModal.HideAsync();
+            navigationManager.NavigateTo($"/rooms/details/{roomIdToEdit}", forceLoad: true);
+            roomIdToEdit = null;
+        }
+    }
+}
