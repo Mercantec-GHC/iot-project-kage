@@ -14,28 +14,24 @@
                     <hr class="d-sm-none my-0 text-white-50">
                 </div>
                 <NavLink class="nav-item nav-link" href="/devices">
-                    <Icon Name="IconName.Laptop" /> Devices
+                    <Icon Name="IconName.Cpu" /> Devices
                 </NavLink>
                 <NavLink class="nav-item nav-link" href="/rooms">
-                    <Icon Name="IconName.Building" /> Rooms
+                    <Icon Name="IconName.Houses" /> Rooms
                 </NavLink>
             </div>
-            <AuthorizeView>
-                <Authorized>
-                    <div class="navbar-nav" >
-                        <Dropdown Class="nav-item py-2 py-sm-0 d-none d-sm-block">
-                            <DropdownToggleButton Class="nav-link p-0 border-0 logo-highlight">
-                                <Icon Name="IconName.PersonVCardFill"/> Account
-                            </DropdownToggleButton>
-                            <DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
-                                <DropdownItem To="/account" Type="DropdownItemType.Link"><Icon Name="IconName.PersonGear" /> Settings</DropdownItem>
-                                <DropdownDivider />
-                                <DropdownItem To="/logout" Type="DropdownItemType.Link"><Icon Name="IconName.BoxArrowRight"/> Logout</DropdownItem>
-                            </DropdownMenu>
-                        </Dropdown>
-                    </div>
-                </Authorized>
-            </AuthorizeView>
+            <div class="navbar-nav" >
+                <Dropdown Class="nav-item py-2 py-sm-0 d-block">
+                    <DropdownToggleButton Class="nav-link p-0 border-0 logo-highlight">
+                        <Icon Name="IconName.PersonVCard"/> Account
+                    </DropdownToggleButton>
+                    <DropdownMenu Position="DropdownMenuPosition.End" Class="text-start text-sm-center">
+                        <DropdownItem To="/account" Type="DropdownItemType.Link"><Icon Name="IconName.PersonCircle" /> Account</DropdownItem>
+                        <DropdownDivider />
+                        <DropdownItem To="/logout" Type="DropdownItemType.Link"><Icon Name="IconName.BoxArrowRight"/> Logout</DropdownItem>
+                    </DropdownMenu>
+                </Dropdown>
+            </div>
         </NavbarCollapse> 
     </div>
 </nav>

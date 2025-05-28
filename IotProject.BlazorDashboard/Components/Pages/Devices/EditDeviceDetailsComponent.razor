@@ -1,0 +1,123 @@
+﻿@inject IotDeviceService DeviceService
+@inject RoomService RoomService
+
+
+<Modal @ref="modal" Title="Edit Device" BodyCssClass="p-0">
+	<BodyTemplate>
+		@if (EditName)
+		{
+			<EditForm Model="@requestNameModel" OnValidSubmit="HandleEditName">
+				<div class="modal-body">
+					<div class="row g-3">
+						<div class="col-12">
+							<label>Name:</label>
+							<TextInput Id="EditedName" @bind-Value="requestNameModel.Name" Placeholder="@DeviceTypes.GetDeviceType(Device.Type)?.Name" />
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer d-block p-3">
+					<div class="row g-3 m-0">
+						<div class="col-12 col-md-6">
+							<Button Type="ButtonType.Submit" Class="btn-gradient w-100" Loading="loading" LoadingText="Saving changes" Disabled="loading">Submit</Button>
+						</div>
+						<div class="col-12 col-md-6">
+							<Button Class="btn-gradient w-100" @onclick="@(() => modal.HideAsync())">Cancel</Button>
+						</div>
+					</div>
+				</div>
+			</EditForm>
+		} 
+		else if (EditRoom)
+		{
+			<EditForm Model="@requestRoomModel" OnValidSubmit="HandleEditRoom">
+				<div class="modal-body">
+					<div class="row g-3">
+						<div class="col-12">
+							<label>Room:</label>
+							<Dropdown Class="py-2 py-sm-0 d-none d-sm-block">
+								<DropdownToggleButton Class="p-0 border-0 logo-highlight">@SelectedRoomName</DropdownToggleButton>
+								<DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
+									@foreach (var room in rooms)
+									{
+										<DropdownItem @onclick="() => SelectedRoom(room.Id, room.Name)">@room.Name</DropdownItem>
+										<DropdownDivider />
+									}
+									<DropdownItem @onclick="() => SelectedRoom(null!, null!)">No room</DropdownItem>
+								</DropdownMenu>
+							</Dropdown>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer d-block p-3">
+					<div class="row g-3 m-0">
+						<div class="col-12 col-md-6">
+							<Button Type="ButtonType.Submit" Class="btn-gradient w-100" Loading="loading" LoadingText="Saving changes" Disabled="loading">Submit</Button>
+						</div>
+						<div class="col-12 col-md-6">
+							<Button Class="btn-gradient w-100" @onclick="@(() => modal.HideAsync())">Canacel</Button>
+						</div>
+					</div>
+				</div>
+			</EditForm>
+		}
+	</BodyTemplate>
+</Modal>
+
+@code {
+	[Parameter]
+	public DeviceResponse Device { get; set; }
+
+	private bool EditName; 
+	private bool EditRoom;
+	private bool loading = false;
+	private Modal modal = default!;
+	private string SelectedRoomName = "No room";
+	private List<RoomGetResponse> rooms = new();
+	private DeviceNameRequest requestNameModel = new();
+	private DeviceRoomRequest requestRoomModel = new();
+
+	private void SelectedRoom(string roomId, string roomName)
+	{
+		requestRoomModel.Id = Device.Id;
+		requestRoomModel.RoomId = roomId;
+		SelectedRoomName = roomName;
+	}
+
+	private async Task HandleEditRoom()
+	{
+		loading = true;
+		var response = await DeviceService.EditDeviceRoom(requestRoomModel);
+		if (response) await modal.HideAsync();
+		loading = false;
+	}
+
+	private async Task HandleEditName()
+	{
+		requestNameModel.Id = Device.Id;
+		loading = true;
+		var response = await DeviceService.EditDeviceName(requestNameModel);
+		if (response) await modal.HideAsync();
+		loading = false;
+	}
+
+	public async Task OnShowModalClick(bool editName)
+	{
+		EditName = editName;
+		EditRoom = !editName;
+		await modal.ShowAsync();
+		if (EditName)
+		{
+			requestNameModel.Name = Device.Name;
+		}
+		else if (EditRoom)
+		{
+			rooms = await RoomService.GetAll();
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	public async Task OnHideModalClick()
+	{
+		await modal.HideAsync();
+	}
+}
