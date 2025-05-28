@@ -1,4 +1,4 @@
-@inject RoomService RoomService
+@inject ApiService ApiService
 
 <EditForm Model="room" OnValidSubmit="Submit"><DataAnnotationsValidator />
     <DataAnnotationsValidator />
@@ -42,7 +42,7 @@
     {
         loading = true;
 
-        var result = await RoomService.AddRoom(room);
+        var result = await ApiService.AddRoom(room);
         if (result)
         {
             MudDialog.Close(DialogResult.Ok(true));

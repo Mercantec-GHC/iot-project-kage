@@ -15,7 +15,7 @@
                     <DropdownDivider Class="m-0"/>
                     <DropdownItem @onclick="@(() => updateRoomImageModal.OnShowUpdateRoomImageModalClick())" Type="DropdownItemType.Button">Update Image</DropdownItem>
                     <DropdownDivider Class="m-0"/>
-                    <DropdownItem @onclick="@(() => deleteRoomModal.OnShowModalClick())" Type="DropdownItemType.Button">Delete</DropdownItem>
+                    <DropdownItem @onclick="@(() => deleteRoomModal.OnShowModalClick())" Type="DropdownItemType.Button">Remove</DropdownItem>
                 </DropdownMenu>
             </Dropdown>
             <DeleteRoomModal @ref="deleteRoomModal" room="room"></DeleteRoomModal>

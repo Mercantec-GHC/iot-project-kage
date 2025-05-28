@@ -1,5 +1,5 @@
 @page "/rooms"
-@inject RoomService roomService
+@inject ApiService ApiService
 @inject NavigationManager navigationManager
 @inject IDialogService DialogService
 
@@ -40,7 +40,7 @@
                         <a href="@($"room/{room.Id}")">
                             <MudCard Class="overflow-hidden" Outlined="true">
                                 <div class="ratio ratio-16x9">
-                                    <img src="@($"{roomService.GetImageUrl(room.Id)}?no-cache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
+                                    <img src="@($"{ApiService.GetImageUrl(room.Id)}?no-cache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
                                 </div>
                                 <MudDivider />
                                 <MudCardHeader Class="pb-2 pt-1">
@@ -82,7 +82,7 @@
     private async Task FetchRooms()
     {
         isLoadingRooms = true;
-        rooms = await roomService.GetAll();
+        rooms = await ApiService.GetAllRooms();
         isLoadingRooms = false;
         await InvokeAsync(StateHasChanged);
     }
@@ -93,7 +93,7 @@
         var dialogResult = await dialogReference.Result;
         if (!dialogResult!.Canceled)
         {
-            rooms = await roomService.GetAll();
+            rooms = await ApiService.GetAllRooms();
             await InvokeAsync(StateHasChanged);
         }
     }
