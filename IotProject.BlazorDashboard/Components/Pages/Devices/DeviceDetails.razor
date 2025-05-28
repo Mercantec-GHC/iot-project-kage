@@ -49,7 +49,7 @@
                                                 <DropdownDivider />
                                                 <DropdownItem @onclick="@(() => editDeviceDetails.OnShowModalClick(false))">Change room</DropdownItem>
                                                 <DropdownDivider/>
-                                                <DropdownItem @onclick="@(() => deleteDevice.OnShowModalClick())">Delete device</DropdownItem>
+                                                <DropdownItem @onclick="@(() => deleteDevice.OnShowModalClick())">Remove device</DropdownItem>
                                             </DropdownMenu>
                                         </Dropdown>
                                         <EditDeviceDetailsComponent @ref="editDeviceDetails" Device="device" Rooms="rooms"/>

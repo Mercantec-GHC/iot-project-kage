@@ -1,5 +1,5 @@
 @page "/device/{DeviceId}"
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
 @inject NavigationManager navigationManager
 @inject IDialogService DialogService
 
@@ -153,7 +153,7 @@
     {
         if (firstRender)
         {
-            device = await DeviceService.GetDevice(DeviceId);
+            device = await ApiService.GetDevice(DeviceId);
             await InvokeAsync(StateHasChanged);
         }
     }
@@ -174,7 +174,7 @@
         var dialogResult = await dialogReference.Result;
         if (!dialogResult!.Canceled)
         {
-            device = await DeviceService.GetDevice(DeviceId);
+            device = await ApiService.GetDevice(DeviceId);
             await InvokeAsync(StateHasChanged);
         }
     }

@@ -1,4 +1,4 @@
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
 
 <MudDialog>
     <TitleContent>
@@ -45,7 +45,7 @@
             Id = DeviceId
         };
 
-        if (await DeviceService.DeleteDevice(request))
+        if (await ApiService.DeleteDevice(request))
         {
             MudDialog.Close(DialogResult.Ok(true));
         }

@@ -1,4 +1,4 @@
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
 
 <EditForm Model="Device" OnValidSubmit="Submit
 "><DataAnnotationsValidator />
@@ -42,7 +42,7 @@
     private async void Submit()
     {
         loading = true;
-        var result = await DeviceService.EditDeviceName(Device);
+        var result = await ApiService.EditDeviceName(Device);
         if (result)
         {
             MudDialog.Close(DialogResult.Ok(true));

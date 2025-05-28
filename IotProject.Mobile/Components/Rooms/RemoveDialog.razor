@@ -1,4 +1,4 @@
-@inject RoomService roomService
+@inject ApiService ApiService
 
 <MudDialog>
     <TitleContent>
@@ -8,7 +8,7 @@
         </MudText>
     </TitleContent>
     <DialogContent>
-        <MudText Class="mb-3" Typo="Typo.body1" Color="Color.Error">Are you sure? This can not be undone!</MudText>
+        <MudText Class="mb-3" Typo="Typo.body1" Color="Color.Error">Are you sure you want to remove this room?<br>This can not be undone!</MudText>
         <MudText Typo="Typo.body2">Removing the room, does not remove your devices.</MudText>
     </DialogContent>
     <DialogActions>
@@ -40,7 +40,7 @@
     {
         loading = true;
 
-        if (await roomService.DeleteRoom(RoomId))
+        if (await ApiService.DeleteRoom(RoomId))
         {
             MudDialog.Close(DialogResult.Ok(true));
         }

@@ -1,5 +1,5 @@
 @page "/devices"
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
@@ -77,7 +77,7 @@
     private async Task FetchDevices()
     {
         loading = true;
-        devices = await DeviceService.GetAllDevices();
+        devices = await ApiService.GetAllDevices();
         loading = false;
         await InvokeAsync(StateHasChanged);
     }
