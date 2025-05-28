@@ -1,4 +1,4 @@
-﻿@inject RoomService roomService
+﻿@inject ApiService ApiService
 @inject NavigationManager navigationManager
 
 <Modal @ref="updateRoomImageModal" Title="Update Image" Size="ModalSize.Regular">
@@ -62,13 +62,13 @@
     public bool isImageUploaded = false;
     public string roomIdToEdit;
 
-    private string imageUrl => $"{roomService.GetImageUrl(Id)}?t={imageCacheBuster}";
+    private string imageUrl => $"{ApiService.GetImageUrl(Id)}?t={imageCacheBuster}";
     private string imageCacheBuster = Guid.NewGuid().ToString();
 
 
     public async Task HandleImageSave()
     {
-        if (await roomService.SetRoomImage(Id, "room_image_input"))
+        if (await ApiService.SetRoomImage(Id, "room_image_input"))
         {
             isImageUploaded = true;
             imageCacheBuster = Guid.NewGuid().ToString();
@@ -92,7 +92,7 @@
         {
             isLoading = true;
 
-            var result = await roomService.GetRoom(Id);
+            var result = await ApiService.GetRoom(Id);
 
             isLoading = false;
             await InvokeAsync(StateHasChanged);

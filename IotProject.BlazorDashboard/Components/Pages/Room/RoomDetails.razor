@@ -148,7 +148,7 @@
     private EditRoomModal editRoomModal = default!;
     private UpdateRoomImageModal updateRoomImageModal = default!;
 
-    private string imageUrl => $"{roomService.GetImageUrl(Id)}?t={imageCacheBuster}";
+    private string imageUrl => $"{ApiService.GetImageUrl(Id)}?t={imageCacheBuster}";
     private string imageCacheBuster = Guid.NewGuid().ToString();
 
 

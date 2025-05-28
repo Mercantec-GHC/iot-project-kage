@@ -1,4 +1,4 @@
-﻿@inject RoomService roomService
+﻿@inject ApiService ApiService
 @inject NavigationManager navigationManager
 
 <Modal @ref="editRoomModal" Title="Edit Room" Size="ModalSize.Regular">
@@ -47,7 +47,7 @@
         {
             isLoading = true;
 
-            room = await roomService.GetRoom(Id);
+            room = await ApiService.GetRoom(Id);
 
             isLoading = false;
             await InvokeAsync(StateHasChanged);
@@ -66,7 +66,7 @@
     public async Task HandleEditRoom()
     {
         editModel.Id = room.Id;
-        var success = await roomService.UpdateRoom(editModel);
+        var success = await ApiService.UpdateRoom(editModel);
         await InvokeAsync(StateHasChanged);
 
         if (!string.IsNullOrEmpty(roomIdToEdit))
