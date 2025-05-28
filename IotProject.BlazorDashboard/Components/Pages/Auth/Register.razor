@@ -1,5 +1,5 @@
 @page "/register"
-@inject ApiService ApiService
+@inject AuthService AuthService
 @inject NavigationManager NavigationManager
 
 <div class="row justify-content-center align-items-center vh-100">
@@ -82,7 +82,7 @@
     private async Task HandleSubmit()
     {
         loading = true;
-        var result = await ApiService.Register(registerModel);
+        var result = await AuthService.Register(registerModel);
         if (result != null) NavigationManager.NavigateTo("/login", true);
         loading = false;
     }
