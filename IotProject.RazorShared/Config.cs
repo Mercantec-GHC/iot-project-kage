@@ -8,18 +8,6 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddIotServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddScoped<IotDeviceService>();
-            services.AddHttpClient<IotDeviceService>(options =>
-            {
-                options.BaseAddress = new Uri(Environment.GetEnvironmentVariable("API_URL")! ?? configuration.GetConnectionString("ApiUrl")!);
-            }).ConfigurePrimaryHttpMessageHandler(() =>
-            {
-                return new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                };
-            });
-
             services.AddScoped<ApiService>();
             services.AddHttpClient<ApiService>(options =>
             {
@@ -32,17 +20,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 };
             });
 
-            services.AddScoped<RoomService>();
-            services.AddHttpClient<RoomService>(options =>
-            {
-                options.BaseAddress = new Uri(Environment.GetEnvironmentVariable("API_URL")! ?? configuration.GetConnectionString("ApiUrl")!);
-            }).ConfigurePrimaryHttpMessageHandler(() =>
-            {
-                return new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                };
-            });
 
             services.AddApexCharts();
 

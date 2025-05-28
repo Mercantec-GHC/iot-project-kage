@@ -1,4 +1,4 @@
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
 
 <h4 class="@HeaderClass">LED Controls</h4>
 
@@ -108,6 +108,6 @@
             config[$"led_{i}"] = new { r, g, b };
         }
 
-        await DeviceService.UpdateDeviceConfiguration(Device.Id, config);
+        await ApiService.UpdateDeviceConfiguration(Device.Id, config);
     }
 }
