@@ -1,21 +1,21 @@
-﻿@inject IotDeviceService DeviceService
+﻿@inject ApiService ApiService
 @inject NavigationManager NavigationManager
 
-<Modal @ref="modal" Title="Delete device" BodyCssClass="p-0">
+<Modal @ref="modal" Title="Remove device" BodyCssClass="p-0">
 	<BodyTemplate>
-		<EditForm Model="@deleteDevice" OnValidSubmit="HandleDelete">
+		<EditForm Model="@removeDevice" OnValidSubmit="HandleDelete">
 			<div class="modal-body">
 				<div class="row g-3">
 					<div class="col-12">
-						<p class="fw-bold text-danger">Are you sure you want to delete your device?</p>
-						<p class="fst-italic text-secondary m-0">To read the device, it needs to be reset.</p>
+						<p class="fw-bold text-danger">Are you sure you want to remove your device?<br>This can not be undone!</p>
+						<p class="fst-italic text-secondary m-0">To reconnect the device, it needs to be reset.</p>
 					</div>
 				</div>
 			</div>
 			<div class="modal-footer d-block p-3">
 				<div class="row g-3 m-0">
 					<div class="col-12 col-md-6">
-						<Button Type="ButtonType.Submit" Class="btn-danger w-100" Loading="loading" LoadingText="Deleting Device" Disabled="loading">Delete</Button>
+						<Button Type="ButtonType.Submit" Class="btn-danger w-100" Loading="loading" LoadingText="Removing Device" Disabled="loading">Remove</Button>
 					</div>
 					<div class="col-12 col-md-6">
 						<Button Class="btn-gradient w-100" @onclick="@(() => modal.HideAsync())">Cancel</Button>
@@ -31,7 +31,7 @@
 	public DeviceResponse Device { get; set; }
 
 	private Modal modal = default!;
-	private DeviceRemoveRequest deleteDevice = new();
+	private DeviceRemoveRequest removeDevice = new();
 	private bool loading = false;
 
 	public async Task OnShowModalClick()
@@ -47,8 +47,8 @@
 	private async Task HandleDelete()
 	{
 		loading = true;
-		deleteDevice.Id = Device.Id;
-		var response = await DeviceService.DeleteDevice(deleteDevice);
+		removeDevice.Id = Device.Id;
+		var response = await ApiService.DeleteDevice(removeDevice);
 		if (response)
 		{
 			await modal.HideAsync();

@@ -9,26 +9,26 @@
 					<Icon Name="IconName.PersonCircle" Style="font-size: 2rem;" Class="icon-gradient" />
 				</div>
 				<h1 style="font-size: 1.5rem; margin-bottom: .25rem;"><b>Account Settings</b></h1>
-				<p class="mb-0" style="font-size: .875rem; opacity: .9;">Manage your password</p>
+				<p class="mb-0" style="font-size: .875rem; opacity: .9;">Remove your account</p>
 			</div>
 		</div>
-		<EditForm Model="deleteAccount" OnValidSubmit="HandleDelete">
+		<EditForm Model="removeAccount" OnValidSubmit="HandleDelete">
 			<DataAnnotationsValidator/>
 			<div class="modal-body">
 				<div class="top-row g-3">
 					<div class="col-12">
-						<p class="fw-bold text-danger">Are you sure you want to delete your account?<br>It can not be undone. </p>
-						<p class="fst-italic text-secondary">Insert your current password to delete your account.</p>
+						<p class="fw-bold text-danger">Are you sure you want to remove your account?<br>This can not be undone!</p>
+						<p class="fst-italic text-secondary">Insert your current password to remove your account.</p>
 						<label class="form-label">Password</label>
-						<PasswordInput Id="password" @bind-Value="deleteAccount.Password"/>
-						<ValidationMessage For="@(() => deleteAccount.Password)"/>
+						<PasswordInput Id="password" @bind-Value="removeAccount.Password"/>
+						<ValidationMessage For="@(() => removeAccount.Password)"/>
 					</div>
 				</div>
 			</div>
 			<div class="modal-footer d-block p-3">
 				<div class="row g-3 m-0">
 					<div class="col-12 col-md-6">
-						<Button Type="ButtonType.Submit" Class="btn-danger w-100" Loading="loading" LoadingText="Deleting account" Disabled="loading">Delete</Button>
+						<Button Type="ButtonType.Submit" Class="btn-danger w-100" Loading="loading" LoadingText="Removing account" Disabled="loading">Remove</Button>
 					</div>
 					<div class="col-12 col-md-6">
 						<Button Class="btn-gradient w-100" @onclick="@(() => modal.HideAsync())">Cancel</Button>
@@ -43,7 +43,7 @@
 
 @code {
 	private Modal modal = default!;
-	private UserDeleteRequest deleteAccount = new();
+	private UserDeleteRequest removeAccount = new();
 	private bool loading = false;
 
 
@@ -60,7 +60,7 @@
 	private async Task HandleDelete()
 	{
 		loading = true;
-		var response = await AuthService.Delete(deleteAccount);
+		var response = await AuthService.Delete(removeAccount);
 		if (response)
 		{
 			await modal.HideAsync();

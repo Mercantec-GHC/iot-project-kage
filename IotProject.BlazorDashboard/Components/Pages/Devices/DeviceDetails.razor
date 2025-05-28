@@ -1,7 +1,7 @@
 ﻿@page "/device/{DeviceId}"
 @using System.Timers
 @implements IDisposable
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
 @inject IJSRuntime JSRuntime
 @attribute [Authorize]
 
@@ -47,12 +47,12 @@
                                             <DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
                                                 <DropdownItem @onclick="@(() => editDeviceDetails.OnShowModalClick(true))">Edit name</DropdownItem>
                                                 <DropdownDivider />
-                                                <DropdownItem @onclick="@(() => editDeviceDetails.OnShowModalClick(false))">Edit room</DropdownItem>
+                                                <DropdownItem @onclick="@(() => editDeviceDetails.OnShowModalClick(false))">Change room</DropdownItem>
                                                 <DropdownDivider/>
                                                 <DropdownItem @onclick="@(() => deleteDevice.OnShowModalClick())">Delete device</DropdownItem>
                                             </DropdownMenu>
                                         </Dropdown>
-                                        <EditDeviceDetailsComponent @ref="editDeviceDetails" Device="device"/>
+                                        <EditDeviceDetailsComponent @ref="editDeviceDetails" Device="device" Rooms="rooms"/>
                                         <DeleteDeviceComponent @ref="deleteDevice" Device="device"/>
                                     </div>
                                     <div class="card-body">
@@ -65,7 +65,7 @@
 
                                             <div class="col-sm-4 text-muted">Room</div>
                                             <div class="col-sm-8">
-                                                <span class="badge bg-primary">@(device.RoomId ?? "Not assigned")</span>
+                                                <span class="badge bg-primary">@(device.RoomId != null ? rooms.FirstOrDefault(r => r.Id == device.RoomId)?.Name : "Not assigned")</span>
                                             </div>
 
                                             <div class="col-sm-4 text-muted">Last Update</div>
@@ -127,7 +127,6 @@
                                         </h5>
                                     </div>
                                     <div class="card-body bg-secondary-subtle">
-
                                         <WidgetProvider Device="device">
                                             <ProviderTemplate Class="row row-cols-1 row-cols-lg-2 g-3">
                                                 <div class="col">
@@ -167,14 +166,17 @@
     private Timer? refreshTimer;
     private string dateString { get; set; }
 
+    private List<RoomGetResponse> rooms = new();
     private EditDeviceDetailsComponent editDeviceDetails = default!;
     private DeleteDeviceComponent deleteDevice = default!;
 
     // Initialize the page and load device data
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        try 
+        if (firstRender)
         {
+            rooms = await ApiService.GetAllRooms();
+
             // Initialize refresh timer
             refreshTimer = new Timer(3000); // 3 seconds
             refreshTimer.Elapsed += OnTimerElapsed;
@@ -183,10 +185,7 @@
 
             await RefreshDevice();
         }
-        finally
-        {
-            isLoading = false;
-        }
+        isLoading = false;
     }
 
     private async Task ConvertTime()
@@ -211,7 +210,7 @@
     {
         try
         {
-            var newDevice = await DeviceService.GetDevice(DeviceId);
+            var newDevice = await ApiService.GetDevice(DeviceId);
             // Only update if there are actual changes
             if (newDevice != null && (device == null || !AreDevicesEqual(device, newDevice)))
             {
