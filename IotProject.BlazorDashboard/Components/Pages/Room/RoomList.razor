@@ -2,7 +2,7 @@
 @inject RoomService roomService
 @inject NavigationManager navigationManager
 
-<Button class="btn btn-gradient mb-3" @onclick="() => addRoomModal.ShowAsync()">Add New Room</Button>
+<Button class="btn btn-gradient mb-3" @onclick="@(() => OnShowAddNewRoomModalClick())">Add New Room</Button>
 @if (isLoadingRooms)
 {
     <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
@@ -14,38 +14,23 @@
 else
 {
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
-        @foreach (var item in rooms)
+        @foreach (var room in rooms)
         {
             <div class="col h-100">
                 <Card Class="card-gradient h-100 d-flex flex-column">
                     <Card Class="h-100 d-flex flex-column">
-                        <Button @onclick="() => NavigateToDetails(item.Id)" Class="p-0 m-0">
+                        <Button @onclick="() => NavigateToDetails(room.Id)" Class="p-0 m-0">
                             <CardHeader Class="p-0">
                                 <div class="w-100">
-                                    <div class="position-absolute top-0 end-0 z-1">
-                                        <Dropdown>
-                                            <button class="btn border-0 pt-0"
-                                                    type="button"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-expanded="false"
-                                            @onclick:stopPropagation>
-                                                <Icon Class="btn-dropdown" Name="IconName.ThreeDots" Size="IconSize.x2"></Icon>
-                                            </button>
-
-                                            <DropdownMenu @onclick:stopPropagation>
-                                                <DropdownItem To="@($"/rooms/edit/{item.Id}")" Type="DropdownItemType.Link">Edit</DropdownItem>
-                                                <DropdownItem @onclick="() => ShowDeleteModal(item.Id)" Type="DropdownItemType.Link">Delete</DropdownItem>
-                                            </DropdownMenu>
-                                        </Dropdown>
+                                    <div class="ratio ratio-16x9">
+                                        <img src="@($"{roomService.GetImageUrl(room.Id)}?no-cache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
                                     </div>
-                                </div>
-                                <div class="ratio ratio-16x9">
-                                    <img src="@($"{roomService.GetImageUrl(item.Id)}?no-cache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")" onerror="this.onerror=null; this.src='images/room.jpg'" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
+                                    
                                 </div>
                             </CardHeader>
                             <CardBody Class="flex-grow-1 d-flex flex-column">
-                                <CardTitle Class="flex-grow-1 text-truncate title-clamp">@item.Name</CardTitle>
-                                <CardText Class="mb-0 flex-grow-1 text-truncate description-clamp">@item.Description</CardText>
+                                <CardTitle Class="flex-grow-1 text-truncate title-clamp">@room.Name</CardTitle>
+                                <CardText Class="mb-0 flex-grow-1 text-truncate description-clamp">@room.Description</CardText>
                             </CardBody>
                         </Button>
                     </Card>
@@ -72,18 +57,18 @@ else
         else
         {
             <EditForm Model="newRoom" OnValidSubmit="HandleAddNewRoom">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
+                @* <DataAnnotationsValidator /> *@
+                @* <ValidationSummary /> *@
 
                 <div class="mb-3">
                     <label for="room-name" class="col-form-label">Room Name:</label>
                     <InputText Id="room-name" Class="form-control" @bind-Value="newRoom.Name" />
-                    <ValidationMessage For="@(() => newRoom.Name)" />
+                    @* <ValidationMessage For="@(() => newRoom.Name)" /> *@
                 </div>
                 <div class="mb-3">
                     <label for="room-description" class="col-form-label">Room Description:</label>
                     <InputTextArea Id="room-description" Class="form-control" @bind-Value="newRoom.Description" />
-                    <ValidationMessage For="@(() => newRoom.Description)" />
+                    @* <ValidationMessage For="@(() => newRoom.Description)" /> *@
                 </div>
                 <button type="submit" class="btn btn-gradient w-100">Add Room</button>
             </EditForm>
@@ -91,45 +76,20 @@ else
     </BodyTemplate>
 </Modal>
 
-<Modal @ref="confirmRoomDeleteModal" Title="Delete Room" Size="ModalSize.Regular">
-    <HeaderTemplate>
-        <h5 class="modal-title" id="AddRoomModalLabel">Delete Room</h5>
-        <Button @onclick="() => confirmRoomDeleteModal.HideAsync()" Class="btn-close" />
-    </HeaderTemplate>
-    <BodyTemplate>
-        @if (isDeletingRoom)
-        {
-            <div class="text-center my-3">
-                <div class="spinner-border text-danger" role="status"></div>
-                <div>Deleting room...</div>
-            </div>
-        }
-        else
-        {
-            <p>Are you sure you want to delete this room?</p>
-            <div class="d-flex justify-content-middle">
-                <Button @onclick="() => confirmRoomDeleteModal.HideAsync()" Class="btn btn-cancel me-2">Cancel</Button>
-                <Button Class="btn btn-danger" @onclick="HandleDeleteRoom">Delete</Button>
-            </div>
-        }
-    </BodyTemplate>
 
-</Modal>
 
 @code {
+    private DeleteRoomModal deleteRoomModal = default!;
+
     private List<RoomGetResponse> rooms = new();
-    private RoomModel newRoom = new();
+    private RoomUpdateRequest? newRoom = new();
     private Modal addRoomModal = default!;
-    private Modal confirmRoomDeleteModal = default!;
-    private string? roomIdToDelete;
     private bool isAddingRoom = false;
-    private bool isDeletingRoom = false;
     private bool isLoadingRooms = true;
 
-    private async Task ShowDeleteModal(string id)
+    private void HandleRoomDeleted()
     {
-        roomIdToDelete = id;
-        await confirmRoomDeleteModal.ShowAsync();
+        navigationManager.NavigateTo("/rooms");
     }
 
     private async Task HandleAddNewRoom()
@@ -138,15 +98,15 @@ else
         try
         {
             var request = new RoomCreateRequest
-                {
-                    Name = newRoom.Name,
-                    Description = newRoom.Description
-                };
+            {
+                Name = newRoom.Name,
+                Description = newRoom.Description
+            };
             var result = await roomService.AddRoom(request);
             if (result)
             {
                 rooms = await roomService.GetAll();
-                newRoom = new RoomModel();
+                newRoom = new RoomUpdateRequest();
                 await addRoomModal.HideAsync();
             }
         }
@@ -154,34 +114,6 @@ else
         {
             isAddingRoom = false;
         }
-    }
-
-    private async Task HandleDeleteRoom()
-    {
-        isDeletingRoom = true;
-        try
-        {
-            if (!string.IsNullOrEmpty(roomIdToDelete))
-            {
-                var result = await roomService.DeleteRoom(roomIdToDelete);
-                if (result)
-                {
-                    rooms = await roomService.GetAll();
-                }
-                roomIdToDelete = null;
-            }
-            await confirmRoomDeleteModal.HideAsync();
-        }
-        finally
-        {
-            isDeletingRoom = false;
-        }
-    }
-
-    private class RoomModel
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
     }
 
     protected async override Task OnAfterRenderAsync(bool isFirstRender)
@@ -198,5 +130,11 @@ else
     private void NavigateToDetails(string id)
     {
         navigationManager.NavigateTo($"/rooms/details/{id}");
+    }
+
+    public async Task OnShowAddNewRoomModalClick()
+    {
+        await addRoomModal.ShowAsync();
+        await InvokeAsync(StateHasChanged);
     }
 }

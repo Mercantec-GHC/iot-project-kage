@@ -92,8 +92,9 @@ namespace IotProject.API.Controllers
 				   Type: device.DeviceType,
 				   RoomId: device.RoomId!,
 				   Data: latestData?.Data,
-				   LastUpdate: latestData?.Timestamp
-			);
+				   LastUpdate: latestData?.Timestamp,
+                   Configuration: device.Config?.Config
+            );
 		}
 
 		[HttpGet("GetData"), Authorize]

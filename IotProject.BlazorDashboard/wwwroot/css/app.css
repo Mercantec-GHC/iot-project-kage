@@ -55,3 +55,11 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+.mud-input-outlined-border, .mud-input-label {
+    display: none !important;
+}
+
+.no-resize {
+    resize: none;
+}

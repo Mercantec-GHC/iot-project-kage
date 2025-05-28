@@ -1,0 +1,164 @@
+@page "/device/{DeviceId}"
+@inject IotDeviceService DeviceService
+@inject IDialogService DialogService
+
+@if (device != null)
+{
+    <MudCard Class="mb-6">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h4">Device Details</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudDivider />
+        <MudCardContent>
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudCard Outlined="true" Style="height:100%;">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Device Information</MudText>
+                            </CardHeaderContent>
+                            <CardHeaderActions>
+                                <MudIconButton Class="pa-2" Icon="@Icons.Material.Filled.Settings" Color="Color.Default" @onclick="OpenEditDialogAsync" />
+                            </CardHeaderActions>
+                        </MudCardHeader>
+
+                        <MudDivider />
+
+                        <MudCardContent>
+                            <MudGrid Spacing="2">
+                                <MudItem xs="4">
+                                    <MudText>Name:</MudText>
+                                </MudItem>
+                                <MudItem xs="8">
+                                    <MudText>@device.Name</MudText>
+                                </MudItem>
+                                <MudItem xs="4">
+                                    <MudText>Type:</MudText>
+                                </MudItem>
+                                <MudItem xs="8">
+                                    <MudText>@DeviceTypes.GetDeviceType(device.Type)?.TypeName</MudText>
+                                </MudItem>
+                                <MudItem xs="4">
+                                    <MudText>Room:</MudText>
+                                </MudItem>
+                                <MudItem xs="8">
+                                    <MudChip Class="ma-0" T="string" Size="Size.Small" Color="Color.Info">Default</MudChip>
+                                </MudItem>
+                                <MudItem xs="4">
+                                    <MudText>Status:</MudText>
+                                </MudItem>
+                                <MudItem xs="8">
+                                    @{
+                                        var online = IsDeviceOnline(device);
+                                        var text = online ? "Online" : "Offline";
+                                        var color = online ? Color.Success : Color.Error;
+
+                                        <MudChip Class="ma-0" T="string" Color="@color" Size="Size.Small">@text</MudChip>
+                                    }
+                                </MudItem>
+                                <MudItem xs="4">
+                                    <MudText>Last Update:</MudText>
+                                </MudItem>
+                                <MudItem Class="d-flex" xs="8">
+                                    @if (device.LastUpdate.HasValue)
+                                    {
+                                        <MudIcon Class="me-1" Icon="@Icons.Material.Filled.AccessTime" Color="Color.Success" />
+                                        <MudText Color="Color.Success">@device.LastUpdate.Value.ToLocalTime()</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Color="Color.Default">Never</MudText>
+                                    }
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudCard Outlined="true" Style="height:100%;">
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h6">Latest Data</MudText>
+                        </MudCardHeader>
+                        <MudDivider />
+                        <MudCardContent>
+
+                            @if (device.Data != null && device.Data.Any())
+                            {
+                                <MudGrid>
+                                    @foreach (var item in device.Data)
+                                    {
+                                        <MudItem xs="4">
+                                            <MudText>@item.Key:</MudText>
+                                        </MudItem>
+                                        <MudItem xs="8">
+                                            <MudChip Class="ma-0" T="string" Size="Size.Small" Color="Color.Info">@item.Value</MudChip>
+                                        </MudItem>
+                                    }
+                                </MudGrid>
+                            }
+
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard>
+        <MudCardHeader>
+            <MudText Typo="Typo.h5">Widgets</MudText>
+        </MudCardHeader>
+        <MudDivider />
+        <MudCardContent>
+
+            <WidgetProvider Device="device">
+                <ProviderTemplate Class="mud-grid mud-grid-spacing-xs-6 justify-start">
+                    <div class="mud-grid-item mud-grid-item-xs-12 mud-grid-item-md-6 mud-grid-item-lg-4">
+                        <ProviderContent Class="mud-paper mud-paper-outlined mud-card"
+                                         Style="height: 100%;"
+                                         HeaderClass="mud-card-header border-solid widget-header"
+                                         BodyClass="mud-card-content" />
+                    </div>
+                </ProviderTemplate>
+            </WidgetProvider>
+
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+    [Parameter]
+    public string DeviceId { get; set; }
+
+    private DeviceResponse? device;
+
+    DialogOptions dialogOptions = new DialogOptions
+    {
+        BackdropClick = false,
+        MaxWidth = MaxWidth.ExtraSmall,
+        FullWidth = true
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            device = await DeviceService.GetDevice(DeviceId);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OpenEditDialogAsync()
+    {
+        var dialogReference = await DialogService.ShowAsync<EditDialog>("Edit Device Information", dialogOptions);
+    }
+    
+    // Check if a device is online based on last update time
+    private bool IsDeviceOnline(DeviceResponse device)
+    {
+        if (device.LastUpdate == null) return false;
+        return (DateTime.UtcNow - device.LastUpdate.Value).TotalHours <= 24;
+    }
+}

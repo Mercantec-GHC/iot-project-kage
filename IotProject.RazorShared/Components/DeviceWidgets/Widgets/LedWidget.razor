@@ -1,0 +1,113 @@
+@inject IotDeviceService DeviceService
+
+<h4 class="@HeaderClass">LED Controls</h4>
+
+<div class="@BodyClass">
+    @if (Device != null)
+    {
+        <div class="row g-3 mud-grid mud-grid-spacing-xs-3">
+            <div class="col-md-6 col-lg-4 mud-grid-item mud-grid-item-xs-6 mud-grid-item-sm-3 mud-grid-item-md-4">
+                <div class="card mud-paper mud-paper-outlined  mud-card">
+                    <div class="card-header mud-card-header border-solid widget-header">
+                        <h5 class="mb-0">All LEDs</h5>
+                    </div>
+                    <div class="card-body">
+                        <input type="color" class="form-control form-control-color w-100"
+                               @bind="ledValues[0].color"
+                               @bind:after="UpdateAllLeds" />
+                    </div>
+                </div>
+            </div>
+            @for (int i = 1; i <= 5; i++)
+            {
+                var ledIndex = i;
+                <div class="col-md-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">LED @i</h5>
+                        </div>
+                        <div class="card-body mud-card-content">
+                            <input type="color" class="form-control form-control-color w-100" 
+                                   @bind="ledValues[ledIndex].color" 
+                                   @bind:after="UpdateLedConfiguration" />
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter(Name = "HeaderClassValue")]
+    public string HeaderClass { get; set; }
+
+    [CascadingParameter(Name = "BodyClassValue")]
+    public string BodyClass { get; set; }
+
+    [CascadingParameter]
+    public DeviceResponse Device { get; set; }
+
+    private class LedColor
+    {
+        public string color { get; set; } = "#000000";
+    }
+
+    //Class to hold LED color as hex string
+    private LedColor[] ledValues = new LedColor[6]; 
+
+    protected override void OnInitialized()
+    {
+        // Init array
+        for (int i = 0; i < 6; i++)
+            ledValues[i] = new LedColor();
+
+        // Read current color from device config and converts them to HEX 
+        if (Device?.Configuration != null)
+        {
+            for (int i = 1; i <= 5; i++)
+            {
+                var key = $"led_{i}";
+                                  
+                if (Device.Configuration.TryGetValue(key, out var ledObj) && ledObj is JsonElement ledElem)
+                {
+                    var r = ledElem.GetProperty("r").GetInt32();
+                    var g = ledElem.GetProperty("g").GetInt32();
+                    var b = ledElem.GetProperty("b").GetInt32();
+                    ledValues[i].color = $"#{r:X2}{g:X2}{b:X2}";
+                }
+            }
+            // Set the "All" LED to the first LED's color initially
+            ledValues[0].color = ledValues[1].color;
+        }
+    }
+
+    // Called after "All" LED color input changes to update all LEDs
+    private async Task UpdateAllLeds()
+    {
+        var allColor = ledValues[0].color;
+        for (int i = 1; i <= 5; i++)
+        {
+            ledValues[i].color = allColor;
+        }
+        await UpdateLedConfiguration();
+    }
+
+    // Called after individual LED color input changes to update config
+    private async Task UpdateLedConfiguration()
+    {
+        var config = new Dictionary<string, object>();
+
+        for (int i = 1; i <= 5; i++)
+        {
+            var hex = ledValues[i].color.TrimStart('#');
+            var r = Convert.ToInt32(hex.Substring(0, 2), 16);
+            var g = Convert.ToInt32(hex.Substring(2, 2), 16);
+            var b = Convert.ToInt32(hex.Substring(4, 2), 16);
+
+            config[$"led_{i}"] = new { r, g, b };
+        }
+
+        await DeviceService.UpdateDeviceConfiguration(Device.Id, config);
+    }
+}

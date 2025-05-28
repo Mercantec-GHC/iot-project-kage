@@ -2,13 +2,16 @@
 using Blazored.SessionStorage;
 using IotProject.Shared.Models.Requests;
 using IotProject.Shared.Models.Responses;
+using Microsoft.JSInterop;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
+
+
 namespace IotProject.RazorShared.Services
 {
-    public class RoomService(HttpClient httpClient, ILocalStorageService localStorage, ISessionStorageService sessionStorage)
+    public class RoomService(HttpClient httpClient, ILocalStorageService localStorage, ISessionStorageService sessionStorage, IJSRuntime jsRuntime)
     {
         // Predefines the JsonOptions, to be used by various functions.
         private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -29,7 +32,7 @@ namespace IotProject.RazorShared.Services
 
             var roomResult = JsonSerializer.Deserialize<List<RoomGetResponse>>(await response.Content.ReadAsStringAsync(), JsonOptions);
 
-            return roomResult!;
+            return roomResult?.OrderBy(r => r.Name).ToList()!;
         }
 
         public async Task<RoomGetResponse?> GetRoom(string id)
@@ -106,25 +109,6 @@ namespace IotProject.RazorShared.Services
             return devices ?? new List<DeviceResponse>();
         }
 
-        public async Task<bool> SetRoomImage(string roomId, string imageBase64)
-        {
-            var jwtToken = await localStorage.GetItemAsync<string>("JwtToken") ?? await sessionStorage.GetItemAsync<string>("JwtToken");
-            if (string.IsNullOrWhiteSpace(jwtToken)) return false;
-
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
-
-            var request = new
-            {
-                RoomId = roomId,
-                ImageBase64 = imageBase64
-            };
-
-            var json = JsonSerializer.Serialize(request);
-            var response = await httpClient.PostAsync("Room/SetRoomImage", new StringContent(json, Encoding.UTF8, "application/json"));
-
-            return response.IsSuccessStatusCode;
-        }
-
         public string GetImageUrl(string roomId)
         {
             return $"{httpClient.BaseAddress}room/getroomimage/{roomId}";
@@ -133,6 +117,18 @@ namespace IotProject.RazorShared.Services
         public string GetImageUploadUrl(string roomId)
         {
             return $"{httpClient.BaseAddress}room/setroomimage?roomid={roomId}";
+        }
+
+        public async Task<bool> SetRoomImage(string roomId, string elementId)
+        {
+            Console.WriteLine("Image has changed.");
+
+            var uploadUrl = GetImageUploadUrl(roomId);
+            var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/iotproject.razorshared/js/room_image.js");
+            var success = await fileModule.InvokeAsync<bool>("UploadImage", uploadUrl, elementId);
+            Console.WriteLine(success);
+
+            return success;
         }
     }
 }

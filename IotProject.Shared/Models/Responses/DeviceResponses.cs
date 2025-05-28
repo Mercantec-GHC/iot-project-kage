@@ -9,7 +9,8 @@
         string Type,
         string RoomId,
         Dictionary<string, object>? Data,
-        DateTime? LastUpdate
+        DateTime? LastUpdate,
+        Dictionary<string, object>? Configuration = null
     );
 
     public record DeviceDataResponse(

@@ -3,10 +3,26 @@
 <h4 class="@HeaderClass">Arduino Display Text</h4>
 
 <div class="@BodyClass">
-	<div class="mb-3">
-		<textarea @bind="displayText" class="form-control" rows="3" placeholder="Enter text to display..."></textarea>
+
+	<div class="mud-input-control mud-input-outlined-with-label mud-input-input-control mb-3">
+		<div class="mud-input-control-input-container">
+			<div class="mud-input mud-input-outlined mud-input-outlined-with-label mud-shrink mud-typography-subtitle1">
+				
+				<textarea @bind="displayText" class="no-resize form-control mud-input-slot mud-input-root mud-input-root-outlined" rows="5" placeholder="Enter text to display..."></textarea>
+				<fieldset class="mud-input-outlined-border">
+					<legend>Display</legend>
+				</fieldset>
+
+			</div>
+
+			<label class="mud-input-label mud-input-label-animated mud-input-label-outlined mud-input-label-inputcontrol">Display</label>
+
+		</div>
 	</div>
-	<button class="btn btn-primary" @onclick="SendTextToDisplay">Send to Display</button>
+
+	<div class="d-flex">
+		<button class="btn btn-primary ms-auto mud-button-root mud-button mud-button-filled mud-button-filled-primary mud-button-filled-size-medium mud-ripple" @onclick="SendTextToDisplay">Send to Display</button>
+	</div>
 </div>
 
 @code {
@@ -19,6 +35,22 @@
 	[CascadingParameter] public DeviceResponse Device { get; set; }
 
 	private string displayText = "";
+
+	protected override void OnInitialized()
+	{
+		// Read current text from device config
+		if (Device?.Configuration != null)
+		{
+			if (Device.Configuration.TryGetValue("display", out var displayObj) && displayObj is JsonElement displayElem)
+			{
+				if (displayElem.TryGetProperty("text", out var textElem))
+				{
+					// Convert escaped newlines back to actual newlines
+					displayText = textElem.GetString()?.Replace("\\n", "\n") ?? "";
+				}
+			}
+		}
+	}
 
 	private async Task SendTextToDisplay()
 	{

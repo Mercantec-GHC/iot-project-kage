@@ -1,0 +1,82 @@
+@page "/rooms"
+@inject RoomService roomService
+@inject NavigationManager navigationManager
+@inject IDialogService DialogService
+
+<MudFab Class="fab-be" OnClick="OpenAddDialogAsync" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Label="Add new" />
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4">Rooms</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudDivider />
+    @if (isLoadingRooms)
+    {
+        <MudProgressLinear Color="Color.Info" Indeterminate="true" />
+    }
+    else
+    {
+        <MudCardContent>
+            <MudGrid>
+                @foreach (var room in rooms)
+                {
+                    <MudItem xs="12" sm="6" md="4" lg="3" xl="2">
+                        <a href="@($"room/{room.Id}")">
+                            <MudCard Class="overflow-hidden" Outlined="true">
+                                <div class="ratio ratio-16x9">
+                                    <img src="@($"{roomService.GetImageUrl(room.Id)}?no-cache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
+                                </div>
+                                <MudDivider />
+                                <MudCardHeader Class="py-2">
+                                    <MudText Class="title-clamp" Typo="Typo.h6">@room.Name</MudText>
+                                </MudCardHeader>
+                                <MudCardContent Class="pt-0">
+                                    <MudText Class="description-clamp" Typo="Typo.body1">@room.Description</MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </a>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudCardContent>
+    }
+</MudCard>
+
+@code {
+    private List<RoomGetResponse> rooms = new();
+    private RoomUpdateRequest? newRoom = new();
+
+    DialogOptions dialogOptions = new DialogOptions
+    {
+        BackdropClick = false,
+        MaxWidth = MaxWidth.ExtraSmall,
+        FullWidth = true
+    };
+
+    private bool isAddingRoom = false;
+    private bool isLoadingRooms = true;
+
+    protected async override Task OnAfterRenderAsync(bool isFirstRender)
+    {
+        if (isFirstRender)
+        {
+            isLoadingRooms = true;
+            rooms = await roomService.GetAll();
+            isLoadingRooms = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OpenAddDialogAsync()
+    {
+        var dialogReference = await DialogService.ShowAsync<AddDialog>("Add Room", dialogOptions);
+        var dialogResult = await dialogReference.Result;
+        if (!dialogResult!.Canceled)
+        {
+            rooms = await roomService.GetAll();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}
