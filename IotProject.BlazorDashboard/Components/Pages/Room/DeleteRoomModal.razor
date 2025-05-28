@@ -1,28 +1,31 @@
 ﻿@inject ApiService ApiService
 @inject NavigationManager navigationManager
 
-<Modal @ref="confirmRoomRemoveModal" Title="Remove Room" Size="ModalSize.Regular">
-    <HeaderTemplate>
-        <h5 class="modal-title" id="AddRoomModalLabel">Remove Room</h5>
-        <Button @onclick="() => confirmRoomRemoveModal.HideAsync()" Class="btn-close" />
-    </HeaderTemplate>
+<Modal @ref="confirmRoomRemoveModal" Title="Remove room" Size="ModalSize.Regular">
     <BodyTemplate>
         @if (isRemovingRoom)
         {
             <div class="text-center my-3">
                 <div class="spinner-border text-danger" role="status"></div>
-                <div>Deleting room...</div>
+                <div>Removing room...</div>
             </div>
         }
         else
         {
-            <p>Are you sure you want to delete this room?</p>
-            <div class="d-flex justify-content-middle">
-                <Button @onclick="() => confirmRoomRemoveModal.HideAsync()" Class="btn btn-cancel me-2">Cancel</Button>
-                <Button Class="btn btn-danger" @onclick="HandleDeleteRoom" Loading="isRemovingRoom" LoadingText="Removing Device" Disabled="isRemovingRoom">Remove</Button>
-            </div>
+            <p class="fw-bold text-danger">Are you sure you want to remove this room?<br>This can not be undone!</p>
+            <p class="fst-italic text-secondary m-0">Removing the room, does not remove your devices.</p>
         }
     </BodyTemplate>
+    <FooterTemplate>
+        <div class="row g-3 m-0 w-100">
+            <div class="col-12 col-md-6">
+                <Button Class="btn-danger w-100" @onclick="HandleDeleteRoom" Loading="isRemovingRoom" LoadingText="Removing Device" Disabled="isRemovingRoom">Remove</Button>
+            </div>
+            <div class="col-12 col-md-6">
+                <Button @onclick="() => confirmRoomRemoveModal.HideAsync()" Class="btn-cancel w-100">Cancel</Button>
+            </div>
+        </div>
+    </FooterTemplate>
 </Modal>
 
 @code {
