@@ -46,7 +46,8 @@
 									<EditPasswordComponent @ref="editPassword"/>
 								</div>
 								<div class="col-12">
-									<Button Class="btn-gradient w-100">Delete Account</Button>
+									<Button Class="btn-gradient w-100" @onclick="@(() => deleteAccount.OnShowModalClick())">Delete Account</Button>
+									<DeleteAccountComponent @ref="deleteAccount"/>
 								</div>
 							</div>
 						}
@@ -64,4 +65,5 @@
 
 	private EditAccountComponent editAccount = default!;
 	private EditPasswordComponent editPassword = default!;
+	private DeleteAccountComponent deleteAccount = default!;
 }

@@ -40,17 +40,20 @@
                                         <h5 class="card-title mb-0">
                                             <i class="bi bi-info-circle me-2"></i>Device Information
                                         </h5>
-                                        <Dropdown Class="ms-auto py-2 py-sm-0 d-none d-sm-block">
+                                        <Dropdown Class="ms-auto">
                                             <DropdownToggleButton Class="p-0 border-0 logo-highlight">
                                                 <Icon Name="IconName.Gear" /> Settings
                                             </DropdownToggleButton>
                                             <DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
-                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick(true))"><Icon Name="IconName.Pencil" /> Edit name</DropdownItem>
+                                                <DropdownItem @onclick="@(() => editDeviceDetails.OnShowModalClick(true))">Edit name</DropdownItem>
                                                 <DropdownDivider />
-                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick(false))"><Icon Name="IconName.HouseGear" /> Edit room</DropdownItem>
+                                                <DropdownItem @onclick="@(() => editDeviceDetails.OnShowModalClick(false))">Edit room</DropdownItem>
+                                                <DropdownDivider/>
+                                                <DropdownItem @onclick="@(() => deleteDevice.OnShowModalClick())">Delete device</DropdownItem>
                                             </DropdownMenu>
                                         </Dropdown>
                                         <EditDeviceDetailsComponent @ref="editDeviceDetails" Device="device"/>
+                                        <DeleteDeviceComponent @ref="deleteDevice" Device="device"/>
                                     </div>
                                     <div class="card-body">
                                         <dl class="row mb-0">
@@ -194,6 +197,7 @@
     private string dateString { get; set; }
 
     private EditDeviceDetailsComponent editDeviceDetails = default!;
+    private DeleteDeviceComponent deleteDevice = default!;
 
     // Initialize the page and load device data
     protected override async Task OnInitializedAsync()

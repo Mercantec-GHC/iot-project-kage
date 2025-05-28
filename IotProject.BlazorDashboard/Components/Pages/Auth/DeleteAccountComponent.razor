@@ -6,32 +6,29 @@
 		<div class="modal-header">
 			<div class="text-center w-100">
 				<div class="auth-logo">
-					<Icon Name="IconName.PersonCircle" Style="font-size: 2rem;" Class="icon-gradient"/>
+					<Icon Name="IconName.PersonCircle" Style="font-size: 2rem;" Class="icon-gradient" />
 				</div>
 				<h1 style="font-size: 1.5rem; margin-bottom: .25rem;"><b>Account Settings</b></h1>
 				<p class="mb-0" style="font-size: .875rem; opacity: .9;">Manage your password</p>
 			</div>
 		</div>
-		<EditForm Model="editPassword" OnValidSubmit="HandleEdit">
+		<EditForm Model="deleteAccount" OnValidSubmit="HandleDelete">
 			<DataAnnotationsValidator/>
 			<div class="modal-body">
-				<div class="row g-3">
-					<div class="col-12 col-md-6">
+				<div class="top-row g-3">
+					<div class="col-12">
+						<p class="fw-bold text-danger">Are you sure you want to delete your account?<br>It can not be undone. </p>
+						<p class="fst-italic text-secondary">Insert your current password to delete your account.</p>
 						<label class="form-label">Password</label>
-						<PasswordInput Id="newPassword" @bind-Value="editPassword.Password"/>
-						<ValidationMessage For="@(() => editPassword.Password)"/>
-					</div>
-					<div class="col-12 col-md-6">
-						<label class="form-label">Confirm password</label>
-						<PasswordInput Id="confirmNewPassword" @bind-Value="editPassword.ConfirmPassword"/>
-						<ValidationMessage For="@(() => editPassword.ConfirmPassword)"/>
+						<PasswordInput Id="password" @bind-Value="deleteAccount.Password"/>
+						<ValidationMessage For="@(() => deleteAccount.Password)"/>
 					</div>
 				</div>
 			</div>
 			<div class="modal-footer d-block p-3">
 				<div class="row g-3 m-0">
 					<div class="col-12 col-md-6">
-						<Button Type="ButtonType.Submit" Class="btn-gradient w-100" Loading="loading" LoadingText="Saving changes" Disabled="loading">Save changes</Button>
+						<Button Type="ButtonType.Submit" Class="btn-danger w-100" Loading="loading" LoadingText="Deleting account" Disabled="loading">Delete</Button>
 					</div>
 					<div class="col-12 col-md-6">
 						<Button Class="btn-gradient w-100" @onclick="@(() => modal.HideAsync())">Cancel</Button>
@@ -39,13 +36,16 @@
 				</div>
 			</div>
 		</EditForm>
+
 	</BodyTemplate>
 </Modal>
 
+
 @code {
-	private UserEditPasswordRequest editPassword = new();
 	private Modal modal = default!;
+	private UserDeleteRequest deleteAccount = new();
 	private bool loading = false;
+
 
 	public async Task OnShowModalClick()
 	{
@@ -57,10 +57,10 @@
 		await modal.HideAsync();
 	}
 
-	private async Task HandleEdit()
+	private async Task HandleDelete()
 	{
 		loading = true;
-		var response = await AuthService.EditPassword(editPassword);
+		var response = await AuthService.Delete(deleteAccount);
 		if (response)
 		{
 			await modal.HideAsync();

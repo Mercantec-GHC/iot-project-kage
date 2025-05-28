@@ -224,6 +224,34 @@ namespace IotProject.RazorShared.Services
 		}
 
         /// <summary>
+        /// Attempts to delete a user.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>A <see cref="UserDeleteRequest"/> if successfull, otherwise null.</returns>
+        public async Task<bool> Delete(UserDeleteRequest request)
+        {
+			// Tries to obtain the jwt token from Local Storage.
+			var jwtToken = await localStorage.GetItemAsync<string>("JwtToken");
+
+			if (string.IsNullOrWhiteSpace(jwtToken))
+			{
+				// If unsuccessfull, tries to obtain the jwt token from Session Storage.
+				jwtToken = await sessionStorage.GetItemAsync<string>("JwtToken");
+				if (string.IsNullOrWhiteSpace(jwtToken))
+				{
+					// Return an empty list if no token is found.
+					return false;
+				}
+			}
+
+			httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", jwtToken);
+			var requestAsJson = JsonSerializer.Serialize(request);
+			var response = await httpClient.PostAsync("auth/delete", new StringContent(requestAsJson, Encoding.UTF8, "application/json"));
+
+			return response.IsSuccessStatusCode;
+		}
+
+        /// <summary>
         /// To be used on page change. Verifies and requests new tokens, otherwise signs out the user.
         /// </summary>
         /// <returns><see cref="bool"/> of true, if the current user can stay signed in.</returns>
