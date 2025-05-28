@@ -1,5 +1,5 @@
 ﻿@page "/rooms/edit/{Id}"
-@inject RoomService roomService
+@inject ApiService ApiService
 @inject NavigationManager navigationManager
 
 
@@ -89,7 +89,7 @@
     private RoomEditModel room = new();
     private bool isLoading = true;
 
-    private string imageUrl => $"{roomService.GetImageUrl(Id)}?no-cache={imageCacheBuster}";
+    private string imageUrl => $"{ApiService.GetImageUrl(Id)}?no-cache={imageCacheBuster}";
     private long imageCacheBuster = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
 
@@ -107,7 +107,7 @@
         {
             isLoading = true;
 
-            var result = await roomService.GetRoom(Id);
+            var result = await ApiService.GetRoom(Id);
             if (result != null)
             {
                 room = new RoomEditModel
@@ -134,7 +134,7 @@
                 Description = room.Description
             };
 
-        var success = await roomService.UpdateRoom(updateRequest);
+        var success = await ApiService.UpdateRoom(updateRequest);
         if (success)
         {
             navigationManager.NavigateTo("/rooms");
@@ -143,7 +143,7 @@
 
     public async Task HandleImageSave()
     {
-        if (await roomService.SetRoomImage(Id, "room_image_input"))
+        if (await ApiService.SetRoomImage(Id, "room_image_input"))
         {
             imageCacheBuster = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             await InvokeAsync(StateHasChanged);

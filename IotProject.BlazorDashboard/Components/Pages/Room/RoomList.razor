@@ -1,5 +1,5 @@
 ﻿@page "/rooms"
-@inject RoomService roomService
+@inject ApiService ApiService
 @inject NavigationManager navigationManager
 
 <Button class="btn btn-gradient mb-3" @onclick="@(() => OnShowAddNewRoomModalClick())">Add New Room</Button>
@@ -23,7 +23,7 @@ else
                             <CardHeader Class="p-0">
                                 <div class="w-100">
                                     <div class="ratio ratio-16x9">
-                                        <img src="@($"{roomService.GetImageUrl(room.Id)}?no-cache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
+                                        <img src="@($"{ApiService.GetImageUrl(room.Id)}?no-cache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
                                     </div>
                                     
                                 </div>
@@ -102,10 +102,10 @@ else
                 Name = newRoom.Name,
                 Description = newRoom.Description
             };
-            var result = await roomService.AddRoom(request);
+            var result = await ApiService.AddRoom(request);
             if (result)
             {
-                rooms = await roomService.GetAll();
+                rooms = await ApiService.GetAllRooms();
                 newRoom = new RoomUpdateRequest();
                 await addRoomModal.HideAsync();
             }
@@ -121,7 +121,7 @@ else
         if (isFirstRender)
         {
             isLoadingRooms = true;
-            rooms = await roomService.GetAll();
+            rooms = await ApiService.GetAllRooms();
             isLoadingRooms = false;
             await InvokeAsync(StateHasChanged);
         }
