@@ -1,7 +1,6 @@
 ﻿@page "/rooms/edit/{Id}"
 @inject RoomService roomService
 @inject NavigationManager navigationManager
-@inject IJSRuntime jsRuntime
 
 
 <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
@@ -56,10 +55,10 @@
                             <div class="mb-3">
                                 <label class="col-form-label fw-bold">Room Image:</label>
                                 <div class="d-flex flex-column align-items-start">
-                                    <div class="mb-2 overflow-hidden rounded-4 border shadow-sm">
+                                    <div class="mb-2 overflow-hidden rounded-4 border shadow-sm ratio ratio-16x9">
                                         <img src="@imageUrl"
                                              class="img-fluid rounded-4 border"
-                                             style="max-width: 280px; max-height: 250px; object-fit: cover; background: #f8f9fa;" />
+                                             style="object-fit: cover;" />
                                     </div>
                                     <div class="input-group mb-2">
                                         <InputFile id="room_image_input" class="form-control form-control-sm" style="height: 32px;" />
@@ -144,19 +143,10 @@
 
     public async Task HandleImageSave()
     {
-        Console.WriteLine("Image has changed.");
-
-        var uploadUrl = roomService.GetImageUploadUrl(Id);
-        var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/room_image.js");
-        var success = await fileModule.InvokeAsync<bool>("UploadImage", uploadUrl);
-        Console.WriteLine(success);
-
-        if (success)
+        if (await roomService.SetRoomImage(Id, "room_image_input"))
         {
             imageCacheBuster = Guid.NewGuid().ToString();
             await InvokeAsync(StateHasChanged);
         }
-
-        await InvokeAsync(StateHasChanged);
     }
 }

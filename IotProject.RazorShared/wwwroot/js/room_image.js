@@ -1,9 +1,16 @@
-﻿export async function UploadImage(uploadUrl) {
-    const input = document.getElementById("room_image_input");
+﻿export async function UploadImage(uploadUrl, elementId) {
+    const input = document.getElementById(elementId);
     let jwt = localStorage.getItem("JwtToken");
+
+    if (!jwt) {
+        jwt = sessionStorage.getItem("JwtToken");
+    }
+
+    if (!jwt) return false;
+
     jwt = jwt.replaceAll("\"", "");
 
-    if (input.files.length === 0) return;
+    if (input.files.length === 0) return false;
     const file = input.files[0];
 
     // Create a FormData object and append the file

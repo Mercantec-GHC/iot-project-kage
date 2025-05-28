@@ -1,0 +1,62 @@
+﻿@inject RoomService roomService
+@inject NavigationManager navigationManager
+
+<Modal @ref="confirmRoomDeleteModal" Title="Delete Room" Size="ModalSize.Regular">
+    <HeaderTemplate>
+        <h5 class="modal-title" id="AddRoomModalLabel">Delete Room</h5>
+        <Button @onclick="() => confirmRoomDeleteModal.HideAsync()" Class="btn-close" />
+    </HeaderTemplate>
+    <BodyTemplate>
+        @if (isDeletingRoom)
+        {
+            <div class="text-center my-3">
+                <div class="spinner-border text-danger" role="status"></div>
+                <div>Deleting room...</div>
+            </div>
+        }
+        else
+        {
+            <p>Are you sure you want to delete this room?</p>
+            <div class="d-flex justify-content-middle">
+                @* <Button @onclick="() => confirmRoomDeleteModal.HideAsync()" Class="btn btn-cancel me-2">Cancel</Button> *@
+                <Button Class="btn btn-danger" @onclick="HandleDeleteRoom">Delete</Button>
+            </div>
+        }
+    </BodyTemplate>
+</Modal>
+
+@code {
+    [Parameter] public RoomGetResponse room { get; set; }
+    public Modal confirmRoomDeleteModal = default!;
+    public string? roomIdToDelete;
+    public bool isDeletingRoom = false;
+
+    public async Task OnShowModalClick()
+    {
+        roomIdToDelete = room.Id;
+        await confirmRoomDeleteModal.ShowAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task HandleDeleteRoom()
+    {
+        isDeletingRoom = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            if (!string.IsNullOrEmpty(roomIdToDelete))
+            {
+                var result = await roomService.DeleteRoom(roomIdToDelete);
+
+                roomIdToDelete = null;
+                await confirmRoomDeleteModal.HideAsync();
+                navigationManager.NavigateTo("/rooms");
+            }
+        }
+        finally
+        {
+            isDeletingRoom = false;
+        }
+    }
+
+}
