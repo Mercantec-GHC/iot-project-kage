@@ -1,7 +1,7 @@
 ﻿@page "/device/{DeviceId}"
 @using System.Timers
 @implements IDisposable
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
 @inject IJSRuntime JSRuntime
 @attribute [Authorize]
 
@@ -40,33 +40,36 @@
                                         <h5 class="card-title mb-0">
                                             <i class="bi bi-info-circle me-2"></i>Device Information
                                         </h5>
-                                        <Dropdown Class="ms-auto py-2 py-sm-0 d-none d-sm-block">
+                                        <Dropdown Class="ms-auto">
                                             <DropdownToggleButton Class="p-0 border-0 logo-highlight">
-                                                <Icon Name="IconName.Gear" /> Edit
+                                                <Icon Name="IconName.Gear" /> Settings
                                             </DropdownToggleButton>
                                             <DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
-                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick(true))"><Icon Name="IconName.Pencil" /> Edit name</DropdownItem>
+                                                <DropdownItem @onclick="@(() => editDeviceDetails.OnShowModalClick(true))">Edit name</DropdownItem>
                                                 <DropdownDivider />
-                                                <DropdownItem Type="DropdownItemType.Button" @onclick="@(() => editDeviceDetails.OnShowModalClick(false))"><Icon Name="IconName.HouseGear" /> Edit room</DropdownItem>
+                                                <DropdownItem @onclick="@(() => editDeviceDetails.OnShowModalClick(false))">Change room</DropdownItem>
+                                                <DropdownDivider/>
+                                                <DropdownItem @onclick="@(() => deleteDevice.OnShowModalClick())">Delete device</DropdownItem>
                                             </DropdownMenu>
                                         </Dropdown>
-                                        <EditDeviceDetails @ref="editDeviceDetails" Device="device"/>
+                                        <EditDeviceDetailsComponent @ref="editDeviceDetails" Device="device" Rooms="rooms"/>
+                                        <DeleteDeviceComponent @ref="deleteDevice" Device="device"/>
                                     </div>
                                     <div class="card-body">
-                                        <dl class="row mb-0">
-                                            <dt class="col-sm-4 text-muted">Name</dt>
-                                            <dd class="col-sm-8 fw-bold">@device.Name</dd>
+                                        <div class="row mb-0">
+                                            <div class="col-sm-4 text-muted">Name</div>
+                                            <div class="col-sm-8 fw-bold">@device.Name</div>
 
                                             <dt class="col-sm-4 text-muted">Type</dt>
-                                            <dd class="col-sm-8">@device.Type</dd>
+                                            <dd class="col-sm-8">@DeviceTypes.GetDeviceType(device.Type)?.TypeName</dd>
 
-                                            <dt class="col-sm-4 text-muted">Room</dt>
-                                            <dd class="col-sm-8">
-                                                <span class="badge bg-primary">@(device.RoomId ?? "Not assigned")</span>
-                                            </dd>
+                                            <div class="col-sm-4 text-muted">Room</div>
+                                            <div class="col-sm-8">
+                                                <span class="badge bg-primary">@(device.RoomId != null ? rooms.FirstOrDefault(r => r.Id == device.RoomId)?.Name : "Not assigned")</span>
+                                            </div>
 
-                                            <dt class="col-sm-4 text-muted">Last Update</dt>
-                                            <dd class="col-sm-8">
+                                            <div class="col-sm-4 text-muted">Last Update</div>
+                                            <div class="col-sm-8">
                                                 @if (device.LastUpdate.HasValue)
                                                 {
                                                     <span class="text-success">
@@ -78,8 +81,8 @@
                                                 {
                                                     <span class="text-muted">Never</span>
                                                 }
-                                            </dd>
-                                        </dl>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -94,15 +97,15 @@
                                     <div class="card-body">
                                         @if (device.Data != null && device.Data.Any())
                                         {
-                                            <dl class="row mb-0">
+                                            <div class="row mb-0">
                                                 @foreach (var item in device.Data)
                                                 {
-                                                    <dt class="col-sm-4 text-muted">@item.Key</dt>
-                                                    <dd class="col-sm-8">
+                                                    <div class="col-sm-4 text-muted">@item.Key</div>
+                                                    <div class="col-sm-8">
                                                         <span class="badge bg-info text-dark">@item.Value</span>
-                                                    </dd>
+                                                    </div>
                                                 }
-                                            </dl>
+                                            </div>
                                         }
                                         else
                                         {
@@ -124,45 +127,15 @@
                                         </h5>
                                     </div>
                                     <div class="card-body bg-secondary-subtle">
-
                                         <WidgetProvider Device="device">
-                                            <ProviderTemplate Class="row row-cols-2 g-3">
+                                            <ProviderTemplate Class="row row-cols-1 row-cols-lg-2 g-3">
                                                 <div class="col">
-                                                    <ProviderContent Class="card"
+                                                    <ProviderContent Class="card h-100"
                                                         HeaderClass="card-header"
                                                         BodyClass="card-body" />
                                                 </div>
                                             </ProviderTemplate>
                                         </WidgetProvider>
-
-                                        @* <div class="row g-4">
-                                            <div class="col-12 col-md-6">
-                                                <div class="card h-100 border-0">
-                                                    <div class="card-body">
-                                                        <h6 class="card-subtitle mb-3 text-muted">
-                                                            <i class="bi bi-box me-2"></i>Widget 1
-                                                        </h6>
-                                                        <div class="text-center py-4">
-                                                            <i class="bi bi-plus-circle text-muted" style="font-size: 2rem;"></i>
-                                                            <p class="text-muted mt-2 mb-0">Widget content will be added here</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-12 col-md-6">
-                                                <div class="card h-100 border-0">
-                                                    <div class="card-body">
-                                                        <h6 class="card-subtitle mb-3 text-muted">
-                                                            <i class="bi bi-box me-2"></i>Widget 2
-                                                        </h6>
-                                                        <div class="text-center py-4">
-                                                            <i class="bi bi-plus-circle text-muted" style="font-size: 2rem;"></i>
-                                                            <p class="text-muted mt-2 mb-0">Widget content will be added here</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div> *@
                                     </div>
                                 </div>
                             </div>
@@ -193,13 +166,17 @@
     private Timer? refreshTimer;
     private string dateString { get; set; }
 
-    private EditDeviceDetails editDeviceDetails = default!;
+    private List<RoomGetResponse> rooms = new();
+    private EditDeviceDetailsComponent editDeviceDetails = default!;
+    private DeleteDeviceComponent deleteDevice = default!;
 
     // Initialize the page and load device data
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        try 
+        if (firstRender)
         {
+            rooms = await ApiService.GetAllRooms();
+
             // Initialize refresh timer
             refreshTimer = new Timer(3000); // 3 seconds
             refreshTimer.Elapsed += OnTimerElapsed;
@@ -208,10 +185,7 @@
 
             await RefreshDevice();
         }
-        finally
-        {
-            isLoading = false;
-        }
+        isLoading = false;
     }
 
     private async Task ConvertTime()
@@ -236,7 +210,7 @@
     {
         try
         {
-            var newDevice = await DeviceService.GetDevice(DeviceId);
+            var newDevice = await ApiService.GetDevice(DeviceId);
             // Only update if there are actual changes
             if (newDevice != null && (device == null || !AreDevicesEqual(device, newDevice)))
             {

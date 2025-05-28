@@ -1,7 +1,6 @@
 ﻿@page "/rooms/details/{Id}"
-@inject RoomService roomService
+@inject ApiService ApiService
 @inject NavigationManager navigationManager
-@inject IotDeviceService deviceService
 
 <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
     <Card Class="rounded-top-4 overflow-hidden">
@@ -211,8 +210,8 @@
     {
         if (firstRender)
         {
-            room = await roomService.GetRoom(Id);
-            devices = await roomService.GetDevices(Id);
+            room = await ApiService.GetRoom(Id);
+            devices = await ApiService.GetDevices(Id);
             filteredDevices = devices.ToList();
 
             isLoading = false;

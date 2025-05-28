@@ -36,7 +36,7 @@ namespace IotProject.API.Controllers
             return Ok(new DeviceRegisterResponse(device.Id, device.ApiKey));
         }
 
-        [HttpDelete("RemoveDevice")]
+        [HttpPost("RemoveDevice")]
         public async Task<ActionResult> RemoveDevice(DeviceRemoveRequest requestModel)
         {
             var user = await GetSignedInUser();
@@ -92,8 +92,9 @@ namespace IotProject.API.Controllers
 				   Type: device.DeviceType,
 				   RoomId: device.RoomId!,
 				   Data: latestData?.Data,
-				   LastUpdate: latestData?.Timestamp
-			);
+				   LastUpdate: latestData?.Timestamp,
+                   Configuration: device.Config?.Config
+            );
 		}
 
 		[HttpGet("GetData"), Authorize]

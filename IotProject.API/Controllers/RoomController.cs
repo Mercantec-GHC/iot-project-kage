@@ -10,6 +10,7 @@ using IotProject.Shared.Models.Requests;
 using IotProject.Shared.Utilities;
 using Microsoft.AspNetCore.Cors;
 using System.Net.Mime;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace IotProject.API.Controllers
 {
@@ -182,8 +183,20 @@ namespace IotProject.API.Controllers
         public async Task<ActionResult> GetRoomImage(string roomId)
         {
             var roomImage = await context.RoomImages.FirstOrDefaultAsync(r => r.RoomId == roomId);
-            if (roomImage == null) return NotFound("Room image was not found.");
             
+            //if (roomImage == null) return NotFound("Room image was not found.");
+            if (roomImage == null)
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", "room.jpg");
+
+                if (!System.IO.File.Exists(filePath))
+                {
+                    return NotFound();
+                }
+
+                return PhysicalFile(filePath, "image/jpeg");
+            }
+
             try
             {
                 var base64String = roomImage.Image;

@@ -1,7 +1,7 @@
 ﻿@page "/devices"
 @using System.Timers
 @implements IDisposable
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
 @inject IJSRuntime JSRuntime
 @attribute [Authorize]
 
@@ -39,10 +39,6 @@
                                         <span class="fw-bold fs-5 d-inline-block" style="max-width: 300px;">@device.Name</span>
                                         <div class="d-flex flex-column">
                                             <small class="text-muted">Type: @device.Type</small>
-                                            @if (!string.IsNullOrEmpty(device.RoomId))
-                                            {
-                                                <small class="text-muted">Room: @device.RoomId</small>
-                                            }
                                         </div>
                                     </div>
                                     <div class="d-flex align-items-center gap-2">
@@ -131,7 +127,7 @@
     {
         try
         {
-            var newDevices = await DeviceService.GetAllDevices();
+            var newDevices = await ApiService.GetAllDevices();
             
             // Only update if there are actual changes
             if (!AreDeviceListsEqual(devices, newDevices))
