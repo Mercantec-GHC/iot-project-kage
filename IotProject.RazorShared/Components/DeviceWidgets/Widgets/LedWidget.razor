@@ -5,18 +5,18 @@
 <div class="@BodyClass">
     @if (Device != null)
     {
-        <div class="row g-3">
+        <div class="row g-3 mud-grid mud-grid-spacing-xs-3">
             @for (int i = 1; i <= 5; i++)
             {
                 var ledIndex = i - 1;
-                <div class="col-md-6 col-lg-4">
-                    <div class="card">
-                        <div class="card-header">
+                <div class="col-md-6 col-lg-4 mud-grid-item mud-grid-item-xs-6 mud-grid-item-sm-3 mud-grid-item-md-4">
+                    <div class="card mud-paper mud-paper-outlined  mud-card">
+                        <div class="card-header mud-card-header border-solid widget-header">
                             <h5 class="mb-0">LED @i</h5>
                         </div>
-                        <div class="card-body">
-                            <input type="color" class="form-control form-control-color w-100"
-                                   @bind="ledValues[ledIndex].color"
+                        <div class="card-body mud-card-content">
+                            <input type="color" class="form-control form-control-color w-100" 
+                                   @bind="ledValues[ledIndex].color" 
                                    @bind:after="UpdateLedConfiguration" />
                         </div>
                     </div>

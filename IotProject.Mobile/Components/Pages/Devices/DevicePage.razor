@@ -20,7 +20,7 @@
                                 <MudText Typo="Typo.h6">Device Information</MudText>
                             </CardHeaderContent>
                             <CardHeaderActions>
-                                <MudIconButton Class="pa-0" Icon="@Icons.Material.Filled.Settings" Color="Color.Default" @onclick="OpenEditDialogAsync" />
+                                <MudIconButton Class="pa-2" Icon="@Icons.Material.Filled.Settings" Color="Color.Default" @onclick="OpenEditDialogAsync" />
                             </CardHeaderActions>
                         </MudCardHeader>
 
@@ -47,12 +47,24 @@
                                     <MudChip Class="ma-0" T="string" Size="Size.Small" Color="Color.Info">Default</MudChip>
                                 </MudItem>
                                 <MudItem xs="4">
+                                    <MudText>Status:</MudText>
+                                </MudItem>
+                                <MudItem xs="8">
+                                    @{
+                                        var online = IsDeviceOnline(device);
+                                        var text = online ? "Online" : "Offline";
+                                        var color = online ? Color.Success : Color.Error;
+
+                                        <MudChip Class="ma-0" T="string" Color="@color" Size="Size.Small">@text</MudChip>
+                                    }
+                                </MudItem>
+                                <MudItem xs="4">
                                     <MudText>Last Update:</MudText>
                                 </MudItem>
                                 <MudItem Class="d-flex" xs="8">
-                                    @if (!device.LastUpdate.HasValue)
+                                    @if (device.LastUpdate.HasValue)
                                     {
-                                        <MudIcon Icon="@Icons.Material.Filled.AccessTime" Color="Color.Success" />
+                                        <MudIcon Class="me-1" Icon="@Icons.Material.Filled.AccessTime" Color="Color.Success" />
                                         <MudText Color="Color.Success">@device.LastUpdate.Value.ToLocalTime()</MudText>
                                     }
                                     else
@@ -103,8 +115,9 @@
 
             <WidgetProvider Device="device">
                 <ProviderTemplate Class="mud-grid mud-grid-spacing-xs-6 justify-start">
-                    <div class="mud-grid-item mud-grid-item-xs-12 mud-grid-item-sm-6">
+                    <div class="mud-grid-item mud-grid-item-xs-12 mud-grid-item-md-6 mud-grid-item-lg-4">
                         <ProviderContent Class="mud-paper mud-paper-outlined mud-card"
+                                         Style="height: 100%;"
                                          HeaderClass="mud-card-header border-solid widget-header"
                                          BodyClass="mud-card-content" />
                     </div>
@@ -122,11 +135,11 @@
     private DeviceResponse? device;
 
     DialogOptions dialogOptions = new DialogOptions
-        {
-            BackdropClick = false,
-            MaxWidth = MaxWidth.ExtraSmall,
-            FullWidth = true
-        };
+    {
+        BackdropClick = false,
+        MaxWidth = MaxWidth.ExtraSmall,
+        FullWidth = true
+    };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -140,5 +153,12 @@
     private async Task OpenEditDialogAsync()
     {
         var dialogReference = await DialogService.ShowAsync<EditDialog>("Edit Device Information", dialogOptions);
+    }
+    
+    // Check if a device is online based on last update time
+    private bool IsDeviceOnline(DeviceResponse device)
+    {
+        if (device.LastUpdate == null) return false;
+        return (DateTime.UtcNow - device.LastUpdate.Value).TotalHours <= 24;
     }
 }
