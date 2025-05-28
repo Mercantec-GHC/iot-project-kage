@@ -8,15 +8,19 @@
             <h5 class="mb-0">Room Details</h5>
             <Dropdown Class="ms-auto py-2 py-sm-0 d-none d-sm-block">
                 <DropdownToggleButton Class="p-0 border-0 logo-highlight">
-                    <Icon Name="IconName.Gear" /> Edit
+                    <Icon Name="IconName.Gear" /> Settings
                 </DropdownToggleButton>
-                <DropdownMenu Position="DropdownMenuPosition.End" Class="text-center">
-                    <DropdownItem To="@($"/rooms/edit/{Id}")" Type="DropdownItemType.Link">Edit</DropdownItem>
-                    <DropdownDivider />
+                <DropdownMenu Position="DropdownMenuPosition.End" Class="text-center p-0">
+                    <DropdownItem @onclick="@(() => editRoomModal.OnShowEditRoomModalClick())" Type="DropdownItemType.Button">Edit</DropdownItem>
+                    <DropdownDivider Class="m-0"/>
+                    <DropdownItem @onclick="@(() => updateRoomImageModal.OnShowUpdateRoomImageModalClick())" Type="DropdownItemType.Button">Update Image</DropdownItem>
+                    <DropdownDivider Class="m-0"/>
                     <DropdownItem @onclick="@(() => deleteRoomModal.OnShowModalClick())" Type="DropdownItemType.Button">Delete</DropdownItem>
                 </DropdownMenu>
             </Dropdown>
             <DeleteRoomModal @ref="deleteRoomModal" room="room"></DeleteRoomModal>
+            <EditRoomModal @ref="editRoomModal" room="room" id="@Id"></EditRoomModal>
+            <UpdateRoomImageModal @ref="updateRoomImageModal" room="room" id="@Id"></UpdateRoomImageModal>
         </CardHeader>
 
         <CardBody>
@@ -32,79 +36,97 @@
             {
                 <div class="row align-items-stretch">
                     <!-- Left column: Room details -->
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="col-form-label fw-bold mb-0">Room Name:</label>
-                            <div class="form-control-plaintext">@room.Name</div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="col-form-label fw-bold">Room Description:</label>
-                            <div class="form-control-plaintext">@room.Description</div>
+                    <div class="col-12 col-md-6">
+                        <div class="row" style="flex-direction: row-reverse;">
+                            <div class="col-12 col-md-6">
+                                <div class="mb-2 overflow-hidden rounded-4 border shadow-sm ratio ratio-16x9">
+                                    <img src="@imageUrl"
+                                         class="img-fluid rounded-4 border"
+                                         style="object-fit: cover;" />
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="mb-3">
+                                    <label class="col-form-label fw-bold mb-0 pb-0">Room Name:</label>
+                                    <div class="form-control-plaintext">@room.Name</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="col-form-label fw-bold pb-0">Room Description:</label>
+                                    <div class="form-control-plaintext">@room.Description</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <!-- Divider: vertical on desktop, horizontal on mobile -->
-                    <div class="d-none d-md-flex col-md-1 justify-content-center align-items-center">
-                        <div style="width:2px; height:95%; background: linear-gradient(140deg, rgba(82,191,250,1) 40%, rgba(255,128,91,1) 60%);"></div>
-                    </div>
                     <div class="d-md-none col-12">
                         <hr class="my-4" />
                     </div>
                     <!-- Right column: Placeholder for additional info -->
-                    <div class="col-md-5">
-                        <div class="mb-3">
-                            @if (devices.Count == 0)
-                            {
-                                <div class="text-muted">No devices found.</div>
-                            }
-                            else
-                            {
-                                if (!isLoading)
-                                {
-                                    <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
-                                        <Card class="rounded-top-4 overflow-hidden">
-                                            <CardHeader>
-                                                <CardTitle>Devices</CardTitle>
-                                                <CardSubTitle Class="text-secondary">Total devices: @(devices.Count)</CardSubTitle>
-                                            </CardHeader>
-                                            <CardBody>
-                                                <div class="mb-3">
-                                                    <InputText @bind-Value="searchTerm" class="form-control" placeholder="Search devices..." @oninput="OnSearch" />
-                                                </div>
-                                                <ul class="list-group">
-                                                    @foreach (var device in FilteredPagedDevices)
-                                                    {
-                                                        <li class="list-group-item position-relative hover-effect">
-                                                            <div class="d-flex justify-content-between align-items-start">
-                                                                <div>
-                                                                    <strong>@device.Name</strong>
-                                                                    <div class="text-muted small">Type: @device.Type</div>
-                                                                </div>
-                                                                <span class="badge rounded-pill @(IsDeviceOnline(device) ? "bg-success" : "bg-danger") mt-1">
-                                                                    @(IsDeviceOnline(device) ? "Online" : "Offline")
-                                                                </span>
-                                                            </div>
-                                                            <a href="@($"device/{device.Id}")" class="stretched-link"></a>
-                                                        </li>
+                    <div class="col-12 col-md-6">
+                        <div class="row h-100">
+                            <div class="col-auto">
+                                <div class="d-none d-md-flex col-12 col-md-2 justify-content-center align-items-center h-100" style="width: 2px;">
+                                    <div style="width:2px; height:95%; background: linear-gradient(140deg, rgba(82,191,250,1) 40%, rgba(255,128,91,1) 60%);"></div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="mb-3">
+                                    @if (devices.Count == 0)
+                                    {
+                                        <div class="text-muted">No devices found.</div>
+                                    }
+                                    else
+                                    {
+                                        if (!isLoading)
+                                        {
+                                            <Card Class="rounded-top-4 overflow-hidden lighter-border shadow card-gradient">
+                                                <Card class="rounded-top-4 overflow-hidden">
+                                                    <CardHeader>
+                                                        <CardTitle>Devices</CardTitle>
+                                                        <CardSubTitle Class="text-secondary">Total devices: @(devices.Count)</CardSubTitle>
+                                                    </CardHeader>
+                                                    <CardBody>
+                                                        <div class="mb-3">
+                                                            <InputText @bind-Value="searchTerm" class="form-control" placeholder="Search devices..." @oninput="OnSearch" />
+                                                        </div>
+                                                        <ul class="list-group">
+                                                            @foreach (var device in FilteredPagedDevices)
+                                                            {
+                                                                <li class="list-group-item position-relative hover-effect">
+                                                                    <div class="d-flex justify-content-between align-items-start">
+                                                                        <div>
+                                                                            <strong>@device.Name</strong>
+                                                                            <div class="text-muted small">Type: @device.Type</div>
+                                                                        </div>
+                                                                        <span class="badge rounded-pill @(IsDeviceOnline(device) ? "bg-success" : "bg-danger") mt-1">
+                                                                            @(IsDeviceOnline(device) ? "Online" : "Offline")
+                                                                        </span>
+                                                                    </div>
+                                                                    <a href="@($"device/{device.Id}")" class="stretched-link"></a>
+                                                                </li>
 
-                                                    }
-                                                </ul>
-                                            </CardBody>
+                                                            }
+                                                        </ul>
+                                                    </CardBody>
 
-                                            <CardFooter class="d-flex justify-content-end p-3">
-                                                <Pagination ActivePageNumber="currentPage"
-                                                TotalPages="TotalPages"
-                                                DisplayPages="DisplayPages"
-                                                PageChanged="OnPageChanged"
-                                                FirstLinkIcon="IconName.ChevronDoubleLeft"
-                                                PreviousLinkIcon="IconName.ChevronLeft"
-                                                NextLinkIcon="IconName.ChevronRight"
-                                                LastLinkIcon="IconName.ChevronDoubleRight" />
-                                            </CardFooter>
-                                        </Card>
-                                    </Card>
-                                }
-                            }
+                                                    <CardFooter class="d-flex justify-content-end p-3">
+                                                        <Pagination ActivePageNumber="currentPage"
+                                                                    TotalPages="TotalPages"
+                                                                    DisplayPages="DisplayPages"
+                                                                    PageChanged="OnPageChanged"
+                                                                    FirstLinkIcon="IconName.ChevronDoubleLeft"
+                                                                    PreviousLinkIcon="IconName.ChevronLeft"
+                                                                    NextLinkIcon="IconName.ChevronRight"
+                                                                    LastLinkIcon="IconName.ChevronDoubleRight" />
+                                                    </CardFooter>
+                                                </Card>
+                                            </Card>
+                                        }
+                                    }
+                                </div>
+                            </div>
                         </div>
+                        
 
                     </div>
                 </div>
@@ -123,6 +145,12 @@
     public string Id { get; set; } = string.Empty;
 
     private DeleteRoomModal deleteRoomModal = default!;
+    private EditRoomModal editRoomModal = default!;
+    private UpdateRoomImageModal updateRoomImageModal = default!;
+
+    private string imageUrl => $"{roomService.GetImageUrl(Id)}?t={imageCacheBuster}";
+    private string imageCacheBuster = Guid.NewGuid().ToString();
+
 
     private RoomGetResponse? room;
     private bool isLoading = true;
