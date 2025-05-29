@@ -1,5 +1,5 @@
 @page "/devices"
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
@@ -10,6 +10,20 @@
         <CardHeaderContent>
             <MudText Typo="Typo.h4">Devices</MudText>
         </CardHeaderContent>
+        <CardHeaderActions>
+            <MudButton Class="align-self-center" Disabled="@loading" OnClick="FetchDevices" Variant="Variant.Text">
+                @if (loading)
+                {
+                    <MudText Class="me-2">Refreshing</MudText>
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
+                    <MudText Class="me-2">Refresh</MudText>
+                    <MudIcon Class="ms-n1" Icon="@Icons.Material.Filled.Refresh"></MudIcon>
+                }
+            </MudButton>
+        </CardHeaderActions>
     </MudCardHeader>
     <MudDivider />
     @if (loading)
@@ -56,10 +70,16 @@
     {
         if (firstRender)
         {
-            devices = await DeviceService.GetAllDevices();
-            loading = false;
-            await InvokeAsync(StateHasChanged);
+            await FetchDevices();
         }
+    }
+
+    private async Task FetchDevices()
+    {
+        loading = true;
+        devices = await ApiService.GetAllDevices();
+        loading = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private void OnRowClicked(DeviceResponse device)

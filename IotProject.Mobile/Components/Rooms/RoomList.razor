@@ -1,5 +1,5 @@
 @page "/rooms"
-@inject RoomService roomService
+@inject ApiService ApiService
 @inject NavigationManager navigationManager
 @inject IDialogService DialogService
 
@@ -10,6 +10,20 @@
         <CardHeaderContent>
             <MudText Typo="Typo.h4">Rooms</MudText>
         </CardHeaderContent>
+        <CardHeaderActions>
+            <MudButton Class="align-self-center" Disabled="@isLoadingRooms" OnClick="FetchRooms" Variant="Variant.Text">
+                @if (isLoadingRooms)
+                {
+                    <MudText Class="me-2">Refreshing</MudText>
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
+                    <MudText Class="me-2">Refresh</MudText>
+                    <MudIcon Class="ms-n1" Icon="@Icons.Material.Filled.Refresh"></MudIcon>
+                }
+            </MudButton>
+        </CardHeaderActions>
     </MudCardHeader>
     <MudDivider />
     @if (isLoadingRooms)
@@ -26,13 +40,14 @@
                         <a href="@($"room/{room.Id}")">
                             <MudCard Class="overflow-hidden" Outlined="true">
                                 <div class="ratio ratio-16x9">
-                                    <img src="@($"{roomService.GetImageUrl(room.Id)}?no-cache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
+                                    <img src="@($"{ApiService.GetImageUrl(room.Id)}?no-cache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}")" alt="Room Image" class="img-fluid w-100" style="height: 100%; object-fit: cover;" />
                                 </div>
                                 <MudDivider />
-                                <MudCardHeader Class="py-2">
+                                <MudCardHeader Class="pb-2 pt-1">
                                     <MudText Class="title-clamp" Typo="Typo.h6">@room.Name</MudText>
                                 </MudCardHeader>
-                                <MudCardContent Class="pt-0">
+                                <MudDivider />
+                                <MudCardContent>
                                     <MudText Class="description-clamp" Typo="Typo.body1">@room.Description</MudText>
                                 </MudCardContent>
                             </MudCard>
@@ -54,19 +69,22 @@
         MaxWidth = MaxWidth.ExtraSmall,
         FullWidth = true
     };
-
-    private bool isAddingRoom = false;
     private bool isLoadingRooms = true;
 
     protected async override Task OnAfterRenderAsync(bool isFirstRender)
     {
         if (isFirstRender)
         {
-            isLoadingRooms = true;
-            rooms = await roomService.GetAll();
-            isLoadingRooms = false;
-            await InvokeAsync(StateHasChanged);
+            await FetchRooms();
         }
+    }
+
+    private async Task FetchRooms()
+    {
+        isLoadingRooms = true;
+        rooms = await ApiService.GetAllRooms();
+        isLoadingRooms = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task OpenAddDialogAsync()
@@ -75,7 +93,7 @@
         var dialogResult = await dialogReference.Result;
         if (!dialogResult!.Canceled)
         {
-            rooms = await roomService.GetAll();
+            rooms = await ApiService.GetAllRooms();
             await InvokeAsync(StateHasChanged);
         }
     }

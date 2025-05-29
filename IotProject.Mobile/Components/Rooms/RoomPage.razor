@@ -1,7 +1,6 @@
 @page "/room/{RoomId}"
-@inject RoomService roomService
 @inject NavigationManager navigationManager
-@inject IotDeviceService deviceService
+@inject ApiService ApiService
 @inject IDialogService DialogService
 
 <InputFile id="room_image_input" class="d-none" onchange="UploadFiles" />
@@ -110,15 +109,15 @@
 
     private bool isLoading = true;
 
-    private string imageUrl => $"{roomService.GetImageUrl(RoomId)}?no-cache={imageCacheBuster}";
+    private string imageUrl => $"{ApiService.GetImageUrl(RoomId)}?no-cache={imageCacheBuster}";
     private long imageCacheBuster = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            room = await roomService.GetRoom(RoomId);
-            devices = await roomService.GetDevices(RoomId);
+            room = await ApiService.GetRoom(RoomId);
+            devices = await ApiService.GetDevices(RoomId);
 
             isLoading = false;
             await InvokeAsync(StateHasChanged);
@@ -128,7 +127,7 @@
     private async Task UploadFiles()
     {
         await menu.CloseMenuAsync();
-        if (await roomService.SetRoomImage(RoomId, "room_image_input"))
+        if (await ApiService.SetRoomImage(RoomId, "room_image_input"))
         {
             imageCacheBuster = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             await InvokeAsync(StateHasChanged);
@@ -152,7 +151,7 @@
         var dialogResult = await dialogReference.Result;
         if (!dialogResult!.Canceled)
         {
-            room = await roomService.GetRoom(RoomId);
+            room = await ApiService.GetRoom(RoomId);
             await InvokeAsync(StateHasChanged);
         }
     }
