@@ -74,6 +74,10 @@
         }
     }
 
+    /// <summary>
+    /// Fetches the list of devices from the API and updates the component state.
+    /// </summary>
+    /// <returns></returns>
     private async Task FetchDevices()
     {
         loading = true;
@@ -82,13 +86,21 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    /// <summary>
+    /// Redirects to the device details page when a row is clicked.
+    /// </summary>
+    /// <param name="device"></param>
     private void OnRowClicked(DeviceResponse device)
     {
         NavigationManager.NavigateTo($"device/{device.Id}");
     }
 
-    // Check if a device is online based on last update time
-    private bool IsDeviceOnline(DeviceResponse device)
+    /// <summary>
+	/// Checks if a device is online based on its last update time.
+	/// </summary>
+	/// <param name="device"></param>
+	/// <returns></returns>
+	private bool IsDeviceOnline(DeviceResponse device)
     {
         if (device.LastUpdate == null) return false;
         return (DateTime.UtcNow - device.LastUpdate.Value).TotalHours <= 24;

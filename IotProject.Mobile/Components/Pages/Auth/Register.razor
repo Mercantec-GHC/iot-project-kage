@@ -47,7 +47,11 @@
     private bool loading = false;
     private string errorMessage = string.Empty;
 
-    private async Task HandleRegister()
+    /// <summary>
+	/// Handles the registration process and logs the user in after registration.
+	/// </summary>
+	/// <returns></returns>
+	private async Task HandleRegister()
     {
         loading = true;
         var response = await AuthService.Register(registerModel);

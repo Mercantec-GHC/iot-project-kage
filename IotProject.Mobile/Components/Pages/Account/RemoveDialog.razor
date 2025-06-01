@@ -1,0 +1,66 @@
+@inject AuthService AuthService
+@inject ApiService ApiService
+
+<EditForm Model="removeAccount" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Class="mr-3 mb-n1" />
+                Delete Account
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudText Class="mb-3" Typo="Typo.body1" Color="Color.Error">Are you sure you want to delete your account?<br>This can not be undone!</MudText>
+            <MudText Typo="Typo.body2">All rooms will be remove and all your devices will be disabled until they have been reset.</MudText>
+            <MudText Class="mt-3" Typo="Typo.body1">To continue, please provide your current password.</MudText>
+            <MudTextField Class="mt-1" Label="Current Password" @bind-Value="removeAccount.Password" For="@(() => removeAccount.Password)" InputType="InputType.Password" />
+            @if (error)
+            {
+                <MudText Class="mt-3" Typo="Typo.body1" Color="Color.Error">The password given does not match!</MudText>
+            }
+        </DialogContent>
+        <DialogActions>
+            <MudButton Disabled="loading" Color="Color.Error" ButtonType="ButtonType.Submit">
+                @if (loading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <p Class="ms-2">Confirming</p>
+                }
+                else
+                {
+                    <p>Confirm</p>
+                }
+            </MudButton>
+            <MudButton Disabled="loading" OnClick="Cancel">Cancel</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private UserDeleteRequest removeAccount = new();
+
+    private bool loading = false;
+    private bool error = false;
+
+    private async Task Submit()
+    {
+        loading = true;
+
+        if (await AuthService.Delete(removeAccount))
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            error = true;
+        }
+
+        loading = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
