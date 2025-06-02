@@ -36,7 +36,7 @@ namespace IotProject.API.Controllers
             return Ok(new DeviceRegisterResponse(device.Id, device.ApiKey));
         }
 
-        [HttpPost("RemoveDevice")]
+        [HttpPost("RemoveDevice"), Authorize]
         public async Task<ActionResult> RemoveDevice(DeviceRemoveRequest requestModel)
         {
             var user = await GetSignedInUser();
