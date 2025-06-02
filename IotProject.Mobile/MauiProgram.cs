@@ -16,36 +16,15 @@ namespace IotProject.Mobile
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
-            //builder.Configuration["ConnectionStrings:ApiUrl"] = "http://localhost:5298";
+            // Load configuration files into the configuration manager.
+            LoadConfiguration(builder.Configuration, "appsettings.json");
+            LoadConfiguration(builder.Configuration, "appsettings.Development.json");
 
-            try
-            {
-                // Forsøg at hente appsettings.json fra appens pakke
-                using var appSettingsStream = FileSystem.OpenAppPackageFileAsync("appsettings.json").GetAwaiter().GetResult();
-                builder.Configuration.AddJsonStream(appSettingsStream);
-            }
-            catch (Exception ex)
-            {
-                // Hvis filen ikke findes eller der sker en fejl, kan du logge fejlen
-                Console.WriteLine($"Fejl ved indlæsning af appsettings.json: {ex.Message}");
-                throw;
-            }
-
-            // Prøv at loade appsettings.Development.json som er optional
-            try
-            {
-                using var devSettingsStream = FileSystem.OpenAppPackageFileAsync("appsettings.Development.json").GetAwaiter().GetResult();
-                builder.Configuration.AddJsonStream(devSettingsStream);
-            }
-            catch (Exception ex)
-            {
-                // Hvis den ikke findes, ignoreres fejlen - det er helt acceptabelt hvis filen er optional.
-                Console.WriteLine("appsettings.Development.json blev ikke fundet - fortsætter uden den.");
-            }
-
+            // Register services with the dependency injection container.
             builder.Services.AddJwtAuth(builder.Configuration);
             builder.Services.AddIotServices(builder.Configuration);
 
+            // Register the Blazor WebView for the application.
             builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG
@@ -53,9 +32,30 @@ namespace IotProject.Mobile
     		builder.Logging.AddDebug();
 #endif
 
+            // Register MudBlazor services for UI components.
             builder.Services.AddMudServices();
 
             return builder.Build();
+        }
+
+        /// <summary>
+        /// Loads the configuration from a JSON file into the provided configuration manager.
+        /// </summary>
+        /// <param name="configuration">The configuration manager to which the JSON settings will be added.</param>
+        /// <param name="configFile">The name of the JSON configuration file to load.</param>
+        private static void LoadConfiguration(IConfigurationManager configuration , string configFile)
+        {
+            try
+            {
+                // Opens a filestream and add it to the configuration.
+                using var settingsStream = FileSystem.OpenAppPackageFileAsync(configFile).GetAwaiter().GetResult();
+                configuration.AddJsonStream(settingsStream);
+            }
+            catch (Exception ex)
+            {
+                // If the file is not found, the error is ignored.
+                Console.WriteLine($"{configFile} was not found - continuing without.");
+            }
         }
     }
 }

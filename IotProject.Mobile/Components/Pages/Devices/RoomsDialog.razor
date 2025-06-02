@@ -1,0 +1,69 @@
+@inject ApiService ApiService
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Devices" Class="mr-3 mb-n1" />
+            Select Room
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudSelect @bind-Value="requestRoomModel.RoomId" Label="Room">
+            <MudSelectItem Value="@noRoomId">No room</MudSelectItem>
+            @foreach (var room in Rooms)
+            {
+                <MudSelectItem Value="room.Id" >@room.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Disabled="loading" Color="Color.Primary" OnClick="Submit">
+            @if (loading)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <p Class="ms-2">Saving</p>
+            }
+            else
+            {
+                <p>Save</p>
+            }
+        </MudButton>
+        <MudButton Disabled="loading" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public DeviceResponse Device { get; set; }
+
+    [Parameter]
+    public List<RoomGetResponse> Rooms { get; set; }
+
+    private DeviceRoomRequest requestRoomModel = new();
+    private string? noRoomId = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        requestRoomModel.Id = Device.Id;
+        requestRoomModel.RoomId = Device.RoomId;
+    }
+
+    private bool loading = false;
+
+    private async Task Submit()
+    {
+        loading = true;
+
+        if (await ApiService.EditDeviceRoom(requestRoomModel))
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+
+        loading = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
