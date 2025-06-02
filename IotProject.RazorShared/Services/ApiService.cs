@@ -178,7 +178,7 @@ namespace IotProject.RazorShared.Services
 			try
 			{
 				var uploadUrl = GetImageUploadUrl(roomId);
-				var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/iotproject.razorshared/js/room_image.js");
+				var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/IotProject.RazorShared/js/room_image.js");
 				var success = await fileModule.InvokeAsync<bool>("UploadImage", uploadUrl, elementId);
 				
 				return success;
