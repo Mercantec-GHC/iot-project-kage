@@ -3,71 +3,74 @@
 <h4 class="@HeaderClass">Arduino Display Text</h4>
 
 <div class="@BodyClass">
+    <div class="mud-input-control mud-input-outlined-with-label mud-input-input-control mb-3">
+        <div class="mud-input-control-input-container">
+            <div class="mud-input mud-input-outlined mud-input-outlined-with-label mud-shrink mud-typography-subtitle1">
+                <textarea @bind="displayText"
+                          class="no-resize form-control mud-input-slot mud-input-root mud-input-root-outlined"
+                          rows="5"
+                          placeholder="Enter text to display...">
+                </textarea>
+                <fieldset class="mud-input-outlined-border">
+                    <legend>Display</legend>
+                </fieldset>
+            </div>
 
-	<div class="mud-input-control mud-input-outlined-with-label mud-input-input-control mb-3">
-		<div class="mud-input-control-input-container">
-			<div class="mud-input mud-input-outlined mud-input-outlined-with-label mud-shrink mud-typography-subtitle1">
-				
-				<textarea @bind="displayText" class="no-resize form-control mud-input-slot mud-input-root mud-input-root-outlined" rows="5" placeholder="Enter text to display..."></textarea>
-				<fieldset class="mud-input-outlined-border">
-					<legend>Display</legend>
-				</fieldset>
+            <label class="mud-input-label mud-input-label-animated mud-input-label-outlined mud-input-label-inputcontrol">
+                Display
+            </label>
+        </div>
+    </div>
 
-			</div>
-
-			<label class="mud-input-label mud-input-label-animated mud-input-label-outlined mud-input-label-inputcontrol">Display</label>
-
-		</div>
-	</div>
-
-	<div class="d-flex">
-		<button class="btn btn-primary ms-auto mud-button-root mud-button mud-button-filled mud-button-filled-primary mud-button-filled-size-medium mud-ripple" @onclick="SendTextToDisplay">Send to Display</button>
-	</div>
+    <div class="d-flex">
+        <button class="btn btn-primary ms-auto mud-button-root mud-button mud-button-filled mud-button-filled-primary mud-button-filled-size-medium mud-ripple"
+                @onclick="SendTextToDisplay">
+            Send to Display
+        </button>
+    </div>
 </div>
 
 @code {
-	[CascadingParameter(Name = "HeaderClassValue")]
-	public string HeaderClass { get; set; }
+    [CascadingParameter(Name = "HeaderClassValue")]
+    public string HeaderClass { get; set; }
 
-	[CascadingParameter(Name = "BodyClassValue")]
-	public string BodyClass { get; set; }
+    [CascadingParameter(Name = "BodyClassValue")]
+    public string BodyClass { get; set; }
 
-	[CascadingParameter] public DeviceResponse Device { get; set; }
+    [CascadingParameter]
+    public DeviceResponse Device { get; set; }
 
-	private string displayText = "";
+    private string? displayText = null;
 
-	protected override void OnInitialized()
-	{
-		// Read current text from device config
-		if (Device?.Configuration != null)
-		{
-			if (Device.Configuration.TryGetValue("display", out var displayObj) && displayObj is JsonElement displayElem)
-			{
-				if (displayElem.TryGetProperty("text", out var textElem))
-				{
-					// Convert escaped newlines back to actual newlines
-					displayText = textElem.GetString()?.Replace("\\n", "\n") ?? "";
-				}
-			}
-		}
-	}
+    protected override void OnInitialized()
+    {
+        if (Device?.Configuration != null)
+        {
+            if (Device.Configuration.TryGetValue("display", out var displayObj) && displayObj is JsonElement displayElem)
+            {
+                if (displayElem.TryGetProperty("text", out var textElem))
+                {
+                    // Convert escaped newlines to actual newlines
+                    displayText = textElem.GetString()?.Replace("\\n", "\n");
+                }
+            }
+        }
+    }
 
-	private async Task SendTextToDisplay()
-	{
-		if (string.IsNullOrWhiteSpace(displayText)) return;
+    private async Task SendTextToDisplay()
+    {
+        // Normalize newlines; allow null or empty input
+        string? formattedText = displayText?.Replace("\r\n", "\n");
 
-		// Replaces line breaks with \n
-		string formattedText = displayText.Replace("\r\n", "\n").Replace("\n", "\\n");
+        var config = new Dictionary<string, object>
+        {
+            ["display"] = new Dictionary<string, object>
+            {
+                ["text"] = formattedText,
+                ["weight"] = 3
+            }
+        };
 
-		var config = new Dictionary<string, object>
-		{
-			["display"] = new Dictionary<string, object>
-			{
-				["text"] = formattedText,
-				["weight"] = 3
-			}
-		};
-
-		await ApiService.UpdateDeviceConfiguration(Device.Id, config);
-	}
+        await ApiService.UpdateDeviceConfiguration(Device.Id, config);
+    }
 }
