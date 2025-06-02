@@ -1,5 +1,6 @@
 @page "/device/{DeviceId}"
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
+@inject NavigationManager navigationManager
 @inject IDialogService DialogService
 
 @if (device != null)
@@ -20,7 +21,14 @@
                                 <MudText Typo="Typo.h6">Device Information</MudText>
                             </CardHeaderContent>
                             <CardHeaderActions>
-                                <MudIconButton Class="pa-2" Icon="@Icons.Material.Filled.Settings" Color="Color.Default" @onclick="OpenEditDialogAsync" />
+                                @* <MudIconButton Class="pa-2" Icon="@Icons.Material.Filled.Settings" Color="Color.Default" @onclick="OpenEditDialogAsync" /> *@
+                                <MudMenu Icon="@Icons.Material.Filled.Settings"
+                                Color="Color.Default"
+                                AriaLabel="Open settings menu">
+                                    <MudMenuItem Label="Rename Device" OnClick="OpenRenameDialogAsync" />
+                                    <MudMenuItem Label="Change Room" OnClick="OpenRoomsDialogAsync" />
+                                    <MudMenuItem Label="Remove Device" OnClick="OpenRemoveDialogAsync" />
+                                </MudMenu>
                             </CardHeaderActions>
                         </MudCardHeader>
 
@@ -44,7 +52,7 @@
                                     <MudText>Room:</MudText>
                                 </MudItem>
                                 <MudItem xs="8">
-                                    <MudChip Class="ma-0" T="string" Size="Size.Small" Color="Color.Info">Default</MudChip>
+                                    <MudChip Class="ma-0" T="string" Size="Size.Small" Color="Color.Info">@(device.RoomId != null ? rooms.FirstOrDefault(r => r.Id == device.RoomId)?.Name : "Not assigned")</MudChip>
                                 </MudItem>
                                 <MudItem xs="4">
                                     <MudText>Status:</MudText>
@@ -117,9 +125,9 @@
                 <ProviderTemplate Class="mud-grid mud-grid-spacing-xs-6 justify-start">
                     <div class="mud-grid-item mud-grid-item-xs-12 mud-grid-item-md-6 mud-grid-item-lg-4">
                         <ProviderContent Class="mud-paper mud-paper-outlined mud-card"
-                                         Style="height: 100%;"
-                                         HeaderClass="mud-card-header border-solid widget-header"
-                                         BodyClass="mud-card-content" />
+                        Style="height: 100%;"
+                        HeaderClass="mud-card-header border-solid widget-header"
+                        BodyClass="mud-card-content" />
                     </div>
                 </ProviderTemplate>
             </WidgetProvider>
@@ -133,7 +141,9 @@
     public string DeviceId { get; set; }
 
     private DeviceResponse? device;
+    private List<RoomGetResponse> rooms = new();
 
+    // Dialog options for the dialogs used in this page
     DialogOptions dialogOptions = new DialogOptions
     {
         BackdropClick = false,
@@ -145,18 +155,83 @@
     {
         if (firstRender)
         {
-            device = await DeviceService.GetDevice(DeviceId);
+            rooms = await ApiService.GetAllRooms();
+            device = await ApiService.GetDevice(DeviceId);
             await InvokeAsync(StateHasChanged);
         }
     }
 
-    private async Task OpenEditDialogAsync()
+    /// <summary>
+    /// Opens the rename dialog for the device.
+    /// </summary>
+    /// <returns></returns>
+    private async Task OpenRenameDialogAsync()
     {
-        var dialogReference = await DialogService.ShowAsync<EditDialog>("Edit Device Information", dialogOptions);
+        var parameters = new DialogParameters
+        {
+            { "Device", new DeviceNameRequest
+                {
+                    Id = device.Id,
+                    Name = device.Name
+                }
+            }
+        };
+
+        var dialogReference = await DialogService.ShowAsync<RenameDialog>("Rename Device", parameters, dialogOptions);
+        var dialogResult = await dialogReference.Result;
+        if (!dialogResult!.Canceled)
+        {
+            device = await ApiService.GetDevice(DeviceId);
+            await InvokeAsync(StateHasChanged);
+        }
     }
-    
-    // Check if a device is online based on last update time
-    private bool IsDeviceOnline(DeviceResponse device)
+
+    /// <summary>
+    /// Opens the rooms dialog to change the device's room.
+    /// </summary>
+    /// <returns></returns>
+    private async Task OpenRoomsDialogAsync()
+    {
+        var parameters = new DialogParameters
+        {
+            { "Rooms", rooms },
+            { "Device", device }
+        };
+
+        var dialogReference = await DialogService.ShowAsync<RoomsDialog>("Select Room", parameters, dialogOptions);
+        var dialogResult = await dialogReference.Result;
+        if (!dialogResult!.Canceled)
+        {
+            device = await ApiService.GetDevice(DeviceId);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    /// <summary>
+    /// Opens the remove dialog to confirm device removal.
+    /// </summary>
+    /// <returns></returns>
+    private async Task OpenRemoveDialogAsync()
+    {
+        var parameters = new DialogParameters
+        {
+            { "DeviceId", DeviceId }
+        };
+
+        var dialogReference = await DialogService.ShowAsync<RemoveDialog>("Remove Device", parameters, dialogOptions);
+        var dialogResult = await dialogReference.Result;
+        if (!dialogResult!.Canceled)
+        {
+            navigationManager.NavigateTo("devices");
+        }
+    }
+
+    /// <summary>
+	/// Checks if a device is online based on its last update time.
+	/// </summary>
+	/// <param name="device"></param>
+	/// <returns></returns>
+	private bool IsDeviceOnline(DeviceResponse device)
     {
         if (device.LastUpdate == null) return false;
         return (DateTime.UtcNow - device.LastUpdate.Value).TotalHours <= 24;

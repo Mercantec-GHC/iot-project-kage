@@ -66,7 +66,7 @@ else if (step == 2)
         <MudDivider />
         <MudProgressLinear Color="Color.Info" Indeterminate="true" />
         <MudCardContent>
-            <p>@test</p>
+            <p>@message</p>
         </MudCardContent>
     </MudCard>
 }
@@ -78,7 +78,7 @@ else if (step == 2)
     private bool isScanning = false;
     private bool showNoDevices = false;
     private int step = 1;
-    private string? test;
+    private string? message;
     private CancellationTokenSource? scanningCts;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -112,7 +112,7 @@ else if (step == 2)
 
         try
         {
-            // Starter scanning – denne metode blokerer, indtil scanningen afsluttes
+            // Starts scanning – this method blocks until the scan is complete
             await adapter.StartScanningForDevicesAsync();
         }
         catch (Exception ex)
@@ -151,13 +151,11 @@ else if (step == 2)
         await DisposeAsync();
         selectedDevice = device;
         step = 2;
-        test = await SendTestMessage(device);
-        // DeviceRegisterResponse response = JsonSerializer.Deserialize<DeviceRegisterResponse>(test, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        // NavigationManager.NavigateTo("/");
+        message = await SendConfigurationMessage(device);
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task<string?> SendTestMessage(IDevice device)
+    private async Task<string?> SendConfigurationMessage(IDevice device)
     {
         var adapter = CrossBluetoothLE.Current.Adapter;
 
@@ -184,7 +182,7 @@ else if (step == 2)
         var service = await device.GetServiceAsync(serviceGuid);
         if (service == null)
         {
-            Console.WriteLine("Service med den specificerede UUID blev ikke fundet på enheden.");
+            Console.WriteLine("Service with the specified UUID was not found on the device.");
             return null;
         }
 
@@ -264,7 +262,6 @@ else if (step == 2)
             Console.WriteLine($"Fejl ved disconnect: {disconnectEx.Message}");
         }
 
-        // Returnerer det modtagne svar.
         return responseMessage;
     }
 

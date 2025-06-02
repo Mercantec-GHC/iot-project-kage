@@ -1,28 +1,28 @@
 @inject ApiService ApiService
 
-<EditForm Model="room" OnValidSubmit="Submit"><DataAnnotationsValidator />
+<EditForm Model="Device" OnValidSubmit="Submit
+"><DataAnnotationsValidator />
     <DataAnnotationsValidator />
     <MudDialog>
         <TitleContent>
             <MudText Typo="Typo.h6">
-                <MudIcon Icon="@Icons.Material.Filled.Home" Class="mr-3 mb-n1" />
-                Add Room
+                <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3 mb-n1" />
+                Edit Device Information
             </MudText>
         </TitleContent>
         <DialogContent>
-            <MudTextField Class="mt-1" Label="Name" @bind-Value="room.Name" For="@(() => room.Name)" />
-            <MudTextField T="string" Label="Description" @bind-Value="room.Description" Lines="3" />
+            <MudTextField Class="mt-1" Label="Name" @bind-Value="Device.Name" />
         </DialogContent>
         <DialogActions>
             <MudButton Disabled="loading" Color="Color.Primary" ButtonType="ButtonType.Submit">
                 @if (loading)
                 {
                     <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                    <p Class="ms-2">Processing</p>
+                    <p Class="ms-2">Saving</p>
                 }
                 else
                 {
-                    <p>Add</p>
+                    <p>Save</p>
                 }
             </MudButton>
             <MudButton Disabled="loading" OnClick="Cancel">Cancel</MudButton>
@@ -34,20 +34,19 @@
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }
 
-    private RoomCreateRequest room = new();
+    [Parameter]
+    public DeviceNameRequest Device { get; set; }
 
     private bool loading = false;
 
-    private async Task Submit()
+    private async void Submit()
     {
         loading = true;
-
-        var result = await ApiService.AddRoom(room);
+        var result = await ApiService.EditDeviceName(Device);
         if (result)
         {
             MudDialog.Close(DialogResult.Ok(true));
         }
-
         loading = false;
     }
 

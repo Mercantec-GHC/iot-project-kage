@@ -30,11 +30,16 @@
 			<MudItem xs="12" sm="6" md="4" lg="3">
 				<MudButton @onclick="OpenSignoutDialogAsync" Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true">Sign out</MudButton>
 			</MudItem>
+			<MudFlexBreak />
+			<MudItem xs="12" sm="6" md="4" lg="3">
+				<MudButton @onclick="OpenDeleteDialogAsync" Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true">Delete Account</MudButton>
+			</MudItem>
 		</MudGrid>
 	</MudCardContent>
 </MudCard>
 
 @code {
+	// Dialog options for the account management dialogs.
 	DialogOptions dialogOptions = new DialogOptions
 	{
 		BackdropClick = false,
@@ -42,19 +47,46 @@
 		FullWidth = true
 	};
 
+	/// <summary>
+	/// Opens the dialog to change account information.
+	/// </summary>
+	/// <returns></returns>
 	private async Task OpenInfoDialogAsync()
 	{
 		var dialogReference = await DialogService.ShowAsync<ChangeInfoDialog>("Change Account Information", dialogOptions);
 	}
 
+	/// <summary>
+	/// Opens the dialog to change account password.
+	/// </summary>
+	/// <returns></returns>
 	private async Task OpenPasswordDialogAsync()
 	{
 		var dialogReference = await DialogService.ShowAsync<ChangePasswordDialog>("Change Password", dialogOptions);
 	}
 
+	/// <summary>
+	/// Opens the dialog to sign out of the account.
+	/// </summary>
+	/// <returns></returns>
 	private async Task OpenSignoutDialogAsync()
 	{
 		var dialogReference = await DialogService.ShowAsync<SignOutDialog>("Sign Out", dialogOptions);
+		var dialogResult = await dialogReference.Result;
+		if (!dialogResult!.Canceled)
+		{
+			await AuthService.Logout();
+			NavigationManager.NavigateTo("/");
+		}
+	}
+
+	/// <summary>
+	/// Opens the dialog to delete the account.
+	/// </summary>
+	/// <returns></returns>
+	private async Task OpenDeleteDialogAsync()
+	{
+		var dialogReference = await DialogService.ShowAsync<RemoveDialog>("Delete Account", dialogOptions);
 		var dialogResult = await dialogReference.Result;
 		if (!dialogResult!.Canceled)
 		{

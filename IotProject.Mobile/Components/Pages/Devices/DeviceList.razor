@@ -1,5 +1,5 @@
 @page "/devices"
-@inject IotDeviceService DeviceService
+@inject ApiService ApiService
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
@@ -10,6 +10,20 @@
         <CardHeaderContent>
             <MudText Typo="Typo.h4">Devices</MudText>
         </CardHeaderContent>
+        <CardHeaderActions>
+            <MudButton Class="align-self-center" Disabled="@loading" OnClick="FetchDevices" Variant="Variant.Text">
+                @if (loading)
+                {
+                    <MudText Class="me-2">Refreshing</MudText>
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
+                    <MudText Class="me-2">Refresh</MudText>
+                    <MudIcon Class="ms-n1" Icon="@Icons.Material.Filled.Refresh"></MudIcon>
+                }
+            </MudButton>
+        </CardHeaderActions>
     </MudCardHeader>
     <MudDivider />
     @if (loading)
@@ -56,19 +70,37 @@
     {
         if (firstRender)
         {
-            devices = await DeviceService.GetAllDevices();
-            loading = false;
-            await InvokeAsync(StateHasChanged);
+            await FetchDevices();
         }
     }
 
+    /// <summary>
+    /// Fetches the list of devices from the API and updates the component state.
+    /// </summary>
+    /// <returns></returns>
+    private async Task FetchDevices()
+    {
+        loading = true;
+        devices = await ApiService.GetAllDevices();
+        loading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Redirects to the device details page when a row is clicked.
+    /// </summary>
+    /// <param name="device"></param>
     private void OnRowClicked(DeviceResponse device)
     {
         NavigationManager.NavigateTo($"device/{device.Id}");
     }
 
-    // Check if a device is online based on last update time
-    private bool IsDeviceOnline(DeviceResponse device)
+    /// <summary>
+	/// Checks if a device is online based on its last update time.
+	/// </summary>
+	/// <param name="device"></param>
+	/// <returns></returns>
+	private bool IsDeviceOnline(DeviceResponse device)
     {
         if (device.LastUpdate == null) return false;
         return (DateTime.UtcNow - device.LastUpdate.Value).TotalHours <= 24;
