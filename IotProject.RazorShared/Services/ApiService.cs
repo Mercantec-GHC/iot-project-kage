@@ -3,6 +3,7 @@ using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using IotProject.Shared.Models.Requests;
 using IotProject.Shared.Models.Responses;
+using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -11,7 +12,7 @@ using System.Text.Json;
 
 namespace IotProject.RazorShared.Services
 {
-    public  class ApiService(HttpClient httpClient, ILocalStorageService localStorage, ISessionStorageService sessionStorage, IJSRuntime jsRuntime)
+    public  class ApiService(HttpClient httpClient, ILocalStorageService localStorage, ISessionStorageService sessionStorage, IJSRuntime jsRuntime, IConfiguration configuration)
     {
         // Predefines the JsonOptions, to be used by various functions.
         private readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -132,6 +133,11 @@ namespace IotProject.RazorShared.Services
 			return devices ?? new List<DeviceResponse>();
 		}
 
+		private string? GetClientApiUrl()
+		{
+			return Environment.GetEnvironmentVariable("API_CLIENT_URL") ?? configuration.GetConnectionString("ApiClientUrl");
+        }
+
 		/// <summary>
 		/// Generates the URL for retrieving the image associated with a specific room.
 		/// </summary>
@@ -141,7 +147,7 @@ namespace IotProject.RazorShared.Services
 		/// <returns>A string containing the full URL to retrieve the room's image.</returns>
 		public string GetImageUrl(string roomId)
 		{
-			return $"{httpClient.BaseAddress}room/getroomimage/{roomId}";
+			return $"{GetClientApiUrl()}/room/getroomimage/{roomId}";
 		}
 
 		/// <summary>
@@ -155,7 +161,7 @@ namespace IotProject.RazorShared.Services
 		/// <returns>A string containing the URL to upload an image for the specified room.</returns>
 		public string GetImageUploadUrl(string roomId)
 		{
-			return $"{httpClient.BaseAddress}room/setroomimage?roomid={roomId}";
+			return $"{GetClientApiUrl()}/room/setroomimage?roomid={roomId}";
 		}
 
 		/// <summary>
@@ -169,11 +175,20 @@ namespace IotProject.RazorShared.Services
 		/// <returns><see langword="true"/> if the image upload was successful; otherwise, <see langword="false"/>.</returns>
 		public async Task<bool> SetRoomImage(string roomId, string elementId)
 		{
-			var uploadUrl = GetImageUploadUrl(roomId);
-			var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/iotproject.razorshared/js/room_image.js");
-			var success = await fileModule.InvokeAsync<bool>("UploadImage", uploadUrl, elementId);
+			try
+			{
+				var uploadUrl = GetImageUploadUrl(roomId);
+				var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/IotProject.RazorShared/js/room_image.js");
+				var success = await fileModule.InvokeAsync<bool>("UploadImage", uploadUrl, elementId);
+				
+				return success;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				return false;
+            }
 
-			return success;
 		}
 		#endregion
 
