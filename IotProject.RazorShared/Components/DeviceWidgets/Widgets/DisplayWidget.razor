@@ -1,4 +1,4 @@
-@inject ApiService ApiService
+	@inject ApiService ApiService
 
 <h4 class="@HeaderClass">Arduino Display Text</h4>
 
@@ -57,7 +57,7 @@
 		if (string.IsNullOrWhiteSpace(displayText)) return;
 
 		// Replaces line breaks with \n
-		string formattedText = displayText.Replace("\r\n", "\n").Replace("\n", "\\n");
+		string formattedText = displayText.Replace("\r\n", "\n");
 
 		var config = new Dictionary<string, object>
 		{
