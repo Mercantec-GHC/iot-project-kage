@@ -175,11 +175,20 @@ namespace IotProject.RazorShared.Services
 		/// <returns><see langword="true"/> if the image upload was successful; otherwise, <see langword="false"/>.</returns>
 		public async Task<bool> SetRoomImage(string roomId, string elementId)
 		{
-			var uploadUrl = GetImageUploadUrl(roomId);
-			var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/iotproject.razorshared/js/room_image.js");
-			var success = await fileModule.InvokeAsync<bool>("UploadImage", uploadUrl, elementId);
+			try
+			{
+				var uploadUrl = GetImageUploadUrl(roomId);
+				var fileModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/iotproject.razorshared/js/room_image.js");
+				var success = await fileModule.InvokeAsync<bool>("UploadImage", uploadUrl, elementId);
+				
+				return success;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				return false;
+            }
 
-			return success;
 		}
 		#endregion
 
